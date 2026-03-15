@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useMatchStore } from "../store/useMatchStore";
-import { Undo2, Settings, CircleDot, Trophy, RotateCcw } from "lucide-react";
+// ONLY CHANGE 1: Added Maximize to the imports
+import { Undo2, Settings, CircleDot, Trophy, RotateCcw, Maximize } from "lucide-react";
 
 export default function HomePage() {
   const {
@@ -27,6 +28,19 @@ export default function HomePage() {
       winSoundRef.current.play().catch(e => console.log("Audio play blocked. Tap the screen once at the start of the match."));
     }
   }, [matchWinner, matchWinnerDismissed]);
+
+  // ONLY CHANGE 2: Added the toggleFullscreen function
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((e) => {
+        console.error(`Error attempting to enable fullscreen: ${e.message}`);
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
 
   // --- FLIC POLL LOGIC ---
   useEffect(() => {
@@ -79,6 +93,11 @@ export default function HomePage() {
         <div className="absolute inset-0 z-50 bg-black/95 flex items-center justify-center p-4" onClick={() => setSettingsOpen(false)}>
           <div className="bg-slate-900 border-4 border-slate-700 p-10 rounded-[3rem] w-full max-w-xl flex flex-col gap-6" onClick={e => e.stopPropagation()}>
              <h2 className="text-2xl font-black uppercase text-center text-slate-500 tracking-widest">Match Settings</h2>
+             
+             {/* ONLY CHANGE 3: Added the Fullscreen Button inside Settings */}
+             <button onClick={toggleFullscreen} className="py-6 rounded-3xl bg-indigo-600 border-4 border-white text-3xl font-black uppercase flex items-center justify-center gap-4 transition-transform active:scale-95">
+               <Maximize size={32} /> Enable Fullscreen
+             </button>
              
              <div className="grid grid-cols-2 gap-4">
                 <button onClick={() => setMatchFormat(3)} className={`py-6 rounded-3xl border-4 text-3xl font-black uppercase transition-all ${matchFormat === 3 ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Best of 3</button>
