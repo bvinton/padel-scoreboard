@@ -236,7 +236,6 @@ export default function HomePage() {
 
   const formatPoints = (p: string | number) => typeof p === "number" ? p.toString() : p;
 
-  // Determines color for draining state (Green -> Amber)
   const getTimerStrokeColor = () => {
     if (timeLeft > 10) return "text-emerald-500 drop-shadow-[0_0_15px_rgba(16,185,129,1)]";
     return "text-amber-500 drop-shadow-[0_0_15px_rgba(245,158,11,1)]";
@@ -267,40 +266,38 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* SCOREBOARD SECTION WITH NEW SOLID ARENA SHOT CLOCK */}
+      {/* SCOREBOARD SECTION WITH 100% SOLID SVG CLOCK */}
       <section className="flex-grow flex flex-col p-1 relative overflow-hidden">
         
         {/* DRAINING TIMER (20s -> 0.1s) */}
         {timerStarted && timeLeft > 0 && (
           <svg className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] pointer-events-none z-50 rounded-lg md:rounded-[1.5rem]" preserveAspectRatio="none" viewBox="0 0 100 100">
-            {/* RIGHT HALF: Starts bottom-middle, draws up to top-middle. As offset goes 0 -> 100, line shrinks to top. */}
+            {/* RIGHT HALF: True mathematical length is 200. No pathLength hack. */}
             <path
-              d="M 50 100 L 100 100 L 100 0 L 50 0"
+              d="M 50 0 L 100 0 L 100 100 L 50 100"
               fill="none"
               stroke="currentColor"
               className={`transition-all duration-100 ease-linear ${getTimerStrokeColor()}`}
               strokeWidth="8"
               vectorEffect="non-scaling-stroke"
-              pathLength="100"
-              strokeDasharray="100"
-              style={{ strokeDashoffset: 100 - (timeLeft / 20) * 100 }}
+              strokeDasharray="200"
+              style={{ strokeDashoffset: 200 - (timeLeft / 20) * 200 }}
             />
-            {/* LEFT HALF: Starts bottom-middle, draws up to top-middle. As offset goes 0 -> 100, line shrinks to top. */}
+            {/* LEFT HALF: True mathematical length is 200. No pathLength hack. */}
             <path
-              d="M 50 100 L 0 100 L 0 0 L 50 0"
+              d="M 50 0 L 0 0 L 0 100 L 50 100"
               fill="none"
               stroke="currentColor"
               className={`transition-all duration-100 ease-linear ${getTimerStrokeColor()}`}
               strokeWidth="8"
               vectorEffect="non-scaling-stroke"
-              pathLength="100"
-              strokeDasharray="100"
-              style={{ strokeDashoffset: 100 - (timeLeft / 20) * 100 }}
+              strokeDasharray="200"
+              style={{ strokeDashoffset: 200 - (timeLeft / 20) * 200 }}
             />
           </svg>
         )}
 
-        {/* TIME VIOLATION ALARM (0s) - Full Solid Pulsing Red Square */}
+        {/* TIME VIOLATION ALARM (0s) */}
         {timerStarted && timeLeft <= 0 && (
           <svg className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] pointer-events-none z-50 rounded-lg md:rounded-[1.5rem]" preserveAspectRatio="none" viewBox="0 0 100 100">
             <rect
