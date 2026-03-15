@@ -26,7 +26,6 @@ export default function HomePage() {
   const [localDismissed, setLocalDismissed] = useState(false);
   const [umpireEnabled, setUmpireEnabled] = useState(false);
   
-  // Timer States
   const [timeLeft, setTimeLeft] = useState(0);
   const [timerStarted, setTimerStarted] = useState(false);
 
@@ -83,7 +82,7 @@ export default function HomePage() {
   const handleReset = () => {
     addLog("Match Reset");
     setHistoryLog([]); 
-    setLocalDismissed(false); 
+    setLocalDismissed(false);
     setTimerStarted(false);
     setTimeLeft(0);
     prevGames1.current = 0; prevGames2.current = 0;
@@ -237,10 +236,10 @@ export default function HomePage() {
 
   const formatPoints = (p: string | number) => typeof p === "number" ? p.toString() : p;
 
+  // Determines color for draining state (Green -> Amber)
   const getTimerStrokeColor = () => {
-    if (timeLeft > 10) return "text-emerald-500 drop-shadow-[0_0_15px_rgba(16,185,129,0.8)]";
-    if (timeLeft > 5) return "text-amber-500 drop-shadow-[0_0_15px_rgba(245,158,11,0.8)]";
-    return "text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,1)] animate-pulse";
+    if (timeLeft > 10) return "text-emerald-500 drop-shadow-[0_0_15px_rgba(16,185,129,1)]";
+    return "text-amber-500 drop-shadow-[0_0_15px_rgba(245,158,11,1)]";
   };
 
   return (
@@ -268,35 +267,49 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* SCOREBOARD SECTION WITH NEW SVG ARENA SHOT CLOCK */}
+      {/* SCOREBOARD SECTION WITH NEW SOLID ARENA SHOT CLOCK */}
       <section className="flex-grow flex flex-col p-1 relative overflow-hidden">
         
-        {/* THE SHOT CLOCK LASER TRACER */}
-        {timerStarted && (
-          <svg className="absolute inset-0 w-full h-full pointer-events-none z-50 rounded-lg md:rounded-[1.5rem]" preserveAspectRatio="none" viewBox="0 0 100 100">
-            {/* RIGHT HALF (Starts top-middle 50,0 -> goes to 100,0 -> down to 100,100 -> back to 50,100) */}
+        {/* DRAINING TIMER (20s -> 0.1s) */}
+        {timerStarted && timeLeft > 0 && (
+          <svg className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] pointer-events-none z-50 rounded-lg md:rounded-[1.5rem]" preserveAspectRatio="none" viewBox="0 0 100 100">
+            {/* RIGHT HALF: Starts bottom-middle, draws up to top-middle. As offset goes 0 -> 100, line shrinks to top. */}
             <path
-              d="M 50 0 L 100 0 L 100 100 L 50 100"
+              d="M 50 100 L 100 100 L 100 0 L 50 0"
               fill="none"
               stroke="currentColor"
               className={`transition-all duration-100 ease-linear ${getTimerStrokeColor()}`}
-              strokeWidth="10"
+              strokeWidth="8"
               vectorEffect="non-scaling-stroke"
               pathLength="100"
               strokeDasharray="100"
-              style={{ strokeDashoffset: (timeLeft / 20) * 100 }}
+              style={{ strokeDashoffset: 100 - (timeLeft / 20) * 100 }}
             />
-            {/* LEFT HALF (Starts top-middle 50,0 -> goes to 0,0 -> down to 0,100 -> back to 50,100) */}
+            {/* LEFT HALF: Starts bottom-middle, draws up to top-middle. As offset goes 0 -> 100, line shrinks to top. */}
             <path
-              d="M 50 0 L 0 0 L 0 100 L 50 100"
+              d="M 50 100 L 0 100 L 0 0 L 50 0"
               fill="none"
               stroke="currentColor"
               className={`transition-all duration-100 ease-linear ${getTimerStrokeColor()}`}
-              strokeWidth="10"
+              strokeWidth="8"
               vectorEffect="non-scaling-stroke"
               pathLength="100"
               strokeDasharray="100"
-              style={{ strokeDashoffset: (timeLeft / 20) * 100 }}
+              style={{ strokeDashoffset: 100 - (timeLeft / 20) * 100 }}
+            />
+          </svg>
+        )}
+
+        {/* TIME VIOLATION ALARM (0s) - Full Solid Pulsing Red Square */}
+        {timerStarted && timeLeft <= 0 && (
+          <svg className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] pointer-events-none z-50 rounded-lg md:rounded-[1.5rem]" preserveAspectRatio="none" viewBox="0 0 100 100">
+            <rect
+              x="0" y="0" width="100" height="100"
+              fill="none"
+              stroke="currentColor"
+              className="text-red-600 drop-shadow-[0_0_25px_rgba(220,38,38,1)] animate-pulse"
+              strokeWidth="8"
+              vectorEffect="non-scaling-stroke"
             />
           </svg>
         )}
