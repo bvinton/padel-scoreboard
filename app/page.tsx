@@ -15,9 +15,6 @@ export default function HomePage() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const winSoundRef = useRef<HTMLAudioElement | null>(null);
 
-  // --- REFRESH CHECK ---
-  // If you see a PURPLE border on the Reset button, you are on the latest code.
-
   useEffect(() => {
     let wakeLock: any = null;
     const requestWakeLock = async () => {
@@ -96,15 +93,12 @@ export default function HomePage() {
               server === t.id ? "border-emerald-500 bg-emerald-500/10" : "border-slate-800/40 bg-slate-900/30"
             }`}
           >
-            {/* Team Label & Serving */}
             <div className="flex justify-between items-center w-full z-20">
               <span className={`text-xl font-black italic tracking-tighter ${server === t.id ? "text-emerald-400" : "text-slate-700"}`}>{t.label}</span>
               {server === t.id && <span className="text-xs font-black text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-full animate-pulse border border-emerald-400/30 uppercase tracking-widest">Serving</span>}
             </div>
 
-            {/* Main Content Area (Side-by-Side) */}
             <div className="flex-1 flex items-center justify-between w-full gap-4 mt-[-10px]">
-              
               {/* SETS (Left) */}
               <div className="flex flex-col items-center justify-center bg-slate-950/60 w-1/4 h-[85%] rounded-[2rem] border-2 border-slate-800/50">
                 <span className="text-[10px] text-slate-500 font-bold tracking-widest uppercase">Sets</span>
@@ -123,7 +117,6 @@ export default function HomePage() {
                 <span className="text-[10px] text-slate-500 font-bold tracking-widest uppercase">Games</span>
                 <span className="text-[7vh] md:text-[9vh] font-black text-slate-100 leading-none">{t.data.games}</span>
               </div>
-
             </div>
           </button>
         ))}
@@ -140,7 +133,6 @@ export default function HomePage() {
         </div>
 
         <div className="flex items-center gap-4">
-          {/* PURPLE BORDER HERE TO VERIFY CODE UPDATE */}
           <button onClick={resetMatch} className="text-[10px] font-bold text-slate-700 border-2 border-purple-500/50 px-3 py-1 rounded-lg uppercase hover:text-red-400">Reset</button>
           <button onClick={() => setSettingsOpen(!settingsOpen)} className="p-2 bg-slate-900 border border-slate-700 rounded-xl text-slate-500 hover:text-white">
             <Settings size={20} />
