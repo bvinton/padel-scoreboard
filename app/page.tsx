@@ -41,25 +41,18 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, [timeLeft]);
 
-  // --- MALE UMPIRE LOGIC ---
   const speakScore = (text: string) => {
     if (!umpireEnabled || typeof window === "undefined") return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    
-    // Prioritize Male voices
     const voices = window.speechSynthesis.getVoices();
     const maleVoice = voices.find(v => 
       (v.name.toLowerCase().includes("male") || v.name.toLowerCase().includes("low")) && 
       (v.lang.includes("en-GB") || v.lang.includes("en-US"))
     );
-    
-    if (maleVoice) {
-      utterance.voice = maleVoice;
-    }
-
-    utterance.rate = 1.05; // Snappy professional pace
-    utterance.pitch = 0.85; // Lower pitch for a more masculine, authoritative sound
+    if (maleVoice) utterance.voice = maleVoice;
+    utterance.rate = 1.05;
+    utterance.pitch = 0.85;
     window.speechSynthesis.speak(utterance);
   };
 
@@ -71,35 +64,28 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!umpireEnabled) return;
-    
-    // Announce Tiebreak Start
     if (isTiebreak && !prevIsTiebreak.current) {
         speakScore("Six games all. Tiebreak.");
         prevIsTiebreak.current = true;
         return;
     }
     prevIsTiebreak.current = isTiebreak;
-
     if (matchWinner && !matchWinnerDismissed) {
       speakScore(`Game, Set and Match. ${matchWinner === 'team1' ? team1Name : team2Name}`);
       return;
     }
-
     if (team1.sets > prevSets1.current) {
         speakScore(`Game and Set, ${team1Name}`);
         prevSets1.current = team1.sets;
-        prevGames1.current = 0;
-        prevGames2.current = 0;
+        prevGames1.current = 0; prevGames2.current = 0;
         return;
     }
     if (team2.sets > prevSets2.current) {
         speakScore(`Game and Set, ${team2Name}`);
         prevSets2.current = team2.sets;
-        prevGames1.current = 0;
-        prevGames2.current = 0;
+        prevGames1.current = 0; prevGames2.current = 0;
         return;
     }
-
     if (team1.games > prevGames1.current) {
         speakScore(`Game, ${team1Name}`);
         prevGames1.current = team1.games;
@@ -110,19 +96,12 @@ export default function HomePage() {
         prevGames2.current = team2.games;
         return;
     }
-
-    const p1 = team1.points;
-    const p2 = team2.points;
-
+    const p1 = team1.points; const p2 = team2.points;
     if (p1 === '0' && p2 === '0') return;
-
-    if (p1 === 'Ad' || p2 === 'Ad') {
-      speakScore("Advantage");
-    } else if (p1 === '40' && p2 === '40') {
-      speakScore("Deuce");
-    } else if (isTiebreak) {
-      speakScore(`${p1}, ${p2}`);
-    } else {
+    if (p1 === 'Ad' || p2 === 'Ad') speakScore("Advantage");
+    else if (p1 === '40' && p2 === '40') speakScore("Deuce");
+    else if (isTiebreak) speakScore(`${p1}, ${p2}`);
+    else {
       const p1Text = p1 === '0' ? "Love" : p1;
       const p2Text = p2 === '0' ? "Love" : p2;
       if (p1 === p2) speakScore(`${p1Text} All`);
@@ -132,9 +111,7 @@ export default function HomePage() {
 
   useEffect(() => {
     const saved = localStorage.getItem('padelArchive');
-    if (saved) {
-      try { setSavedMatches(JSON.parse(saved)); } catch (e) {}
-    }
+    if (saved) { try { setSavedMatches(JSON.parse(saved)); } catch (e) {} }
   }, []);
 
   const handleScore = (team: 'team1' | 'team2') => {
@@ -146,21 +123,15 @@ export default function HomePage() {
   const handleUndo = () => {
     undo();
     setTimeLeft(0);
-    prevGames1.current = team1.games;
-    prevGames2.current = team2.games;
-    prevSets1.current = team1.sets;
-    prevSets2.current = team2.sets;
+    prevGames1.current = team1.games; prevGames2.current = team2.games;
+    prevSets1.current = team1.sets; prevSets2.current = team2.sets;
     prevIsTiebreak.current = isTiebreak;
   };
 
   const handleReset = () => {
-    setHistoryLog([]);
-    setLocalDismissed(false);
-    setTimeLeft(0);
-    prevGames1.current = 0;
-    prevGames2.current = 0;
-    prevSets1.current = 0;
-    prevSets2.current = 0;
+    setHistoryLog([]); setLocalDismissed(false); setTimeLeft(0);
+    prevGames1.current = 0; prevGames2.current = 0;
+    prevSets1.current = 0; prevSets2.current = 0;
     prevIsTiebreak.current = false;
     resetMatch();
   };
@@ -189,8 +160,7 @@ export default function HomePage() {
 
   const clearArchive = () => {
     if (window.confirm("Clear all match history?")) {
-      setSavedMatches([]);
-      localStorage.removeItem('padelArchive');
+      setSavedMatches([]); localStorage.removeItem('padelArchive');
     }
   };
 
@@ -203,13 +173,9 @@ export default function HomePage() {
   }, []);
 
   const winSoundRef = useRef<HTMLAudioElement | null>(null);
+  useEffect(() => { winSoundRef.current = new Audio("https://www.myinstants.com/media/sounds/final-fantasy-vii-victory-fanfare-1.mp3"); }, []);
   useEffect(() => {
-    winSoundRef.current = new Audio("https://www.myinstants.com/media/sounds/final-fantasy-vii-victory-fanfare-1.mp3");
-  }, []);
-  useEffect(() => {
-    if (matchWinner && !matchWinnerDismissed && winSoundRef.current) {
-      winSoundRef.current.play().catch(() => {});
-    }
+    if (matchWinner && !matchWinnerDismissed && winSoundRef.current) { winSoundRef.current.play().catch(() => {}); }
   }, [matchWinner, matchWinnerDismissed]);
 
   const toggleFullscreen = () => {
@@ -257,29 +223,32 @@ export default function HomePage() {
         </div>
       )}
 
+      {/* POLITE PORTRAIT WARNING (FIXED SIZING) */}
       <div className="hidden portrait:flex fixed inset-0 z-[200] bg-black items-center justify-center flex-col gap-8 p-10 text-center">
         <div className="relative flex items-center justify-center w-32 h-32">
           <Smartphone size={80} className="text-emerald-500 animate-pulse absolute" />
           <RotateCcw size={40} className="text-white absolute -bottom-2 -right-2 bg-black rounded-full p-1" />
         </div>
-        <h2 className="text-5xl font-black uppercase tracking-widest text-white italic mt-4">Rotate Device</h2>
-        <p className="text-2xl text-slate-400 font-bold uppercase tracking-wide">Please turn your phone sideways to use the scoreboard.</p>
+        <h2 className="text-4xl md:text-5xl font-black uppercase tracking-widest text-white italic">Rotate Device</h2>
+        <p className="text-xl md:text-2xl text-slate-400 font-bold uppercase tracking-wide">Please turn your phone sideways to use the scoreboard.</p>
       </div>
 
+      {/* VICTORY OVERLAY */}
       {matchWinner && !matchWinnerDismissed && !localDismissed && (
-        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl animate-in fade-in duration-500" onClick={() => setLocalDismissed(true)}>
-          <div className="relative flex flex-col items-center bg-slate-900 border-4 md:border-8 border-amber-400 p-8 md:p-16 rounded-3xl md:rounded-[4rem] text-center shadow-[0_0_100px_rgba(251,191,36,0.4)]" onClick={e => e.stopPropagation()}>
+        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl" onClick={() => setLocalDismissed(true)}>
+          <div className="relative flex flex-col items-center bg-slate-900 border-4 md:border-8 border-amber-400 p-8 md:p-16 rounded-3xl md:rounded-[4rem] text-center" onClick={e => e.stopPropagation()}>
              <Trophy className="w-16 h-16 md:w-24 md:h-24 text-amber-400 mb-4 md:mb-8 animate-pulse" />
             <h2 className="text-5xl md:text-8xl font-black mb-2 md:mb-4 italic uppercase tracking-tighter">
               {matchWinner === 'team1' ? team1Name : team2Name}
             </h2>
-            <button onClick={handleReset} className="bg-amber-500 text-black px-10 md:px-20 py-4 md:py-8 rounded-full text-2xl md:text-4xl font-black uppercase shadow-2xl active:scale-95 transition-transform flex items-center gap-2 md:gap-4">
+            <button onClick={handleReset} className="bg-amber-500 text-black px-10 md:px-20 py-4 md:py-8 rounded-full text-2xl md:text-4xl font-black uppercase active:scale-95 transition-transform flex items-center gap-4">
               <RotateCcw size={40} /> Play Again
             </button>
           </div>
         </div>
       )}
 
+      {/* OVERLAYS (ARCHIVE, LOG, SETTINGS) */}
       {archiveOpen && (
         <div className="absolute inset-0 z-[60] bg-black/95 flex items-center justify-center p-2 md:p-4" onClick={() => setArchiveOpen(false)}>
           <div className="bg-slate-900 border-2 md:border-4 border-slate-700 p-4 md:p-10 rounded-2xl md:rounded-[3rem] w-full max-w-sm md:max-w-3xl flex flex-col gap-3 md:gap-6 max-h-[90vh]" onClick={e => e.stopPropagation()}>
@@ -333,11 +302,9 @@ export default function HomePage() {
                <input value={team1Name} onChange={e => setTeam1Name(e.target.value)} placeholder="TEAM 1" className="bg-slate-800 border-2 lg:border-4 border-slate-700 rounded-xl lg:rounded-3xl p-2 lg:p-5 text-white text-sm lg:text-2xl font-black uppercase text-center focus:border-indigo-500 outline-none" maxLength={15} />
                <input value={team2Name} onChange={e => setTeam2Name(e.target.value)} placeholder="TEAM 2" className="bg-slate-800 border-2 lg:border-4 border-slate-700 rounded-xl lg:rounded-3xl p-2 lg:p-5 text-white text-sm lg:text-2xl font-black uppercase text-center focus:border-indigo-500 outline-none" maxLength={15} />
              </div>
-             
              <button onClick={() => setUmpireEnabled(!umpireEnabled)} className={`py-4 md:py-5 rounded-xl md:rounded-3xl border-2 md:border-4 text-sm md:text-2xl font-black uppercase flex items-center justify-center gap-4 transition-all ${umpireEnabled ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
                <Volume2 size={24} /> Umpire: {umpireEnabled ? 'ON' : 'OFF'}
              </button>
-
              <button onClick={toggleFullscreen} className="py-2 md:py-5 rounded-xl md:rounded-3xl bg-slate-800 border-2 md:border-4 border-slate-600 text-sm md:text-2xl font-black uppercase flex items-center justify-center gap-4 transition-transform active:scale-95">
                <Maximize size={24} /> {document.fullscreenElement ? 'Exit Fullscreen' : 'Enable Fullscreen'}
              </button>
@@ -352,6 +319,7 @@ export default function HomePage() {
         </div>
       )}
 
+      {/* --- MAIN SCOREBOARD (LOCKED MASSIVE SCALING) --- */}
       <section className="h-[92%] flex flex-col gap-1">
         {[ { id: "team1", data: team1, label: team1Name }, { id: "team2", data: team2, label: team2Name } ].map((t) => (
           <button key={t.id} onClick={() => handleScore(t.id as any)} className={`flex-1 rounded-xl md:rounded-[1.5rem] border-[3px] md:border-[6px] flex flex-row items-center relative transition-all ${server === t.id ? "border-emerald-500 bg-emerald-500/10" : "border-slate-800 bg-slate-900/20"}`}>
@@ -360,26 +328,33 @@ export default function HomePage() {
             </div>
             {server === t.id && (
               <div className="absolute top-1 md:top-2 right-3 md:right-6 z-20">
-                <span className="bg-emerald-500 text-black px-2 md:px-4 py-0.5 md:py-1 rounded-full font-black text-[10px] md:text-sm animate-pulse uppercase shadow-[0_0_15px_rgba(16,185,129,0.5)]">SERVING</span>
+                <span className="bg-emerald-500 text-black px-2 md:px-4 py-0.5 md:py-1 rounded-full font-black text-[10px] md:text-sm animate-pulse uppercase">SERVING</span>
               </div>
             )}
-            <div className="w-[22%] h-full flex flex-col items-center justify-center border-r-2 border-slate-800/50 bg-black/40">
+            
+            {/* Sets View */}
+            <div className="w-[20%] md:w-[22%] h-full flex flex-col items-center justify-center border-r-2 border-slate-800/50 bg-black/40">
               <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase tracking-widest italic">Sets</span>
-              <span className="text-[15vh] md:text-[23vh] font-black leading-none drop-shadow-[0_0_15px_rgba(255,255,255,0.15)]">{t.data.sets}</span>
+              <span className="text-[12vh] md:text-[23vh] font-black leading-none">{t.data.sets}</span>
             </div>
+
+            {/* Points View (MASSIVE) */}
             <div className="flex-1 h-full flex items-center justify-center overflow-hidden">
-              <span className="text-[25vh] md:text-[40vh] font-black leading-none italic scale-x-[1.6] transform-gpu [text-shadow:_0_0_40px_rgb(255_255_255_/_30%),_0_0_10px_rgb(255_255_255_/_60%)]">
+              <span className="text-[25vh] md:text-[40vh] font-black leading-none italic scale-x-[1.4] md:scale-x-[1.6] transform-gpu [text-shadow:_0_0_40px_rgb(255_255_255_/_30%)]">
                 {formatPoints(t.data.points)}
               </span>
             </div>
-            <div className="w-[22%] h-full flex flex-col items-center justify-center border-l-2 border-slate-800/50 bg-black/40">
+
+            {/* Games View */}
+            <div className="w-[20%] md:w-[22%] h-full flex flex-col items-center justify-center border-l-2 border-slate-800/50 bg-black/40">
               <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase tracking-widest italic">Games</span>
-              <span className="text-[23vh] font-black leading-none drop-shadow-[0_0_15px_rgba(255,255,255,0.15)]">{t.data.games}</span>
+              <span className="text-[12vh] md:text-[23vh] font-black leading-none">{t.data.games}</span>
             </div>
           </button>
         ))}
       </section>
 
+      {/* Footer */}
       <footer className="h-[8%] flex items-center justify-between px-2 md:px-10 border-t border-slate-900 bg-slate-950/50">
         <div className="flex items-center gap-1 md:gap-4">
           <button onClick={handleUndo} className="flex items-center gap-1 md:gap-3 bg-slate-900/50 border border-slate-800 px-3 md:px-6 py-1 md:py-2 rounded-lg md:rounded-2xl active:scale-95 transition-all">
@@ -394,7 +369,7 @@ export default function HomePage() {
         
         <div className={`px-2 md:px-8 py-1 md:py-2 rounded-full border-2 font-black uppercase tracking-[0.2em] md:tracking-[0.4em] text-[8px] md:text-sm transition-all duration-500 ${
           isTiebreak 
-          ? 'bg-amber-500/20 border-amber-500 text-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.2)] animate-pulse' 
+          ? 'bg-amber-500/20 border-amber-500 text-amber-400 animate-pulse' 
           : 'bg-slate-900/40 border-slate-800 text-slate-600'
         }`}>
           {isTiebreak ? 'TIEBREAK' : 'MATCH'}
