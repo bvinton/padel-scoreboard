@@ -33,13 +33,11 @@ export default function HomePage() {
   const [historyLog, setHistoryLog] = useState<{id: number, time: string, msg: string}[]>([]);
   const [savedMatches, setSavedMatches] = useState<SavedMatch[]>([]);
 
-  useEffect(() => {
-    if (timeLeft <= 0) return;
-    const interval = setInterval(() => {
-      setTimeLeft((prev) => Math.max(0, prev - 0.1));
-    }, 100);
-    return () => clearInterval(interval);
-  }, [timeLeft]);
+  // --- 1. CORE UTILITIES (Ordered for Vercel) ---
+  const addLog = (msg: string) => {
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setHistoryLog(prev => [{ id: Date.now(), time, msg }, ...prev].slice(0, 30));
+  };
 
   const speakScore = (text: string) => {
     if (!umpireEnabled || typeof window === "undefined") return;
@@ -55,6 +53,74 @@ export default function HomePage() {
     utterance.pitch = 0.85;
     window.speechSynthesis.speak(utterance);
   };
+
+  // --- 2. HANDLERS ---
+  const handleScore = (team: 'team1' | 'team2') => {
+    if (matchWinner && !localDismissed) {
+      setLocalDismissed(true);
+      return;
+    }
+    addLog(`${team === 'team1' ? team1Name : team2Name} scored`);
+    setTimeLeft(20);
+    scorePoint(team);
+  };
+
+  const handleUndo = () => {
+    addLog("Undo used");
+    undo();
+    setTimeLeft(0);
+    setLocalDismissed(false);
+    prevGames1.current = team1.games; prevGames2.current = team2.games;
+    prevSets1.current = team1.sets; prevSets2.current = team2.sets;
+    prevIsTiebreak.current = isTiebreak;
+  };
+
+  const handleReset = () => {
+    addLog("Match Reset");
+    setHistoryLog([]); setLocalDismissed(false); setTimeLeft(0);
+    prevGames1.current = 0; prevGames2.current = 0;
+    prevSets1.current = 0; prevSets2.current = 0;
+    prevIsTiebreak.current = false;
+    resetMatch();
+  };
+
+  const handleSaveMatch = () => {
+    let scoreString = setScores.map(set => `${set.team1}-${set.team2}`).join(', ');
+    if (team1.games > 0 || team2.games > 0) {
+      const currentScore = `${team1.games}-${team2.games}`;
+      scoreString = scoreString ? `${scoreString}, ${currentScore}` : currentScore;
+    }
+    const newMatch: SavedMatch = {
+      id: Date.now(),
+      date: new Date().toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+      team1Name, team2Name, scores: scoreString || "0-0"
+    };
+    const updated = [newMatch, ...savedMatches];
+    setSavedMatches(updated);
+    localStorage.setItem('padelArchive', JSON.stringify(updated));
+    addLog("Match Saved");
+  };
+
+  const deleteSavedMatch = (id: number) => {
+    const updated = savedMatches.filter(m => m.id !== id);
+    setSavedMatches(updated);
+    localStorage.setItem('padelArchive', JSON.stringify(updated));
+  };
+
+  const clearArchive = () => {
+    if (window.confirm("Clear all match history?")) {
+      setSavedMatches([]); localStorage.removeItem('padelArchive');
+    }
+  };
+
+  // --- 3. EFFECTS ---
+  useEffect(() => {
+    if (timeLeft <= 0) return;
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => Math.max(0, prev - 0.1));
+    }, 100);
+    return () => clearInterval(interval);
+  }, [timeLeft]);
 
   const prevGames1 = useRef(team1.games);
   const prevGames2 = useRef(team2.games);
@@ -107,67 +173,12 @@ export default function HomePage() {
       if (p1 === p2) speakScore(`${p1Text} All`);
       else speakScore(`${p1Text}, ${p2Text}`);
     }
-  }, [team1.points, team2.points, team1.games, team2.games, team1.sets, team2.sets, isTiebreak, matchWinner, localDismissed]);
+  }, [team1.points, team2.points, team1.games, team2.games, team1.sets, team2.sets, isTiebreak, matchWinner, localDismissed, team1Name, team2Name, matchWinnerDismissed, umpireEnabled]);
 
   useEffect(() => {
     const saved = localStorage.getItem('padelArchive');
     if (saved) { try { setSavedMatches(JSON.parse(saved)); } catch (e) {} }
   }, []);
-
-  const handleScore = (team: 'team1' | 'team2') => {
-    if (matchWinner && !localDismissed) {
-      setLocalDismissed(true);
-      return;
-    }
-    addLog(`${team === 'team1' ? team1Name : team2Name} scored`);
-    setTimeLeft(20);
-    scorePoint(team);
-  };
-
-  const handleUndo = () => {
-    undo();
-    setTimeLeft(0);
-    setLocalDismissed(false);
-    prevGames1.current = team1.games; prevGames2.current = team2.games;
-    prevSets1.current = team1.sets; prevSets2.current = team2.sets;
-    prevIsTiebreak.current = isTiebreak;
-  };
-
-  const handleReset = () => {
-    setHistoryLog([]); setLocalDismissed(false); setTimeLeft(0);
-    prevGames1.current = 0; prevGames2.current = 0;
-    prevSets1.current = 0; prevSets2.current = 0;
-    prevIsTiebreak.current = false;
-    resetMatch();
-  };
-
-  const handleSaveMatch = () => {
-    let scoreString = setScores.map(set => `${set.team1}-${set.team2}`).join(', ');
-    if (team1.games > 0 || team2.games > 0) {
-      const currentScore = `${team1.games}-${team2.games}`;
-      scoreString = scoreString ? `${scoreString}, ${currentScore}` : currentScore;
-    }
-    const newMatch: SavedMatch = {
-      id: Date.now(),
-      date: new Date().toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
-      team1Name, team2Name, scores: scoreString || "0-0"
-    };
-    const updated = [newMatch, ...savedMatches];
-    setSavedMatches(updated);
-    localStorage.setItem('padelArchive', JSON.stringify(updated));
-  };
-
-  const deleteSavedMatch = (id: number) => {
-    const updated = savedMatches.filter(m => m.id !== id);
-    setSavedMatches(updated);
-    localStorage.setItem('padelArchive', JSON.stringify(updated));
-  };
-
-  const clearArchive = () => {
-    if (window.confirm("Clear all match history?")) {
-      setSavedMatches([]); localStorage.removeItem('padelArchive');
-    }
-  };
 
   useEffect(() => {
     let wakeLock: any = null;
@@ -230,7 +241,6 @@ export default function HomePage() {
         <h2 className="text-4xl font-black uppercase tracking-widest text-white italic">Rotate Device</h2>
       </div>
 
-      {/* RESTORED: VICTORY OVERLAY WITH FIREWORKS & DISMISS LOGIC */}
       {matchWinner && !matchWinnerDismissed && !localDismissed && (
         <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl animate-in fade-in duration-500" onClick={() => setLocalDismissed(true)}>
           <div className="relative flex flex-col items-center bg-slate-900 border-4 md:border-8 border-amber-400 p-8 md:p-16 rounded-3xl md:rounded-[4rem] text-center shadow-[0_0_100px_rgba(251,191,36,0.4)]" onClick={e => e.stopPropagation()}>
@@ -240,7 +250,7 @@ export default function HomePage() {
             <h2 className="text-5xl md:text-8xl font-black mb-2 md:mb-4 italic uppercase tracking-tighter">
               {matchWinner === 'team1' ? team1Name : team2Name}
             </h2>
-            <button onClick={handleReset} className="bg-amber-500 text-black px-10 md:px-20 py-4 md:py-8 rounded-full text-2xl md:text-4xl font-black uppercase active:scale-95 transition-transform flex items-center gap-4">
+            <button onClick={handleReset} className="bg-amber-500 text-black px-10 md:px-20 py-4 md:py-8 rounded-full text-2xl md:text-4xl font-black uppercase shadow-2xl active:scale-95 transition-transform flex items-center gap-4">
               <RotateCcw size={40} /> Play Again
             </button>
             <p className="mt-4 text-slate-500 text-xs uppercase tracking-widest font-bold">Tap background to dismiss</p>
@@ -248,7 +258,6 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* MAIN SCOREBOARD */}
       <section className="flex-grow flex flex-col p-0 overflow-hidden">
         {[ { id: "team1", data: team1, label: team1Name }, { id: "team2", data: team2, label: team2Name } ].map((t) => (
           <button key={t.id} onClick={() => handleScore(t.id as any)} className={`flex-1 min-h-0 border-b border-slate-800 flex flex-row items-center relative transition-all ${server === t.id ? "bg-emerald-500/10 shadow-[inset_0_0_20px_rgba(16,185,129,0.1)]" : "bg-slate-900/20"}`}>
@@ -277,7 +286,6 @@ export default function HomePage() {
         ))}
       </section>
 
-      {/* SLIM FOOTER */}
       <footer className="flex-none h-[40px] flex items-center justify-between px-2 md:px-10 border-t border-slate-900 bg-slate-950/95">
         <div className="flex items-center gap-1 md:gap-4 h-full">
           <button onClick={handleUndo} className="flex items-center gap-1 bg-slate-900/50 px-2 md:px-4 py-0.5 rounded h-[30px] active:scale-95 transition-all">
@@ -304,7 +312,7 @@ export default function HomePage() {
         </div>
       </footer>
 
-      {/* MODALS (ARCHIVE, LOG, SETTINGS) */}
+      {/* MODALS */}
       {archiveOpen && (
         <div className="absolute inset-0 z-[60] bg-black/95 flex items-center justify-center p-2" onClick={() => setArchiveOpen(false)}>
           <div className="bg-slate-900 border-2 border-slate-700 p-4 rounded-2xl w-full max-w-3xl flex flex-col gap-3 max-h-[90vh]" onClick={e => e.stopPropagation()}>
