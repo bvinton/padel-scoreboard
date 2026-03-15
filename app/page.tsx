@@ -208,16 +208,16 @@ export default function HomePage() {
   const formatPoints = (p: string | number) => typeof p === "number" ? p.toString() : p;
 
   const getTimerColor = () => {
-    if (timeLeft > 10) return "bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.7)]";
-    if (timeLeft > 5) return "bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.7)]";
-    return "bg-red-500 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.7)]";
+    if (timeLeft > 10) return "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.7)]";
+    if (timeLeft > 5) return "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.7)]";
+    return "bg-red-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.7)]";
   };
 
   return (
     <main className="fixed inset-0 flex flex-col bg-black text-white select-none overflow-hidden font-sans">
       
-      {/* TIGHTER TIMER BAR */}
-      <div className="flex-none h-[4px] w-full bg-black relative">
+      {/* ULTRA THIN TIMER BAR (3px) */}
+      <div className="flex-none h-[3px] w-full bg-black relative">
         {timeLeft > 0 && (
           <div className="absolute top-0 left-0 h-full z-[250] transition-all duration-100 ease-linear"
                style={{ width: `${(timeLeft / 20) * 100}%` }}>
@@ -232,32 +232,32 @@ export default function HomePage() {
         <h2 className="text-4xl font-black uppercase tracking-widest text-white italic">Rotate Device</h2>
       </div>
 
-      {/* SCOREBOARD (MAX SPACE) */}
-      <section className="flex-grow flex flex-col gap-0.5 p-0.5 overflow-hidden">
+      {/* SCOREBOARD (ZERO GAP, MAX HEIGHT) */}
+      <section className="flex-grow flex flex-col p-0 overflow-hidden">
         {[ { id: "team1", data: team1, label: team1Name }, { id: "team2", data: team2, label: team2Name } ].map((t) => (
-          <button key={t.id} onClick={() => handleScore(t.id as any)} className={`flex-1 min-h-0 rounded-lg md:rounded-[1.5rem] border-2 md:border-[6px] flex flex-row items-center relative transition-all ${server === t.id ? "border-emerald-500 bg-emerald-500/10" : "border-slate-800 bg-slate-900/20"}`}>
+          <button key={t.id} onClick={() => handleScore(t.id as any)} className={`flex-1 min-h-0 border-b border-slate-800 flex flex-row items-center relative transition-all ${server === t.id ? "bg-emerald-500/10 shadow-[inset_0_0_20px_rgba(16,185,129,0.1)]" : "bg-slate-900/20"}`}>
             
             <div className="absolute top-0.5 md:top-2 left-2 md:left-6 z-20">
               <span className="text-[10px] md:text-2xl font-black italic text-slate-400 opacity-60 uppercase">{t.label}</span>
             </div>
             {server === t.id && (
               <div className="absolute top-0.5 md:top-2 right-2 md:right-6 z-20">
-                <span className="bg-emerald-500 text-black px-2 md:px-5 py-0.5 rounded-full font-black text-[8px] md:text-sm animate-pulse uppercase">SERVING</span>
+                <span className="bg-emerald-500 text-black px-2 py-0.5 rounded-full font-black text-[8px] md:text-sm animate-pulse uppercase">SERVING</span>
               </div>
             )}
             
-            <div className="w-[22%] h-full flex flex-col items-center justify-center border-r border-slate-800/50 bg-black/40">
+            <div className="w-[22%] h-full flex flex-col items-center justify-center border-r border-slate-800/30 bg-black/40">
               <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase italic">Sets</span>
               <span className="text-[15vh] md:text-[23vh] font-black leading-none">{t.data.sets}</span>
             </div>
 
             <div className="flex-1 h-full flex items-center justify-center overflow-hidden">
-              <span className="text-[30vh] md:text-[45vh] font-black leading-none italic scale-x-[1.6] transform-gpu [text-shadow:_0_0_40px_rgb(255_255_255_/_30%)]">
+              <span className="text-[35vh] md:text-[45vh] font-black leading-none italic scale-x-[1.6] transform-gpu [text-shadow:_0_0_50px_rgb(255_255_255_/_20%)]">
                 {formatPoints(t.data.points)}
               </span>
             </div>
 
-            <div className="w-[22%] h-full flex flex-col items-center justify-center border-l border-slate-800/50 bg-black/40">
+            <div className="w-[22%] h-full flex flex-col items-center justify-center border-l border-slate-800/30 bg-black/40">
               <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase italic">Games</span>
               <span className="text-[15vh] md:text-[23vh] font-black leading-none">{t.data.games}</span>
             </div>
@@ -265,43 +265,34 @@ export default function HomePage() {
         ))}
       </section>
 
-      {/* TIGHTER FOOTER (LOCKED AT 50px) */}
-      <footer className="flex-none h-[50px] flex items-center justify-between px-2 md:px-10 border-t border-slate-900 bg-slate-950/90">
-        <div className="flex items-center gap-1 md:gap-4">
-          <button onClick={handleUndo} className="flex items-center gap-2 bg-slate-900/50 px-3 md:px-5 py-1 rounded-lg active:scale-95 transition-all">
-            <Undo2 className="w-4 h-4 md:w-5 md:h-5 text-slate-500" />
+      {/* ULTRA SLIM FOOTER (40px) */}
+      <footer className="flex-none h-[40px] flex items-center justify-between px-2 md:px-10 border-t border-slate-900 bg-slate-950/95">
+        <div className="flex items-center gap-1 md:gap-4 h-full">
+          <button onClick={handleUndo} className="flex items-center gap-1 bg-slate-900/50 px-2 md:px-4 py-0.5 rounded h-[30px] active:scale-95 transition-all">
+            <Undo2 className="w-3.5 h-3.5 md:w-5 md:h-5 text-slate-500" />
             <span className="text-[10px] md:text-lg font-black text-slate-500 uppercase hidden md:inline">Undo</span>
           </button>
-          <button onClick={handleSaveMatch} className="flex items-center gap-2 bg-indigo-900/40 px-3 md:px-5 py-1 rounded-lg active:scale-95 transition-all">
-            <Save className="w-4 h-4 md:w-5 md:h-5 text-indigo-400" />
+          <button onClick={handleSaveMatch} className="flex items-center gap-1 bg-indigo-900/40 px-2 md:px-4 py-0.5 rounded h-[30px] active:scale-95 transition-all">
+            <Save className="w-3.5 h-3.5 md:w-5 md:h-5 text-indigo-400" />
             <span className="text-[10px] md:text-lg font-black text-indigo-400 uppercase hidden md:inline">Save</span>
           </button>
         </div>
         
-        <div className={`px-2 md:px-8 py-1 rounded-full border md:border-2 font-black uppercase text-[8px] md:text-sm ${
-          isTiebreak ? 'bg-amber-500/20 border-amber-500 text-amber-400 animate-pulse' : 'bg-slate-900/40 border-slate-800 text-slate-600'
+        <div className={`px-3 py-0.5 rounded-full border-slate-800 font-black uppercase text-[8px] md:text-sm ${
+          isTiebreak ? 'text-amber-400 animate-pulse' : 'text-slate-600'
         }`}>
           {isTiebreak ? 'TIEBREAK' : 'MATCH'}
         </div>
 
-        <div className="flex items-center gap-1 md:gap-3">
+        <div className="flex items-center gap-1 md:gap-3 h-full">
           <button onClick={handleReset} className="text-[10px] md:text-lg font-black text-red-900/80 uppercase mr-1 md:mr-4">Reset</button>
-          <button onClick={() => setArchiveOpen(true)} className="p-1.5 md:p-2 text-indigo-400 active:scale-95">
-            <History className="w-4 h-4 md:w-6 md:h-6" />
-          </button>
-          <button onClick={() => setHistoryOpen(true)} className="p-1.5 md:p-2 text-slate-600 active:scale-95">
-            <MessageSquareText className="w-4 h-4 md:w-6 md:h-6" />
-          </button>
-          <button onClick={() => setSettingsOpen(true)} className="p-1.5 md:p-2 text-slate-600 active:scale-95">
-            <Settings className="w-4 h-4 md:w-6 md:h-6" />
-          </button>
+          <button onClick={() => setArchiveOpen(true)} className="p-1 text-indigo-400 active:scale-95"><History size={20} /></button>
+          <button onClick={() => setHistoryOpen(true)} className="p-1 text-slate-600 active:scale-95"><MessageSquareText size={20} /></button>
+          <button onClick={() => setSettingsOpen(true)} className="p-1 text-slate-600 active:scale-95"><Settings size={20} /></button>
         </div>
       </footer>
 
-      {/* MODALS REMAIN THE SAME */}
-      {/* ... (Keeping settings, history, archive overlays exactly as they were) ... */}
-
-      {/* (MODAL CODE CONTINUED BELOW) */}
+      {/* OVERLAYS */}
       {archiveOpen && (
         <div className="absolute inset-0 z-[60] bg-black/95 flex items-center justify-center p-2" onClick={() => setArchiveOpen(false)}>
           <div className="bg-slate-900 border-2 border-slate-700 p-4 rounded-2xl w-full max-w-3xl flex flex-col gap-3 max-h-[90vh]" onClick={e => e.stopPropagation()}>
@@ -352,13 +343,13 @@ export default function HomePage() {
           <div className="bg-slate-900 border-2 border-slate-700 p-4 rounded-2xl w-full max-w-xl flex flex-col gap-3 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
              <h2 className="text-xl font-black uppercase text-center text-slate-500 italic">Settings</h2>
              <div className="grid grid-cols-2 gap-2">
-               <input value={team1Name} onChange={e => setTeam1Name(e.target.value)} placeholder="TEAM 1" className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-white text-lg font-black uppercase text-center" maxLength={15} />
-               <input value={team2Name} onChange={e => setTeam2Name(e.target.value)} placeholder="TEAM 2" className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-white text-lg font-black uppercase text-center" maxLength={15} />
+               <input value={team1Name} onChange={e => setTeam1Name(e.target.value)} placeholder="TEAM 1" className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-white text-lg font-black uppercase text-center outline-none" maxLength={15} />
+               <input value={team2Name} onChange={e => setTeam2Name(e.target.value)} placeholder="TEAM 2" className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-white text-lg font-black uppercase text-center outline-none" maxLength={15} />
              </div>
              <button onClick={() => setUmpireEnabled(!umpireEnabled)} className={`py-4 rounded-xl border-2 text-lg font-black uppercase flex items-center justify-center gap-4 ${umpireEnabled ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
                <Volume2 size={24} /> Umpire: {umpireEnabled ? 'ON' : 'OFF'}
              </button>
-             <button onClick={toggleFullscreen} className="py-3 rounded-xl bg-slate-800 border border-slate-600 text-lg font-black uppercase flex items-center justify-center gap-4">
+             <button onClick={toggleFullscreen} className="py-3 rounded-xl bg-slate-800 border border-slate-600 text-lg font-black uppercase flex items-center justify-center gap-4 transition-all active:scale-95">
                <Maximize size={24} /> Fullscreen
              </button>
              <div className="grid grid-cols-2 gap-2">
@@ -366,8 +357,8 @@ export default function HomePage() {
                 <button onClick={() => setMatchFormat(5)} className={`py-3 rounded-xl border text-lg font-black uppercase ${matchFormat === 5 ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Best of 5</button>
              </div>
              <button onClick={toggleGoldenPoint} className={`py-3 rounded-xl border text-lg font-black uppercase ${useGoldenPoint ? 'bg-emerald-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Golden Point: {useGoldenPoint ? 'ON' : 'OFF'}</button>
-             <button onClick={toggleServer} className="py-3 bg-slate-800 border border-slate-600 rounded-xl text-lg font-black uppercase">Swap Server</button>
-             <button onClick={() => setSettingsOpen(false)} className="py-3 bg-white text-black font-black rounded-xl uppercase mt-2">Close</button>
+             <button onClick={toggleServer} className="py-3 bg-slate-800 border border-slate-600 rounded-xl text-lg font-black uppercase transition-all active:scale-95">Swap Server</button>
+             <button onClick={() => setSettingsOpen(false)} className="py-3 bg-white text-black font-black rounded-xl uppercase mt-2 transition-all active:scale-95">Close</button>
           </div>
         </div>
       )}
