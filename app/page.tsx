@@ -241,14 +241,14 @@ export default function HomePage() {
             <h2 className="text-5xl md:text-8xl font-black mb-2 md:mb-4 italic uppercase tracking-tighter">
               {matchWinner === 'team1' ? team1Name : team2Name}
             </h2>
-            <button onClick={handleReset} className="bg-amber-500 text-black px-10 md:px-20 py-4 md:py-8 rounded-full text-2xl md:text-4xl font-black uppercase active:scale-95 transition-transform flex items-center gap-2 md:gap-4">
+            <button onClick={handleReset} className="bg-amber-500 text-black px-10 md:px-20 py-4 md:py-8 rounded-full text-2xl md:text-4xl font-black uppercase shadow-2xl active:scale-95 transition-transform flex items-center gap-2 md:gap-4">
               <RotateCcw size={40} /> Play Again
             </button>
           </div>
         </div>
       )}
 
-      {/* OVERLAYS (ARCHIVE, LOG, SETTINGS) ARE SAME AS BEFORE */}
+      {/* OVERLAYS (ARCHIVE, LOG, SETTINGS) */}
       {archiveOpen && (
         <div className="absolute inset-0 z-[60] bg-black/95 flex items-center justify-center p-2 md:p-4" onClick={() => setArchiveOpen(false)}>
           <div className="bg-slate-900 border-2 md:border-4 border-slate-700 p-4 md:p-10 rounded-2xl md:rounded-[3rem] w-full max-w-sm md:max-w-3xl flex flex-col gap-3 md:gap-6 max-h-[90vh]" onClick={e => e.stopPropagation()}>
@@ -319,7 +319,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* --- SCOREBOARD SECTION (FORCED HEIGHT RESTORED) --- */}
+      {/* --- SCOREBOARD SECTION (LOCKED BIG SCALING FOR ALL) --- */}
       <section className="h-[92%] flex flex-col gap-1">
         {[ { id: "team1", data: team1, label: team1Name }, { id: "team2", data: team2, label: team2Name } ].map((t) => (
           <button key={t.id} onClick={() => handleScore(t.id as any)} className={`flex-1 rounded-xl md:rounded-[1.5rem] border-[3px] md:border-[6px] flex flex-row items-center relative transition-all ${server === t.id ? "border-emerald-500 bg-emerald-500/10" : "border-slate-800 bg-slate-900/20"}`}>
@@ -333,9 +333,9 @@ export default function HomePage() {
               </div>
             )}
             
-            <div className="w-[22%] h-full flex flex-col items-center justify-center border-r-2 border-slate-800/50 bg-black/40">
+            <div className="w-[25%] md:w-[22%] h-full flex flex-col items-center justify-center border-r-2 border-slate-800/50 bg-black/40">
               <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase tracking-widest italic">Sets</span>
-              <span className="text-[15vh] md:text-[23vh] font-black leading-none">{t.data.sets}</span>
+              <span className="text-[18vh] md:text-[23vh] font-black leading-none">{t.data.sets}</span>
             </div>
 
             <div className="flex-1 h-full flex items-center justify-center overflow-hidden">
@@ -344,9 +344,9 @@ export default function HomePage() {
               </span>
             </div>
 
-            <div className="w-[22%] h-full flex flex-col items-center justify-center border-l-2 border-slate-800/50 bg-black/40">
+            <div className="w-[25%] md:w-[22%] h-full flex flex-col items-center justify-center border-l-2 border-slate-800/50 bg-black/40">
               <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase tracking-widest italic">Games</span>
-              <span className="text-[15vh] md:text-[23vh] font-black leading-none">{t.data.games}</span>
+              <span className="text-[18vh] md:text-[23vh] font-black leading-none">{t.data.games}</span>
             </div>
           </button>
         ))}
@@ -367,14 +367,14 @@ export default function HomePage() {
         
         <div className={`px-2 md:px-8 py-1 md:py-2 rounded-full border-2 font-black uppercase tracking-[0.2em] md:tracking-[0.4em] text-[8px] md:text-sm transition-all duration-500 ${
           isTiebreak 
-          ? 'bg-amber-500/20 border-amber-500 text-amber-400 animate-pulse' 
+          ? 'bg-amber-500/20 border-amber-500 text-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.2)] animate-pulse' 
           : 'bg-slate-900/40 border-slate-800 text-slate-600'
         }`}>
           {isTiebreak ? 'TIEBREAK' : 'MATCH'}
         </div>
 
         <div className="flex items-center gap-1 md:gap-4">
-          <button onClick={handleReset} className="text-xs md:text-xl font-black text-red-900/80 hover:text-red-500 uppercase tracking-widest mr-1 md:mr-4">Reset</button>
+          <button onClick={handleReset} className="text-xs md:text-xl font-black text-red-900/80 hover:text-red-500 uppercase tracking-widest transition-colors mr-1 md:mr-4">Reset</button>
           <button onClick={() => setArchiveOpen(true)} className="p-2 md:p-3 bg-slate-900/50 border border-slate-800 rounded-lg md:rounded-2xl text-indigo-400 active:scale-95 transition-all">
             <History className="w-4 h-4 md:w-7 md:h-7" />
           </button>
