@@ -28,6 +28,7 @@ export default function HomePage() {
   
   const [timeLeft, setTimeLeft] = useState(0);
   const [timerStarted, setTimerStarted] = useState(false);
+  const endTimeRef = useRef<number | null>(null);
 
   const [team1Name, setTeam1Name] = useState("TEAM 1");
   const [team2Name, setTeam2Name] = useState("TEAM 2");
@@ -63,14 +64,19 @@ export default function HomePage() {
       return;
     }
     addLog(`${team === 'team1' ? team1Name : team2Name} scored`);
+    
+    // Absolute Time Logic Setup
+    endTimeRef.current = Date.now() + 20000;
     setTimerStarted(true);
     setTimeLeft(20);
+    
     scorePoint(team);
   };
 
   const handleUndo = () => {
     addLog("Undo used");
     undo();
+    endTimeRef.current = null;
     setTimerStarted(false);
     setTimeLeft(0);
     setLocalDismissed(false);
@@ -83,6 +89,7 @@ export default function HomePage() {
     addLog("Match Reset");
     setHistoryLog([]); 
     setLocalDismissed(false);
+    endTimeRef.current = null;
     setTimerStarted(false);
     setTimeLeft(0);
     prevGames1.current = 0; prevGames2.current = 0;
@@ -122,23 +129,25 @@ export default function HomePage() {
 
   // --- 3. EFFECTS ---
   
-  // TIMER LOGIC WITH AUTO-DISMISS
+  // NEW: Absolute Precision Timer Logic
   useEffect(() => {
-    if (timeLeft <= 0) {
-      if (timerStarted) {
-        // Flash red for 2 seconds, then turn the timer off completely
-        const timeout = setTimeout(() => {
+    if (!timerStarted || !endTimeRef.current) return;
+
+    const interval = setInterval(() => {
+      const remaining = Math.max(0, (endTimeRef.current! - Date.now()) / 1000);
+      setTimeLeft(remaining);
+
+      if (remaining <= 0) {
+        clearInterval(interval);
+        // Flash red for 2 seconds, then dismiss
+        setTimeout(() => {
           setTimerStarted(false);
         }, 2000);
-        return () => clearTimeout(timeout);
       }
-      return;
-    }
-    const interval = setInterval(() => {
-      setTimeLeft((prev) => Math.max(0, prev - 0.1));
-    }, 100);
+    }, 50); // Updates every 50ms for ultra-smooth rendering
+
     return () => clearInterval(interval);
-  }, [timeLeft, timerStarted]);
+  }, [timerStarted]);
 
   const prevGames1 = useRef(team1.games);
   const prevGames2 = useRef(team2.games);
@@ -294,12 +303,12 @@ export default function HomePage() {
             {/* DRAINING TIMER */}
             {timeLeft > 0 && (
               <svg className="absolute inset-0 w-full h-full">
-                <line x1={`${getTopLeftX1()}%`} y1="0%" x2="50%" y2="0%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-100 ease-linear ${getTimerStrokeColor()}`} />
-                <line x1="50%" y1="0%" x2={`${getTopRightX2()}%`} y2="0%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-100 ease-linear ${getTimerStrokeColor()}`} />
-                <line x1="0%" y1="0%" x2="0%" y2={`${getSideY2()}%`} stroke="currentColor" strokeWidth="12" className={`transition-all duration-100 ease-linear ${getTimerStrokeColor()}`} />
-                <line x1="100%" y1="0%" x2="100%" y2={`${getSideY2()}%`} stroke="currentColor" strokeWidth="12" className={`transition-all duration-100 ease-linear ${getTimerStrokeColor()}`} />
-                <line x1="0%" y1="100%" x2={`${getBottomLeftX2()}%`} y2="100%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-100 ease-linear ${getTimerStrokeColor()}`} />
-                <line x1={`${getBottomRightX1()}%`} y1="100%" x2="100%" y2="100%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-100 ease-linear ${getTimerStrokeColor()}`} />
+                <line x1={`${getTopLeftX1()}%`} y1="0%" x2="50%" y2="0%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerStrokeColor()}`} />
+                <line x1="50%" y1="0%" x2={`${getTopRightX2()}%`} y2="0%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerStrokeColor()}`} />
+                <line x1="0%" y1="0%" x2="0%" y2={`${getSideY2()}%`} stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerStrokeColor()}`} />
+                <line x1="100%" y1="0%" x2="100%" y2={`${getSideY2()}%`} stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerStrokeColor()}`} />
+                <line x1="0%" y1="100%" x2={`${getBottomLeftX2()}%`} y2="100%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerStrokeColor()}`} />
+                <line x1={`${getBottomRightX1()}%`} y1="100%" x2="100%" y2="100%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerStrokeColor()}`} />
               </svg>
             )}
 
