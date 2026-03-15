@@ -216,8 +216,8 @@ export default function HomePage() {
   return (
     <main className="fixed inset-0 flex flex-col bg-black text-white select-none overflow-hidden font-sans">
       
-      {/* SERVE TIMER (FIXED HEIGHT) */}
-      <div className="flex-none h-[6px] w-full bg-black relative">
+      {/* TIGHTER TIMER BAR */}
+      <div className="flex-none h-[4px] w-full bg-black relative">
         {timeLeft > 0 && (
           <div className="absolute top-0 left-0 h-full z-[250] transition-all duration-100 ease-linear"
                style={{ width: `${(timeLeft / 20) * 100}%` }}>
@@ -232,75 +232,145 @@ export default function HomePage() {
         <h2 className="text-4xl font-black uppercase tracking-widest text-white italic">Rotate Device</h2>
       </div>
 
-      {/* MAIN SCOREBOARD (FLEX-GROW FORCED) */}
-      <section className="flex-grow flex flex-col gap-1 p-1 overflow-hidden">
+      {/* SCOREBOARD (MAX SPACE) */}
+      <section className="flex-grow flex flex-col gap-0.5 p-0.5 overflow-hidden">
         {[ { id: "team1", data: team1, label: team1Name }, { id: "team2", data: team2, label: team2Name } ].map((t) => (
-          <button key={t.id} onClick={() => handleScore(t.id as any)} className={`flex-1 min-h-0 rounded-xl md:rounded-[2rem] border-[3px] md:border-[6px] flex flex-row items-center relative transition-all ${server === t.id ? "border-emerald-500 bg-emerald-500/10" : "border-slate-800 bg-slate-900/20"}`}>
+          <button key={t.id} onClick={() => handleScore(t.id as any)} className={`flex-1 min-h-0 rounded-lg md:rounded-[1.5rem] border-2 md:border-[6px] flex flex-row items-center relative transition-all ${server === t.id ? "border-emerald-500 bg-emerald-500/10" : "border-slate-800 bg-slate-900/20"}`}>
             
-            <div className="absolute top-1 md:top-3 left-3 md:left-8 z-20">
+            <div className="absolute top-0.5 md:top-2 left-2 md:left-6 z-20">
               <span className="text-[10px] md:text-2xl font-black italic text-slate-400 opacity-60 uppercase">{t.label}</span>
             </div>
             {server === t.id && (
-              <div className="absolute top-1 md:top-3 right-3 md:right-8 z-20">
-                <span className="bg-emerald-500 text-black px-2 md:px-5 py-0.5 md:py-1.5 rounded-full font-black text-[8px] md:text-sm animate-pulse uppercase">SERVING</span>
+              <div className="absolute top-0.5 md:top-2 right-2 md:right-6 z-20">
+                <span className="bg-emerald-500 text-black px-2 md:px-5 py-0.5 rounded-full font-black text-[8px] md:text-sm animate-pulse uppercase">SERVING</span>
               </div>
             )}
             
-            <div className="w-[25%] md:w-[22%] h-full flex flex-col items-center justify-center border-r-2 border-slate-800/50 bg-black/40">
-              <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase tracking-widest italic">Sets</span>
-              <span className="text-[14vh] md:text-[20vh] font-black leading-none">{t.data.sets}</span>
+            <div className="w-[22%] h-full flex flex-col items-center justify-center border-r border-slate-800/50 bg-black/40">
+              <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase italic">Sets</span>
+              <span className="text-[15vh] md:text-[23vh] font-black leading-none">{t.data.sets}</span>
             </div>
 
             <div className="flex-1 h-full flex items-center justify-center overflow-hidden">
-              <span className="text-[28vh] md:text-[40vh] font-black leading-none italic scale-x-[1.6] transform-gpu [text-shadow:_0_0_40px_rgb(255_255_255_/_30%) ]">
+              <span className="text-[30vh] md:text-[45vh] font-black leading-none italic scale-x-[1.6] transform-gpu [text-shadow:_0_0_40px_rgb(255_255_255_/_30%)]">
                 {formatPoints(t.data.points)}
               </span>
             </div>
 
-            <div className="w-[25%] md:w-[22%] h-full flex flex-col items-center justify-center border-l-2 border-slate-800/50 bg-black/40">
-              <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase tracking-widest italic">Games</span>
-              <span className="text-[14vh] md:text-[20vh] font-black leading-none">{t.data.games}</span>
+            <div className="w-[22%] h-full flex flex-col items-center justify-center border-l border-slate-800/50 bg-black/40">
+              <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase italic">Games</span>
+              <span className="text-[15vh] md:text-[23vh] font-black leading-none">{t.data.games}</span>
             </div>
           </button>
         ))}
       </section>
 
-      {/* FOOTER (FIXED HEIGHT) */}
-      <footer className="flex-none h-[60px] flex items-center justify-between px-2 md:px-10 border-t border-slate-900 bg-slate-950/80">
+      {/* TIGHTER FOOTER (LOCKED AT 50px) */}
+      <footer className="flex-none h-[50px] flex items-center justify-between px-2 md:px-10 border-t border-slate-900 bg-slate-950/90">
         <div className="flex items-center gap-1 md:gap-4">
-          <button onClick={handleUndo} className="flex items-center gap-2 bg-slate-900/50 border border-slate-800 px-3 md:px-6 py-1.5 rounded-lg active:scale-95">
+          <button onClick={handleUndo} className="flex items-center gap-2 bg-slate-900/50 px-3 md:px-5 py-1 rounded-lg active:scale-95 transition-all">
             <Undo2 className="w-4 h-4 md:w-5 md:h-5 text-slate-500" />
             <span className="text-[10px] md:text-lg font-black text-slate-500 uppercase hidden md:inline">Undo</span>
           </button>
-          <button onClick={handleSaveMatch} className="flex items-center gap-2 bg-indigo-900/40 border border-indigo-500/50 px-3 md:px-6 py-1.5 rounded-lg active:scale-95 hover:bg-indigo-600">
+          <button onClick={handleSaveMatch} className="flex items-center gap-2 bg-indigo-900/40 px-3 md:px-5 py-1 rounded-lg active:scale-95 transition-all">
             <Save className="w-4 h-4 md:w-5 md:h-5 text-indigo-400" />
             <span className="text-[10px] md:text-lg font-black text-indigo-400 uppercase hidden md:inline">Save</span>
           </button>
         </div>
         
-        <div className={`px-2 md:px-8 py-1.5 rounded-full border-2 font-black uppercase tracking-[0.2em] md:tracking-[0.4em] text-[8px] md:text-sm transition-all ${
-          isTiebreak 
-          ? 'bg-amber-500/20 border-amber-500 text-amber-400 animate-pulse' 
-          : 'bg-slate-900/40 border-slate-800 text-slate-600'
+        <div className={`px-2 md:px-8 py-1 rounded-full border md:border-2 font-black uppercase text-[8px] md:text-sm ${
+          isTiebreak ? 'bg-amber-500/20 border-amber-500 text-amber-400 animate-pulse' : 'bg-slate-900/40 border-slate-800 text-slate-600'
         }`}>
           {isTiebreak ? 'TIEBREAK' : 'MATCH'}
         </div>
 
-        <div className="flex items-center gap-1 md:gap-4">
-          <button onClick={handleReset} className="text-[10px] md:text-lg font-black text-red-900/80 hover:text-red-500 uppercase tracking-widest mr-1 md:mr-4">Reset</button>
-          <button onClick={() => setArchiveOpen(true)} className="p-1.5 md:p-2 bg-slate-900/50 border border-slate-800 rounded-lg text-indigo-400 active:scale-95">
+        <div className="flex items-center gap-1 md:gap-3">
+          <button onClick={handleReset} className="text-[10px] md:text-lg font-black text-red-900/80 uppercase mr-1 md:mr-4">Reset</button>
+          <button onClick={() => setArchiveOpen(true)} className="p-1.5 md:p-2 text-indigo-400 active:scale-95">
             <History className="w-4 h-4 md:w-6 md:h-6" />
           </button>
-          <button onClick={() => setHistoryOpen(true)} className="p-1.5 md:p-2 bg-slate-900/50 border border-slate-800 rounded-lg text-slate-600 active:scale-95">
+          <button onClick={() => setHistoryOpen(true)} className="p-1.5 md:p-2 text-slate-600 active:scale-95">
             <MessageSquareText className="w-4 h-4 md:w-6 md:h-6" />
           </button>
-          <button onClick={() => setSettingsOpen(true)} className="p-1.5 md:p-2 bg-slate-900/50 border border-slate-800 rounded-lg text-slate-600 active:scale-95">
+          <button onClick={() => setSettingsOpen(true)} className="p-1.5 md:p-2 text-slate-600 active:scale-95">
             <Settings className="w-4 h-4 md:w-6 md:h-6" />
           </button>
         </div>
       </footer>
 
-      {/* MODALS REMAIN AT THE BOTTOM OF THE FILE AS PER PREVIOUS VERSION */}
+      {/* MODALS REMAIN THE SAME */}
+      {/* ... (Keeping settings, history, archive overlays exactly as they were) ... */}
+
+      {/* (MODAL CODE CONTINUED BELOW) */}
+      {archiveOpen && (
+        <div className="absolute inset-0 z-[60] bg-black/95 flex items-center justify-center p-2" onClick={() => setArchiveOpen(false)}>
+          <div className="bg-slate-900 border-2 border-slate-700 p-4 rounded-2xl w-full max-w-3xl flex flex-col gap-3 max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            <h2 className="text-xl font-black uppercase text-center text-slate-500 border-b border-slate-800 pb-2 italic">Saved Matches</h2>
+            <div className="flex-1 overflow-y-auto flex flex-col gap-2">
+              {savedMatches.length === 0 ? (
+                <div className="text-center text-slate-600 font-bold py-10 text-xl uppercase italic">No matches saved yet</div>
+              ) : (
+                savedMatches.map(match => (
+                  <div key={match.id} className="bg-slate-800 p-3 rounded-xl flex items-center justify-between border-l-4 border-indigo-500">
+                    <div className="flex flex-col">
+                      <span className="text-slate-400 text-xs font-bold uppercase">{match.date}</span>
+                      <span className="text-white font-black text-lg uppercase italic">{match.team1Name} vs {match.team2Name}</span>
+                      <span className="text-emerald-400 font-mono font-bold text-xl tracking-widest">{match.scores}</span>
+                    </div>
+                    <button onClick={() => deleteSavedMatch(match.id)} className="p-2 text-red-500"><Trash2 size={24} /></button>
+                  </div>
+                ))
+              )}
+            </div>
+            <div className="flex items-center justify-between border-t border-slate-800 pt-3">
+              <button onClick={clearArchive} className="text-red-900/50 text-xs uppercase">Clear All</button>
+              <button onClick={() => setArchiveOpen(false)} className="py-2 px-8 bg-white text-black font-black rounded-xl uppercase">Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {historyOpen && (
+        <div className="absolute inset-0 z-[60] bg-black/95 flex items-center justify-center p-2" onClick={() => setHistoryOpen(false)}>
+          <div className="bg-slate-900 border-2 border-slate-700 p-4 rounded-2xl w-full max-w-2xl flex flex-col gap-3 max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            <h2 className="text-xl font-black uppercase text-center text-slate-500 border-b border-slate-800 pb-2 italic">Match Log</h2>
+            <div className="flex-1 overflow-y-auto flex flex-col gap-2">
+              {historyLog.map(log => (
+                <div key={log.id} className="bg-slate-800 p-3 rounded-xl flex justify-between items-center border-l-4 border-emerald-500">
+                  <span className="text-white font-bold text-sm uppercase">{log.msg}</span>
+                  <span className="text-slate-400 text-xs font-mono bg-black/30 px-2 py-1 rounded-lg">{log.time}</span>
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setHistoryOpen(false)} className="py-3 bg-white text-black font-black rounded-xl uppercase">Close</button>
+          </div>
+        </div>
+      )}
+
+      {settingsOpen && (
+        <div className="absolute inset-0 z-50 bg-black/95 flex items-center justify-center p-2" onClick={() => setSettingsOpen(false)}>
+          <div className="bg-slate-900 border-2 border-slate-700 p-4 rounded-2xl w-full max-w-xl flex flex-col gap-3 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+             <h2 className="text-xl font-black uppercase text-center text-slate-500 italic">Settings</h2>
+             <div className="grid grid-cols-2 gap-2">
+               <input value={team1Name} onChange={e => setTeam1Name(e.target.value)} placeholder="TEAM 1" className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-white text-lg font-black uppercase text-center" maxLength={15} />
+               <input value={team2Name} onChange={e => setTeam2Name(e.target.value)} placeholder="TEAM 2" className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-white text-lg font-black uppercase text-center" maxLength={15} />
+             </div>
+             <button onClick={() => setUmpireEnabled(!umpireEnabled)} className={`py-4 rounded-xl border-2 text-lg font-black uppercase flex items-center justify-center gap-4 ${umpireEnabled ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
+               <Volume2 size={24} /> Umpire: {umpireEnabled ? 'ON' : 'OFF'}
+             </button>
+             <button onClick={toggleFullscreen} className="py-3 rounded-xl bg-slate-800 border border-slate-600 text-lg font-black uppercase flex items-center justify-center gap-4">
+               <Maximize size={24} /> Fullscreen
+             </button>
+             <div className="grid grid-cols-2 gap-2">
+                <button onClick={() => setMatchFormat(3)} className={`py-3 rounded-xl border text-lg font-black uppercase ${matchFormat === 3 ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Best of 3</button>
+                <button onClick={() => setMatchFormat(5)} className={`py-3 rounded-xl border text-lg font-black uppercase ${matchFormat === 5 ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Best of 5</button>
+             </div>
+             <button onClick={toggleGoldenPoint} className={`py-3 rounded-xl border text-lg font-black uppercase ${useGoldenPoint ? 'bg-emerald-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Golden Point: {useGoldenPoint ? 'ON' : 'OFF'}</button>
+             <button onClick={toggleServer} className="py-3 bg-slate-800 border border-slate-600 rounded-xl text-lg font-black uppercase">Swap Server</button>
+             <button onClick={() => setSettingsOpen(false)} className="py-3 bg-white text-black font-black rounded-xl uppercase mt-2">Close</button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
