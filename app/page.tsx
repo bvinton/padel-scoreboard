@@ -42,57 +42,83 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, [timeLeft]);
 
-  // --- UPDATED: PRO UMPIRE SPEECH LOGIC ---
+  // --- UMPIRE LOGIC WITH CUSTOM NAMES AND FASTER RATE ---
   const speakScore = (text: string) => {
     if (!umpireEnabled || typeof window === "undefined") return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     
-    // Attempt to find a nicer English voice if available
     const voices = window.speechSynthesis.getVoices();
     const premiumVoice = voices.find(v => v.name.includes("Google UK English Male") || v.name.includes("en-GB"));
     if (premiumVoice) utterance.voice = premiumVoice;
 
-    utterance.rate = 0.85; // Slightly slower for a more "prestigious" feel
-    utterance.pitch = 0.9; // Slightly lower pitch for a more authoritative tone
+    utterance.rate = 1.0; // Sped up from 0.85 to 1.0 for a snappier response
+    utterance.pitch = 0.95;
     window.speechSynthesis.speak(utterance);
   };
+
+  // Tracking game/set counts to detect when a game/set has just been won
+  const prevGames1 = useRef(team1.games);
+  const prevGames2 = useRef(team2.games);
+  const prevSets1 = useRef(team1.sets);
+  const prevSets2 = useRef(team2.sets);
 
   useEffect(() => {
     if (!umpireEnabled) return;
     
+    // 1. Check for Match Win
     if (matchWinner && !matchWinnerDismissed) {
-      speakScore(`Game, Set, and Match. ${matchWinner === 'team1' ? team1Name : team2Name}`);
+      speakScore(`Game, Set and Match. ${matchWinner === 'team1' ? team1Name : team2Name}`);
       return;
     }
 
+    // 2. Check for Set Win
+    if (team1.sets > prevSets1.current) {
+        speakScore(`Game and Set, ${team1Name}`);
+        prevSets1.current = team1.sets;
+        prevGames1.current = 0;
+        prevGames2.current = 0;
+        return;
+    }
+    if (team2.sets > prevSets2.current) {
+        speakScore(`Game and Set, ${team2Name}`);
+        prevSets2.current = team2.sets;
+        prevGames1.current = 0;
+        prevGames2.current = 0;
+        return;
+    }
+
+    // 3. Check for Game Win (But not a set win)
+    if (team1.games > prevGames1.current) {
+        speakScore(`Game, ${team1Name}`);
+        prevGames1.current = team1.games;
+        return;
+    }
+    if (team2.games > prevGames2.current) {
+        speakScore(`Game, ${team2Name}`);
+        prevGames2.current = team2.games;
+        return;
+    }
+
+    // 4. Regular Points
     const p1 = team1.points;
     const p2 = team2.points;
 
-    // Don't announce if both are 0 unless it's the very start or a new game
     if (p1 === '0' && p2 === '0') {
       if (isTiebreak) speakScore("Tiebreak");
-      return;
-    }
-
-    if (p1 === 'Ad' || p2 === 'Ad') {
+    } else if (p1 === 'Ad' || p2 === 'Ad') {
       speakScore("Advantage");
     } else if (p1 === '40' && p2 === '40') {
       speakScore("Deuce");
     } else if (isTiebreak) {
       speakScore(`${p1}, ${p2}`);
     } else {
-      // Translate '0' to 'Love'
       const p1Text = p1 === '0' ? "Love" : p1;
       const p2Text = p2 === '0' ? "Love" : p2;
-
-      if (p1 === p2) {
-        speakScore(`${p1Text} All`);
-      } else {
-        speakScore(`${p1Text}, ${p2Text}`);
-      }
+      if (p1 === p2) speakScore(`${p1Text} All`);
+      else speakScore(`${p1Text}, ${p2Text}`);
     }
-  }, [team1.points, team2.points, matchWinner]);
+  }, [team1.points, team2.points, team1.games, team2.games, team1.sets, team2.sets, matchWinner]);
 
   useEffect(() => {
     const saved = localStorage.getItem('padelArchive');
@@ -120,6 +146,11 @@ export default function HomePage() {
     addLog("Undo used");
     setTimeLeft(0);
     undo();
+    // Update refs on undo so umpire doesn't get confused
+    prevGames1.current = team1.games;
+    prevGames2.current = team2.games;
+    prevSets1.current = team1.sets;
+    prevSets2.current = team2.sets;
   };
 
   const handleReset = () => {
@@ -127,6 +158,10 @@ export default function HomePage() {
     setHistoryLog([]);
     setLocalDismissed(false);
     setTimeLeft(0);
+    prevGames1.current = 0;
+    prevGames2.current = 0;
+    prevSets1.current = 0;
+    prevSets2.current = 0;
     resetMatch();
   };
 
