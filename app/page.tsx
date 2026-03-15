@@ -58,16 +58,12 @@ export default function HomePage() {
   const formatPoints = (p: string | number) => typeof p === "number" ? p.toString() : p;
 
   return (
-    <main className="h-screen w-full flex flex-col bg-slate-950 text-slate-50 select-none overflow-hidden p-2 md:p-4 gap-2 font-sans">
+    <main className="h-screen w-full flex flex-col bg-slate-950 text-slate-50 select-none overflow-hidden p-2 md:p-3 gap-1 font-sans">
       
       {/* VICTORY OVERLAY */}
       {matchWinner && !matchWinnerDismissed && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/95 backdrop-blur-xl animate-in fade-in duration-500" onClick={() => scorePoint("team1")}>
           <div className="relative flex flex-col items-center justify-center bg-slate-900 border-4 border-amber-400 p-10 rounded-[4rem] text-center shadow-[0_0_100px_rgba(251,191,36,0.2)]" onClick={(e) => e.stopPropagation()}>
-            <span className="absolute -top-10 -left-10 text-6xl animate-bounce">🎇</span>
-            <span className="absolute -top-10 -right-10 text-6xl animate-bounce delay-100">🎆</span>
-            <span className="absolute -bottom-10 -left-10 text-6xl animate-pulse">🎊</span>
-            <span className="absolute -bottom-10 -right-10 text-6xl animate-pulse delay-200">🎉</span>
             <Trophy className="h-20 w-20 text-amber-400 mb-6 animate-pulse" />
             <h2 className="text-6xl md:text-8xl font-black mb-2 text-white italic tracking-tighter">
               {matchWinner === 'team1' ? 'TEAM 1' : 'TEAM 2'}
@@ -105,45 +101,45 @@ export default function HomePage() {
       )}
 
       {/* Teams Section */}
-      <section className="flex-[12] flex flex-col gap-2 min-h-0">
+      <section className="flex-[14] flex flex-col gap-2 min-h-0">
         {[ { id: "team1", data: team1, label: "TEAM 1" }, { id: "team2", data: team2, label: "TEAM 2" } ].map((t) => (
           <button 
             key={t.id} 
             onClick={() => scorePoint(t.id as any)} 
-            className={`flex-1 rounded-[2.5rem] border-4 flex flex-col px-8 py-4 relative overflow-hidden transition-all duration-300 ${
+            className={`flex-1 rounded-[2.5rem] border-4 flex flex-col px-6 py-2 relative overflow-hidden transition-all duration-300 ${
               server === t.id 
-                ? "border-emerald-500 bg-emerald-500/10 shadow-[0_0_40px_rgba(16,185,129,0.2)]" 
+                ? "border-emerald-500 bg-emerald-500/10 shadow-[inset_0_0_50px_rgba(16,185,129,0.1)]" 
                 : "border-slate-800/50 bg-slate-900/40"
             }`}
           >
-            {/* Header Info */}
-            <div className="flex justify-between w-full h-8 z-20">
-              <span className={`text-xl font-black italic tracking-tighter ${server === t.id ? "text-emerald-400" : "text-slate-600"}`}>
+            {/* Header */}
+            <div className="flex justify-between w-full h-6 z-20">
+              <span className={`text-lg font-black italic tracking-tighter ${server === t.id ? "text-emerald-400" : "text-slate-600"}`}>
                 {t.label}
               </span>
               {server === t.id && (
-                <span className="bg-emerald-500/20 px-4 py-0.5 rounded-full text-[10px] font-black border border-emerald-400/50 text-emerald-300 tracking-widest flex items-center gap-1">
+                <span className="bg-emerald-500/20 px-3 py-0.5 rounded-full text-[10px] font-black border border-emerald-400/50 text-emerald-300 tracking-widest flex items-center gap-1">
                   <CircleDot size={10} className="animate-pulse" /> SERVING
                 </span>
               )}
             </div>
 
-            {/* Main Score (Centered vertically in the middle area) */}
-            <div className="flex-1 flex items-center justify-center pointer-events-none z-10">
-              <span className="text-[12rem] md:text-[16rem] font-black text-white leading-none italic drop-shadow-2xl translate-y-2">
+            {/* Main Score (MAX VISIBILITY VERSION) */}
+            <div className="flex-1 flex items-center justify-center pointer-events-none z-10 w-full">
+              <span className="text-[18rem] md:text-[22rem] font-black text-white leading-none italic drop-shadow-[0_10px_30px_rgba(0,0,0,0.8)] scale-x-110">
                 {formatPoints(t.data.points)}
               </span>
             </div>
 
-            {/* Sets/Games Boxes */}
-            <div className="flex items-end justify-between w-full pb-2 z-20">
-              <div className="flex flex-col items-center bg-slate-950/60 px-10 py-3 rounded-[2rem] border-2 border-slate-800/80 min-w-[210px]">
-                <span className="text-[10px] text-slate-500 font-black tracking-[0.2em] mb-1">SETS</span>
-                <span className="text-[9.5rem] font-black text-slate-100 leading-[0.8] mb-1">{t.data.sets}</span>
+            {/* Bottom Boxes */}
+            <div className="flex items-end justify-between w-full pb-1 z-20 gap-4">
+              <div className="flex flex-col items-center bg-slate-950/70 px-8 py-2 rounded-[2rem] border-2 border-slate-800/80 flex-1 max-w-[240px]">
+                <span className="text-[10px] text-slate-500 font-black tracking-[0.2em]">SETS</span>
+                <span className="text-[10rem] font-black text-slate-100 leading-[0.7] mb-1">{t.data.sets}</span>
               </div>
-              <div className="flex flex-col items-center bg-slate-950/60 px-10 py-3 rounded-[2rem] border-2 border-slate-800/80 min-w-[210px]">
-                <span className="text-[10px] text-slate-500 font-black tracking-[0.2em] mb-1">GAMES</span>
-                <span className="text-[9.5rem] font-black text-slate-100 leading-[0.8] mb-1">{t.data.games}</span>
+              <div className="flex flex-col items-center bg-slate-950/70 px-8 py-2 rounded-[2rem] border-2 border-slate-800/80 flex-1 max-w-[240px]">
+                <span className="text-[10px] text-slate-500 font-black tracking-[0.2em]">GAMES</span>
+                <span className="text-[10rem] font-black text-slate-100 leading-[0.7] mb-1">{t.data.games}</span>
               </div>
             </div>
 
@@ -151,24 +147,18 @@ export default function HomePage() {
         ))}
       </section>
 
-      {/* Footer Controls */}
-      <footer className="flex-[1] grid grid-cols-3 items-center pt-1 border-t border-slate-800/30">
-        <div className="flex justify-start">
-          <button onClick={undo} className="bg-slate-900 border border-slate-700 px-4 py-2 rounded-xl font-black text-slate-300 active:scale-95 transition-transform uppercase tracking-wider text-xs flex items-center gap-2">
-            <Undo2 size={16} /> UNDO
-          </button>
+      {/* Footer */}
+      <footer className="flex-[1] flex items-center justify-between px-4 py-1 border-t border-slate-800/30">
+        <button onClick={undo} className="bg-slate-900 border border-slate-700 px-4 py-2 rounded-xl font-black text-slate-300 active:scale-95 text-xs flex items-center gap-2">
+          <Undo2 size={16} /> UNDO
+        </button>
+        <div className={`px-3 py-0.5 rounded-full border text-[10px] font-black uppercase ${isTiebreak ? 'border-amber-500/50 text-amber-500 bg-amber-500/5' : 'border-slate-800 text-slate-600'}`}>
+          {isTiebreak ? 'Tiebreak' : 'Regular'}
         </div>
-        
-        <div className="text-center">
-          <div className={`inline-block px-3 py-0.5 rounded-full border text-[10px] font-black uppercase ${isTiebreak ? 'border-amber-500/50 text-amber-500 bg-amber-500/5' : 'border-slate-800 text-slate-600'}`}>
-            {isTiebreak ? 'Tiebreak' : 'Regular'}
-          </div>
-        </div>
-
-        <div className="flex justify-end items-center gap-3">
-          <button onClick={resetMatch} className="hidden md:block text-slate-600 font-bold text-[10px] uppercase hover:text-red-400 transition-colors">Reset</button>
-          <button onClick={() => setSettingsOpen(!settingsOpen)} className="p-2 bg-slate-900 border border-slate-700 rounded-xl active:bg-slate-800">
-            <Settings size={18} className="text-slate-400" />
+        <div className="flex items-center gap-4">
+          <button onClick={resetMatch} className="hidden md:block text-slate-700 font-bold text-[10px] uppercase hover:text-red-400">Reset</button>
+          <button onClick={() => setSettingsOpen(!settingsOpen)} className="p-2 bg-slate-900 border border-slate-700 rounded-xl">
+            <Settings size={18} className="text-slate-500" />
           </button>
         </div>
       </footer>
