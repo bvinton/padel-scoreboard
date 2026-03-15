@@ -121,13 +121,24 @@ export default function HomePage() {
   };
 
   // --- 3. EFFECTS ---
+  
+  // TIMER LOGIC WITH AUTO-DISMISS
   useEffect(() => {
-    if (timeLeft <= 0) return;
+    if (timeLeft <= 0) {
+      if (timerStarted) {
+        // Flash red for 2 seconds, then turn the timer off completely
+        const timeout = setTimeout(() => {
+          setTimerStarted(false);
+        }, 2000);
+        return () => clearTimeout(timeout);
+      }
+      return;
+    }
     const interval = setInterval(() => {
       setTimeLeft((prev) => Math.max(0, prev - 0.1));
     }, 100);
     return () => clearInterval(interval);
-  }, [timeLeft]);
+  }, [timeLeft, timerStarted]);
 
   const prevGames1 = useRef(team1.games);
   const prevGames2 = useRef(team2.games);
@@ -236,9 +247,16 @@ export default function HomePage() {
 
   const formatPoints = (p: string | number) => typeof p === "number" ? p.toString() : p;
 
+  // --- PURE MATH FOR SOLID SVG LINES ---
+  const getBottomLeftX2 = () => timeLeft >= 16 ? ((timeLeft - 16) / 4) * 50 : 0;
+  const getBottomRightX1 = () => timeLeft >= 16 ? 100 - (((timeLeft - 16) / 4) * 50) : 100;
+  const getSideY2 = () => timeLeft >= 16 ? 100 : timeLeft >= 4 ? ((timeLeft - 4) / 12) * 100 : 0;
+  const getTopLeftX1 = () => timeLeft >= 4 ? 0 : 50 - ((timeLeft / 4) * 50);
+  const getTopRightX2 = () => timeLeft >= 4 ? 100 : 50 + ((timeLeft / 4) * 50);
+
   const getTimerStrokeColor = () => {
-    if (timeLeft > 10) return "text-emerald-500 drop-shadow-[0_0_15px_rgba(16,185,129,1)]";
-    return "text-amber-500 drop-shadow-[0_0_15px_rgba(245,158,11,1)]";
+    if (timeLeft > 10) return "text-emerald-500 drop-shadow-[0_0_12px_rgba(16,185,129,1)]";
+    return "text-amber-500 drop-shadow-[0_0_12px_rgba(245,158,11,1)]";
   };
 
   return (
@@ -266,49 +284,30 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* SCOREBOARD SECTION WITH 100% SOLID SVG CLOCK */}
+      {/* SCOREBOARD SECTION WITH CLIPPED BORDER CLOCK */}
       <section className="flex-grow flex flex-col p-1 relative overflow-hidden">
         
-        {/* DRAINING TIMER (20s -> 0.1s) */}
-        {timerStarted && timeLeft > 0 && (
-          <svg className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] pointer-events-none z-50 rounded-lg md:rounded-[1.5rem]" preserveAspectRatio="none" viewBox="0 0 100 100">
-            {/* RIGHT HALF: True mathematical length is 200. No pathLength hack. */}
-            <path
-              d="M 50 0 L 100 0 L 100 100 L 50 100"
-              fill="none"
-              stroke="currentColor"
-              className={`transition-all duration-100 ease-linear ${getTimerStrokeColor()}`}
-              strokeWidth="8"
-              vectorEffect="non-scaling-stroke"
-              strokeDasharray="200"
-              style={{ strokeDashoffset: 200 - (timeLeft / 20) * 200 }}
-            />
-            {/* LEFT HALF: True mathematical length is 200. No pathLength hack. */}
-            <path
-              d="M 50 0 L 0 0 L 0 100 L 50 100"
-              fill="none"
-              stroke="currentColor"
-              className={`transition-all duration-100 ease-linear ${getTimerStrokeColor()}`}
-              strokeWidth="8"
-              vectorEffect="non-scaling-stroke"
-              strokeDasharray="200"
-              style={{ strokeDashoffset: 200 - (timeLeft / 20) * 200 }}
-            />
-          </svg>
-        )}
+        {/* TIMER WRAPPER */}
+        {timerStarted && (
+          <div className="absolute inset-1 pointer-events-none z-50 rounded-lg md:rounded-[1.5rem] overflow-hidden">
+            
+            {/* DRAINING TIMER */}
+            {timeLeft > 0 && (
+              <svg className="absolute inset-0 w-full h-full">
+                <line x1={`${getTopLeftX1()}%`} y1="0%" x2="50%" y2="0%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-100 ease-linear ${getTimerStrokeColor()}`} />
+                <line x1="50%" y1="0%" x2={`${getTopRightX2()}%`} y2="0%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-100 ease-linear ${getTimerStrokeColor()}`} />
+                <line x1="0%" y1="0%" x2="0%" y2={`${getSideY2()}%`} stroke="currentColor" strokeWidth="12" className={`transition-all duration-100 ease-linear ${getTimerStrokeColor()}`} />
+                <line x1="100%" y1="0%" x2="100%" y2={`${getSideY2()}%`} stroke="currentColor" strokeWidth="12" className={`transition-all duration-100 ease-linear ${getTimerStrokeColor()}`} />
+                <line x1="0%" y1="100%" x2={`${getBottomLeftX2()}%`} y2="100%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-100 ease-linear ${getTimerStrokeColor()}`} />
+                <line x1={`${getBottomRightX1()}%`} y1="100%" x2="100%" y2="100%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-100 ease-linear ${getTimerStrokeColor()}`} />
+              </svg>
+            )}
 
-        {/* TIME VIOLATION ALARM (0s) */}
-        {timerStarted && timeLeft <= 0 && (
-          <svg className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] pointer-events-none z-50 rounded-lg md:rounded-[1.5rem]" preserveAspectRatio="none" viewBox="0 0 100 100">
-            <rect
-              x="0" y="0" width="100" height="100"
-              fill="none"
-              stroke="currentColor"
-              className="text-red-600 drop-shadow-[0_0_25px_rgba(220,38,38,1)] animate-pulse"
-              strokeWidth="8"
-              vectorEffect="non-scaling-stroke"
-            />
-          </svg>
+            {/* AUTO-DISMISS ALARM (0s) */}
+            {timeLeft <= 0 && (
+              <div className="absolute inset-0 border-[6px] border-red-600 shadow-[inset_0_0_40px_rgba(220,38,38,0.8)] animate-pulse" />
+            )}
+          </div>
         )}
 
         {[ { id: "team1", data: team1, label: team1Name }, { id: "team2", data: team2, label: team2Name } ].map((t) => (
@@ -321,7 +320,6 @@ export default function HomePage() {
                 : "border-slate-800 bg-slate-900/20"
             }`}
           >
-            
             <div className="absolute top-1 md:top-3 left-3 md:left-8 z-20">
               <span className={`text-[10px] md:text-2xl font-black italic uppercase transition-all duration-300 ${
                 server === t.id 
@@ -353,7 +351,6 @@ export default function HomePage() {
               <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase tracking-widest italic">Games</span>
               <span className="text-[20vh] md:text-[23vh] font-black leading-none drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">{t.data.games}</span>
             </div>
-            
           </button>
         ))}
       </section>
