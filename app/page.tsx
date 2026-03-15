@@ -243,22 +243,23 @@ export default function HomePage() {
               </div>
             )}
             
-            {/* Sets View - Targeted Width and Font for Mobile */}
             <div className="w-[28%] md:w-[22%] h-full flex flex-col items-center justify-center border-r border-slate-800/30 bg-black/40">
-              <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase italic">Sets</span>
-              <span className="text-[20vh] md:text-[23vh] font-black leading-none">{t.data.sets}</span>
+              <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase tracking-widest italic">Sets</span>
+              {/* RESTORED: Ambient Glow on Sets */}
+              <span className="text-[20vh] md:text-[23vh] font-black leading-none drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">{t.data.sets}</span>
             </div>
 
             <div className="flex-1 h-full flex items-center justify-center overflow-hidden">
-              <span className="text-[32vh] md:text-[45vh] font-black leading-none italic scale-x-[1.4] md:scale-x-[1.6] transform-gpu [text-shadow:_0_0_50px_rgb(255_255_255_/_20%)]">
+              {/* RESTORED: High-Intensity LED Glow for Points */}
+              <span className="text-[32vh] md:text-[45vh] font-black leading-none italic scale-x-[1.4] md:scale-x-[1.6] transform-gpu [text-shadow:_0_0_40px_rgb(255_255_255_/_30%),_0_0_10px_rgb(255_255_255_/_60%)]">
                 {formatPoints(t.data.points)}
               </span>
             </div>
 
-            {/* Games View - Targeted Width and Font for Mobile */}
             <div className="w-[28%] md:w-[22%] h-full flex flex-col items-center justify-center border-l border-slate-800/30 bg-black/40">
-              <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase italic">Games</span>
-              <span className="text-[20vh] md:text-[23vh] font-black leading-none">{t.data.games}</span>
+              <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase tracking-widest italic">Games</span>
+              {/* RESTORED: Ambient Glow on Games */}
+              <span className="text-[20vh] md:text-[23vh] font-black leading-none drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">{t.data.games}</span>
             </div>
           </button>
         ))}
@@ -290,7 +291,7 @@ export default function HomePage() {
         </div>
       </footer>
 
-      {/* MODALS REMAIN UNCHANGED FOR CONSISTENCY */}
+      {/* OVERLAYS (UNCHANGED) */}
       {archiveOpen && (
         <div className="absolute inset-0 z-[60] bg-black/95 flex items-center justify-center p-2" onClick={() => setArchiveOpen(false)}>
           <div className="bg-slate-900 border-2 border-slate-700 p-4 rounded-2xl w-full max-w-3xl flex flex-col gap-3 max-h-[90vh]" onClick={e => e.stopPropagation()}>
@@ -347,7 +348,7 @@ export default function HomePage() {
              <button onClick={() => setUmpireEnabled(!umpireEnabled)} className={`py-4 rounded-xl border-2 text-lg font-black uppercase flex items-center justify-center gap-4 ${umpireEnabled ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
                <Volume2 size={24} /> Umpire: {umpireEnabled ? 'ON' : 'OFF'}
              </button>
-             <button onClick={toggleFullscreen} className="py-3 rounded-xl bg-slate-800 border border-slate-600 text-lg font-black uppercase flex items-center justify-center gap-4">
+             <button onClick={toggleFullscreen} className="py-3 rounded-xl bg-slate-800 border border-slate-600 text-lg font-black uppercase flex items-center justify-center gap-4 transition-all active:scale-95">
                <Maximize size={24} /> Fullscreen
              </button>
              <div className="grid grid-cols-2 gap-2">
@@ -355,8 +356,8 @@ export default function HomePage() {
                 <button onClick={() => setMatchFormat(5)} className={`py-3 rounded-xl border text-lg font-black uppercase ${matchFormat === 5 ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Best of 5</button>
              </div>
              <button onClick={toggleGoldenPoint} className={`py-3 rounded-xl border text-lg font-black uppercase ${useGoldenPoint ? 'bg-emerald-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Golden Point: {useGoldenPoint ? 'ON' : 'OFF'}</button>
-             <button onClick={toggleServer} className="py-3 bg-slate-800 border border-slate-600 rounded-xl text-lg font-black uppercase">Swap Server</button>
-             <button onClick={() => setSettingsOpen(false)} className="py-3 bg-white text-black font-black rounded-xl uppercase mt-2">Close</button>
+             <button onClick={toggleServer} className="py-3 bg-slate-800 border border-slate-600 rounded-xl text-lg font-black uppercase transition-all active:scale-95">Swap Server</button>
+             <button onClick={() => setSettingsOpen(false)} className="py-3 bg-white text-black font-black rounded-xl uppercase mt-2 transition-all active:scale-95">Close</button>
           </div>
         </div>
       )}
