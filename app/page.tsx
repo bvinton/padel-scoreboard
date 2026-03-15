@@ -56,13 +56,13 @@ export default function HomePage() {
   return (
     <main className="h-screen w-full flex flex-col bg-slate-950 text-slate-50 select-none overflow-hidden p-2 gap-2 font-sans">
       
-      {/* Settings (Overlay) */}
+      {/* Settings Panel */}
       {settingsOpen && (
         <section className="absolute top-16 left-1/2 -translate-x-1/2 w-80 z-50 bg-slate-900 p-6 rounded-3xl border border-slate-700 shadow-2xl">
           <div className="flex flex-col gap-4 text-center">
             <h4 className="text-slate-500 font-bold uppercase tracking-widest">Match Settings</h4>
             <button onClick={toggleGoldenPoint} className={`py-4 rounded-xl font-bold border-2 ${useGoldenPoint ? 'border-emerald-500 text-emerald-400 bg-emerald-500/5' : 'border-slate-700 text-slate-500'}`}>Golden Point: {useGoldenPoint ? 'ON' : 'OFF'}</button>
-            <button onClick={toggleServer} className="bg-slate-800 py-4 rounded-xl font-bold border border-slate-600 active:bg-slate-700">Swap Server</button>
+            <button onClick={toggleServer} className="bg-slate-800 py-4 rounded-xl font-bold border border-slate-600">Swap Server</button>
             <div className="grid grid-cols-2 gap-2">
                <button onClick={() => setMatchFormat(3)} className={`py-4 rounded-xl font-bold ${matchFormat === 3 ? 'bg-indigo-600' : 'bg-slate-800'}`}>Best of 3</button>
                <button onClick={() => setMatchFormat(5)} className={`py-4 rounded-xl font-bold ${matchFormat === 5 ? 'bg-indigo-600' : 'bg-slate-800'}`}>Best of 5</button>
@@ -75,10 +75,10 @@ export default function HomePage() {
       {/* Victory Overlay */}
       {matchWinner && !matchWinnerDismissed && (
         <div className="absolute inset-0 z-[60] flex items-center justify-center bg-slate-950/95 backdrop-blur-md" onClick={() => scorePoint("team1")}>
-          <div className="flex flex-col items-center bg-slate-900 border-4 border-amber-400 p-12 rounded-[4rem] text-center shadow-[0_0_100px_rgba(251,191,36,0.2)]" onClick={(e) => e.stopPropagation()}>
+          <div className="flex flex-col items-center bg-slate-900 border-4 border-amber-400 p-12 rounded-[4rem] text-center" onClick={(e) => e.stopPropagation()}>
             <Trophy className="h-20 w-20 text-amber-400 mb-6 animate-pulse" />
             <h2 className="text-7xl font-black mb-6 text-white italic uppercase tracking-tighter">{matchWinner === 'team1' ? 'Team 1' : 'Team 2'} Wins</h2>
-            <button onClick={resetMatch} className="bg-amber-500 text-slate-950 px-16 py-6 rounded-full text-3xl font-black uppercase shadow-lg active:scale-95 transition-transform">Play Again</button>
+            <button onClick={resetMatch} className="bg-amber-500 text-slate-950 px-16 py-6 rounded-full text-3xl font-black uppercase shadow-lg">Play Again</button>
           </div>
         </div>
       )}
@@ -93,32 +93,32 @@ export default function HomePage() {
               server === t.id ? "border-emerald-500 bg-emerald-500/10 shadow-[inset_0_0_80px_rgba(16,185,129,0.1)]" : "border-slate-800/40 bg-slate-900/30"
             }`}
           >
-            {/* Header */}
-            <div className="flex justify-between items-center w-full z-20 mb-1">
+            {/* Team Label */}
+            <div className="flex justify-between items-center w-full z-20 h-[10%] mb-[-1%]">
               <span className={`text-2xl font-black italic tracking-tighter ${server === t.id ? "text-emerald-400" : "text-slate-700"}`}>{t.label}</span>
-              {server === t.id && <span className="text-[10px] font-black text-emerald-400 bg-emerald-400/20 px-4 py-1 rounded-full animate-pulse border border-emerald-400/50 uppercase tracking-widest">Serving</span>}
+              {server === t.id && <span className="text-[10px] font-black text-emerald-400 border border-emerald-400/50 px-4 py-1 rounded-full animate-pulse uppercase tracking-widest">Serving</span>}
             </div>
 
-            {/* Horizontal Layout: [SETS] - [POINTS] - [GAMES] */}
-            <div className="flex-1 flex items-center justify-between w-full gap-6">
+            {/* Content Row */}
+            <div className="flex-1 flex items-center justify-between w-full gap-4 h-[85%]">
               
-              {/* BIG SETS BOX */}
-              <div className="flex flex-col items-center justify-center bg-slate-950/70 w-[300px] h-[90%] rounded-[3rem] border-2 border-slate-800/80 shadow-[inset_0_4px_20px_rgba(0,0,0,0.5)]">
-                <span className="text-xs text-slate-500 font-black tracking-[0.3em] uppercase mb-2">Sets</span>
-                <span className="text-[12vh] font-black text-slate-100 leading-none">{t.data.sets}</span>
+              {/* MAX SETS NUMBER */}
+              <div className="flex flex-col items-center justify-center bg-slate-950/70 w-[300px] h-full rounded-[3rem] border-2 border-slate-800/80">
+                <span className="text-[1.2vh] text-slate-500 font-black tracking-[0.3em] uppercase">Sets</span>
+                <span className="text-[25vh] font-black text-slate-100 leading-[0.7] -mt-2">{t.data.sets}</span>
               </div>
 
-              {/* MASSIVE POINTS */}
-              <div className="flex-1 flex items-center justify-center">
-                <span className="text-[38vh] font-black text-white leading-none italic drop-shadow-[0_25px_50px_rgba(0,0,0,1)] scale-x-125 select-none">
+              {/* MAX POINTS NUMBER */}
+              <div className="flex-1 flex items-center justify-center h-full">
+                <span className="text-[42vh] font-black text-white leading-[0.8] italic drop-shadow-[0_25px_50px_rgba(0,0,0,1)] scale-x-125">
                   {formatPoints(t.data.points)}
                 </span>
               </div>
 
-              {/* BIG GAMES BOX */}
-              <div className="flex flex-col items-center justify-center bg-slate-950/70 w-[300px] h-[90%] rounded-[3rem] border-2 border-slate-800/80 shadow-[inset_0_4px_20px_rgba(0,0,0,0.5)]">
-                <span className="text-xs text-slate-500 font-black tracking-[0.3em] uppercase mb-2">Games</span>
-                <span className="text-[12vh] font-black text-slate-100 leading-none">{t.data.games}</span>
+              {/* MAX GAMES NUMBER */}
+              <div className="flex flex-col items-center justify-center bg-slate-950/70 w-[300px] h-full rounded-[3rem] border-2 border-slate-800/80">
+                <span className="text-[1.2vh] text-slate-500 font-black tracking-[0.3em] uppercase">Games</span>
+                <span className="text-[25vh] font-black text-slate-100 leading-[0.7] -mt-2">{t.data.games}</span>
               </div>
 
             </div>
@@ -127,8 +127,8 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="flex-[1] flex items-center justify-between px-8 border-t border-slate-800/40">
-        <button onClick={undo} className="bg-slate-900 border border-slate-700 px-6 py-2.5 rounded-xl text-xs font-black text-slate-300 active:scale-95 flex items-center gap-2 uppercase tracking-widest">
+      <footer className="flex-[1] flex items-center justify-between px-8 border-t border-slate-800/40 h-[5%]">
+        <button onClick={undo} className="bg-slate-900 border border-slate-700 px-6 py-2 rounded-xl text-xs font-black text-slate-300 active:scale-95 flex items-center gap-2 uppercase tracking-widest">
           <Undo2 size={16} /> Undo
         </button>
         
@@ -137,8 +137,7 @@ export default function HomePage() {
         </div>
 
         <div className="flex items-center gap-4">
-          {/* PURPLE BORDER CHECK */}
-          <button onClick={resetMatch} className="text-[11px] font-black text-slate-700 border-2 border-purple-500/40 px-4 py-2 rounded-xl uppercase hover:text-red-500 transition-colors">Reset</button>
+          <button onClick={resetMatch} className="text-[11px] font-black text-slate-100 bg-red-950/50 border-2 border-red-500/50 px-4 py-2 rounded-xl uppercase hover:bg-red-500 hover:text-white transition-all">Reset</button>
           <button onClick={() => setSettingsOpen(!settingsOpen)} className="p-3 bg-slate-900 border border-slate-700 rounded-xl text-slate-500 hover:text-white transition-colors">
             <Settings size={22} />
           </button>
