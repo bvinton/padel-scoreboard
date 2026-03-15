@@ -104,28 +104,46 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* Teams Section - Utilising extra space */}
+      {/* Teams Section */}
       <section className="flex-[12] flex flex-col gap-2 min-h-0">
-        {[ { id: "team1", data: team1, color: "emerald", label: "TEAM 1" }, { id: "team2", data: team2, color: "cyan", label: "TEAM 2" } ].map((t) => (
-          <button key={t.id} onClick={() => scorePoint(t.id as any)} className={`flex-1 rounded-[2.5rem] border-4 flex flex-col px-8 py-2 relative overflow-hidden transition-all ${server === t.id ? `border-${t.color}-400 bg-${t.color}-500/10 shadow-[0_0_30px_rgba(0,0,0,0.5)]` : "border-slate-800/50 bg-slate-900/40"}`}>
-            
+        {[ { id: "team1", data: team1, label: "TEAM 1" }, { id: "team2", data: team2, label: "TEAM 2" } ].map((t) => (
+          <button 
+            key={t.id} 
+            onClick={() => scorePoint(t.id as any)} 
+            className={`flex-1 rounded-[2.5rem] border-4 flex flex-col px-8 py-2 relative overflow-hidden transition-all duration-300 ${
+              server === t.id 
+                ? "border-emerald-500 bg-emerald-500/10 shadow-[0_0_40px_rgba(16,185,129,0.2)]" 
+                : "border-slate-800/50 bg-slate-900/40"
+            }`}
+          >
+            {/* Header Info */}
             <div className="flex justify-between w-full h-8 z-20">
-              <span className={`text-xl font-black italic tracking-tighter ${server === t.id ? `text-${t.color}-400` : "text-slate-600"}`}>{t.label}</span>
-              {server === t.id && <span className={`bg-${t.color}-500/20 px-4 py-0.5 rounded-full text-[10px] font-black border border-${t.color}-400/50 text-${t.color}-300 tracking-widest`}>SERVING</span>}
+              <span className={`text-xl font-black italic tracking-tighter ${server === t.id ? "text-emerald-400" : "text-slate-600"}`}>
+                {t.label}
+              </span>
+              {server === t.id && (
+                <span className="bg-emerald-500/20 px-4 py-0.5 rounded-full text-[10px] font-black border border-emerald-400/50 text-emerald-300 tracking-widest flex items-center gap-1">
+                  <CircleDot size={10} className="animate-pulse" /> SERVING
+                </span>
+              )}
             </div>
 
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 translate-y-1">
-              <span className="text-[13rem] md:text-[17rem] font-black text-white leading-none italic">{formatPoints(t.data.points)}</span>
+            {/* Main Score (0, 15, 30, 40) */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 -translate-y-4">
+              <span className="text-[12rem] md:text-[16rem] font-black text-white leading-none italic drop-shadow-2xl">
+                {formatPoints(t.data.points)}
+              </span>
             </div>
 
-            <div className="flex-1 flex items-end justify-between w-full pb-0 z-20">
-              <div className="flex flex-col items-start bg-slate-950/40 px-5 py-1 rounded-[20px] border border-slate-800/50 min-w-[130px] mt-1">
-                <span className="text-[10px] text-slate-500 font-black tracking-widest">SETS</span>
-                <span className="text-7xl md:text-8xl font-black text-slate-100 leading-none">{t.data.sets}</span>
+            {/* ENLARGED Sets/Games Boxes (75% Bigger) */}
+            <div className="flex-1 flex items-end justify-between w-full pb-1 z-20">
+              <div className="flex flex-col items-center bg-slate-950/60 px-10 py-4 rounded-[2rem] border-2 border-slate-800/80 min-w-[210px]">
+                <span className="text-xs text-slate-500 font-black tracking-[0.2em]">SETS</span>
+                <span className="text-9xl font-black text-slate-100 leading-none mt-1">{t.data.sets}</span>
               </div>
-              <div className="flex flex-col items-end bg-slate-950/40 px-5 py-1 rounded-[20px] border border-slate-800/50 min-w-[130px] mt-1">
-                <span className="text-[10px] text-slate-500 font-black tracking-widest">GAMES</span>
-                <span className="text-7xl md:text-8xl font-black text-slate-100 leading-none">{t.data.games}</span>
+              <div className="flex flex-col items-center bg-slate-950/60 px-10 py-4 rounded-[2rem] border-2 border-slate-800/80 min-w-[210px]">
+                <span className="text-xs text-slate-500 font-black tracking-[0.2em]">GAMES</span>
+                <span className="text-9xl font-black text-slate-100 leading-none mt-1">{t.data.games}</span>
               </div>
             </div>
 
@@ -133,7 +151,7 @@ export default function HomePage() {
         ))}
       </section>
 
-      {/* Compact Footer Controls - Reduced height to give space to scores */}
+      {/* Compact Footer Controls */}
       <footer className="flex-[1] grid grid-cols-3 items-center pt-1 border-t border-slate-800/30">
         <div className="flex justify-start">
           <button onClick={undo} className="bg-slate-900 border border-slate-700 px-4 py-2 rounded-xl font-black text-slate-300 active:scale-95 transition-transform uppercase tracking-wider text-xs flex items-center gap-2">
@@ -142,13 +160,13 @@ export default function HomePage() {
         </div>
         
         <div className="text-center">
-          <div className={`inline-block px-3 py-0.5 rounded-full border text-[10px] font-black uppercase ${isTiebreak ? 'border-amber-500/50 text-amber-500' : 'border-slate-800 text-slate-600'}`}>
+          <div className={`inline-block px-3 py-0.5 rounded-full border text-[10px] font-black uppercase ${isTiebreak ? 'border-amber-500/50 text-amber-500 bg-amber-500/5' : 'border-slate-800 text-slate-600'}`}>
             {isTiebreak ? 'Tiebreak' : 'Regular'}
           </div>
         </div>
 
         <div className="flex justify-end items-center gap-3">
-          <button onClick={resetMatch} className="hidden md:block text-slate-600 font-bold text-[10px] uppercase hover:text-red-400">Reset</button>
+          <button onClick={resetMatch} className="hidden md:block text-slate-600 font-bold text-[10px] uppercase hover:text-red-400 transition-colors">Reset</button>
           <button onClick={() => setSettingsOpen(!settingsOpen)} className="p-2 bg-slate-900 border border-slate-700 rounded-xl active:bg-slate-800">
             <Settings size={18} className="text-slate-400" />
           </button>
