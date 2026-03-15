@@ -15,7 +15,6 @@ export default function HomePage() {
   const [lastProcessedId, setLastProcessedId] = useState(0);
   const winSoundRef = useRef<HTMLAudioElement | null>(null);
 
-  // --- SCREEN WAKE LOCK ---
   useEffect(() => {
     let wakeLock: any = null;
     const requestWakeLock = async () => {
@@ -25,7 +24,6 @@ export default function HomePage() {
     return () => { if (wakeLock) wakeLock.release(); };
   }, []);
 
-  // --- SOUND EFFECT ---
   useEffect(() => {
     winSoundRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3");
   }, []);
@@ -36,7 +34,6 @@ export default function HomePage() {
     }
   }, [matchWinner, matchWinnerDismissed]);
 
-  // --- FLIC POLL ---
   useEffect(() => {
     const pollFlic = async () => {
       try {
@@ -57,97 +54,79 @@ export default function HomePage() {
   const formatPoints = (p: string | number) => typeof p === "number" ? p.toString() : p;
 
   return (
-    <main className="h-screen w-full flex flex-col bg-slate-950 text-slate-50 select-none overflow-hidden p-1 md:p-3 gap-1 font-sans">
+    <main className="h-screen w-full flex flex-col bg-slate-950 text-slate-50 select-none overflow-hidden p-2 gap-1 font-sans">
       
-      {/* VICTORY OVERLAY */}
-      {matchWinner && !matchWinnerDismissed && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/95 backdrop-blur-xl" onClick={() => scorePoint("team1")}>
-          <div className="relative flex flex-col items-center justify-center bg-slate-900 border-4 border-amber-400 p-10 rounded-[4rem] text-center" onClick={(e) => e.stopPropagation()}>
-            <Trophy className="h-16 w-16 text-amber-400 mb-6" />
-            <h2 className="text-6xl md:text-8xl font-black mb-2 text-white italic tracking-tighter uppercase">
-              {matchWinner === 'team1' ? 'Team 1' : 'Team 2'}
-            </h2>
-            <h3 className="text-3xl font-black text-amber-400 uppercase italic mb-10 tracking-widest">VICTORY</h3>
-            <button onClick={resetMatch} className="bg-amber-500 text-slate-950 px-10 py-5 rounded-full text-2xl font-black uppercase shadow-lg active:scale-95">
-              <RotateCcw className="inline mr-3 w-8 h-8" /> PLAY AGAIN
-            </button>
+      {/* Settings Overlay */}
+      {settingsOpen && (
+        <div className="absolute inset-0 z-50 bg-slate-950/90 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 p-8 rounded-[3rem] w-full max-w-md flex flex-col gap-4">
+             <button onClick={toggleGoldenPoint} className="py-4 rounded-2xl bg-slate-800 border-2 border-emerald-500 text-emerald-400 font-bold">Golden Point: {useGoldenPoint ? 'ON' : 'OFF'}</button>
+             <button onClick={toggleServer} className="py-4 rounded-2xl bg-slate-800 border border-slate-600 font-bold">Swap Server</button>
+             <button onClick={() => setSettingsOpen(false)} className="py-4 text-slate-500 font-bold underline">Close</button>
           </div>
         </div>
       )}
 
-      {/* Settings */}
-      {settingsOpen && (
-        <section className="absolute top-12 left-4 right-4 z-40 bg-slate-900 p-6 rounded-3xl border border-slate-700 shadow-2xl">
-          <div className="flex flex-col gap-4">
-            <button onClick={toggleGoldenPoint} className={`px-4 py-3 rounded-full font-bold border-2 ${useGoldenPoint ? 'border-emerald-500 text-emerald-400' : 'border-slate-700 text-slate-500'}`}>Golden Point: {useGoldenPoint ? 'On' : 'Off'}</button>
-            <button onClick={toggleServer} className="bg-slate-800 px-6 py-3 rounded-full font-bold border border-slate-600">Swap Server</button>
-            <div className="flex gap-2">
-              <button onClick={() => setMatchFormat(3)} className={`flex-1 py-3 rounded-full font-bold ${matchFormat === 3 ? 'bg-indigo-500 text-white' : 'text-slate-500 bg-slate-800'}`}>Best of 3</button>
-              <button onClick={() => setMatchFormat(5)} className={`flex-1 py-3 rounded-full font-bold ${matchFormat === 5 ? 'bg-indigo-500 text-white' : 'text-slate-500 bg-slate-800'}`}>Best of 5</button>
-            </div>
-            <button onClick={() => setSettingsOpen(false)} className="mt-2 text-slate-500 underline text-sm">Close Settings</button>
+      {/* Victory Overlay */}
+      {matchWinner && !matchWinnerDismissed && (
+        <div className="absolute inset-0 z-[60] flex items-center justify-center bg-slate-950/95 backdrop-blur-md" onClick={() => scorePoint("team1")}>
+          <div className="flex flex-col items-center bg-slate-900 border-4 border-amber-400 p-12 rounded-[3rem] text-center shadow-[0_0_100px_rgba(251,191,36,0.3)]" onClick={(e) => e.stopPropagation()}>
+            <Trophy className="h-20 w-20 text-amber-400 mb-6" />
+            <h2 className="text-7xl font-black mb-6 text-white italic uppercase tracking-tighter">{matchWinner === 'team1' ? 'Team 1' : 'Team 2'} Wins</h2>
+            <button onClick={resetMatch} className="bg-amber-500 text-slate-950 px-16 py-6 rounded-full text-3xl font-black uppercase">Play Again</button>
           </div>
-        </section>
+        </div>
       )}
 
       {/* Teams Section */}
-      <section className="flex-[14] flex flex-col gap-1.5 min-h-0">
+      <section className="flex-[15] flex flex-col gap-1 min-h-0">
         {[ { id: "team1", data: team1, label: "TEAM 1" }, { id: "team2", data: team2, label: "TEAM 2" } ].map((t) => (
           <button 
             key={t.id} 
             onClick={() => scorePoint(t.id as any)} 
-            className={`flex-1 rounded-[2rem] border-4 flex flex-col px-6 py-3 relative overflow-hidden transition-all duration-300 ${
-              server === t.id 
-                ? "border-emerald-500 bg-emerald-500/10 shadow-[inset_0_0_40px_rgba(16,185,129,0.1)]" 
-                : "border-slate-800/40 bg-slate-900/30"
+            className={`flex-1 rounded-[2rem] border-4 flex flex-col px-6 py-2 relative overflow-hidden transition-all duration-300 ${
+              server === t.id ? "border-emerald-500 bg-emerald-500/10" : "border-slate-800/40 bg-slate-900/30"
             }`}
           >
-            {/* Team Header */}
-            <div className="flex justify-between w-full h-6 z-20">
-              <span className={`text-lg font-black italic tracking-tighter ${server === t.id ? "text-emerald-400" : "text-slate-700"}`}>
-                {t.label}
-              </span>
-              {server === t.id && (
-                <span className="bg-emerald-500/20 px-3 py-0.5 rounded-full text-[10px] font-black border border-emerald-400/50 text-emerald-400 tracking-widest flex items-center gap-1">
-                  <CircleDot size={10} className="animate-pulse" /> SERVING
-                </span>
-              )}
+            {/* Header: Label + Server */}
+            <div className="flex justify-between items-center w-full h-[15%]">
+              <span className={`text-xl font-black italic tracking-tighter ${server === t.id ? "text-emerald-400" : "text-slate-700"}`}>{t.label}</span>
+              {server === t.id && <span className="text-[10px] font-black text-emerald-400 border border-emerald-400/50 px-4 py-1 rounded-full animate-pulse uppercase tracking-widest">Serving</span>}
             </div>
 
-            {/* Score (Centered) */}
-            <div className="flex-1 flex items-center justify-center pointer-events-none z-10 -mt-2">
-              <span className="text-[12rem] md:text-[15rem] font-black text-white leading-none italic drop-shadow-2xl">
+            {/* Main Score: Limited to 35% of screen height */}
+            <div className="flex-1 flex items-center justify-center pointer-events-none">
+              <span className="text-[35vh] font-black text-white leading-none italic drop-shadow-2xl translate-y-[-2vh]">
                 {formatPoints(t.data.points)}
               </span>
             </div>
 
-            {/* Sets/Games Boxes (Restructured for no overlap) */}
-            <div className="flex items-end justify-between w-full z-20 pb-1">
-              <div className="flex flex-col items-center bg-slate-950/80 px-8 py-2 rounded-3xl border border-slate-800/60 min-w-[190px]">
-                <span className="text-[9px] text-slate-500 font-bold tracking-[0.2em]">SETS</span>
-                <span className="text-8xl font-black text-slate-100 leading-none mt-1">{t.data.sets}</span>
+            {/* Bottom Row: Sets & Games (Limited to 25% of screen height) */}
+            <div className="flex items-center justify-between w-full h-[30%] gap-4">
+              <div className="flex flex-col items-center justify-center bg-slate-950/80 px-10 h-full rounded-[2rem] border border-slate-800/80 min-w-[200px]">
+                <span className="text-[1.5vh] text-slate-600 font-bold tracking-widest uppercase">Sets</span>
+                <span className="text-[15vh] font-black text-slate-100 leading-none">{t.data.sets}</span>
               </div>
-              <div className="flex flex-col items-center bg-slate-950/80 px-8 py-2 rounded-3xl border border-slate-800/60 min-w-[190px]">
-                <span className="text-[9px] text-slate-500 font-bold tracking-[0.2em]">GAMES</span>
-                <span className="text-8xl font-black text-slate-100 leading-none mt-1">{t.data.games}</span>
+              <div className="flex flex-col items-center justify-center bg-slate-950/80 px-10 h-full rounded-[2rem] border border-slate-800/80 min-w-[200px]">
+                <span className="text-[1.5vh] text-slate-600 font-bold tracking-widest uppercase">Games</span>
+                <span className="text-[15vh] font-black text-slate-100 leading-none">{t.data.games}</span>
               </div>
             </div>
-
           </button>
         ))}
       </section>
 
       {/* Footer */}
-      <footer className="flex-[1] flex items-center justify-between px-4 border-t border-slate-800/20">
-        <button onClick={undo} className="text-xs font-black text-slate-500 flex items-center gap-1 uppercase hover:text-slate-300">
+      <footer className="flex-[1] flex items-center justify-between px-6 border-t border-slate-800/30">
+        <button onClick={undo} className="text-xs font-black text-slate-600 flex items-center gap-1 uppercase hover:text-white">
           <Undo2 size={14} /> Undo
         </button>
-        <div className="text-[9px] font-black text-slate-700 uppercase tracking-widest">
+        <div className="text-[10px] font-black text-slate-800 uppercase tracking-widest">
             {isTiebreak ? 'Tiebreak' : 'Regular'}
         </div>
         <div className="flex items-center gap-4">
-          <button onClick={resetMatch} className="text-[9px] font-bold text-slate-800 uppercase hover:text-red-500">Reset</button>
-          <button onClick={() => setSettingsOpen(!settingsOpen)} className="p-1 text-slate-600 hover:text-white transition-colors">
+          <button onClick={resetMatch} className="text-[10px] font-bold text-slate-800 uppercase hover:text-red-500">Reset</button>
+          <button onClick={() => setSettingsOpen(!settingsOpen)} className="p-1 text-slate-700 hover:text-white transition-colors">
             <Settings size={18} />
           </button>
         </div>
