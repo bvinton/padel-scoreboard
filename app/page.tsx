@@ -13,8 +13,23 @@ export default function HomePage() {
 
   const [lastProcessedId, setLastProcessedId] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  
+  // --- SOUND EFFECT LOGIC ---
   const winSoundRef = useRef<HTMLAudioElement | null>(null);
 
+  useEffect(() => {
+    // Initializing the "Champion" sound
+    winSoundRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3");
+  }, []);
+
+  useEffect(() => {
+    // Trigger sound only when a winner is crowned
+    if (matchWinner && !matchWinnerDismissed && winSoundRef.current) {
+      winSoundRef.current.play().catch(e => console.log("Audio play blocked by browser. Click anywhere to enable sound."));
+    }
+  }, [matchWinner, matchWinnerDismissed]);
+
+  // --- FLIC POLL LOGIC ---
   useEffect(() => {
     const pollFlic = async () => {
       try {
@@ -37,15 +52,23 @@ export default function HomePage() {
   return (
     <main className="h-screen w-full flex flex-col bg-black text-white select-none overflow-hidden p-1 font-sans">
       
-      {/* --- VICTORY OVERLAY (RESTORED) --- */}
+      {/* --- VICTORY OVERLAY WITH FIREWORKS & SOUND --- */}
       {matchWinner && !matchWinnerDismissed && (
-        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl" onClick={resetMatch}>
-          <div className="flex flex-col items-center bg-slate-900 border-8 border-amber-400 p-16 rounded-[4rem] text-center shadow-[0_0_100px_rgba(251,191,36,0.4)]" onClick={e => e.stopPropagation()}>
-            <Trophy className="h-24 w-24 text-amber-400 mb-8 animate-bounce" />
+        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl animate-in fade-in duration-500" onClick={resetMatch}>
+          <div className="relative flex flex-col items-center bg-slate-900 border-8 border-amber-400 p-16 rounded-[4rem] text-center shadow-[0_0_100px_rgba(251,191,36,0.4)]" onClick={e => e.stopPropagation()}>
+            
+            {/* Emoji Fireworks */}
+            <span className="absolute -top-16 -left-16 text-8xl animate-bounce">🎇</span>
+            <span className="absolute -top-16 -right-16 text-8xl animate-bounce delay-150">🎆</span>
+            <span className="absolute -bottom-16 -left-16 text-8xl animate-pulse">🎊</span>
+            <span className="absolute -bottom-16 -right-16 text-8xl animate-pulse delay-300">🎉</span>
+
+            <Trophy className="h-24 w-24 text-amber-400 mb-8 animate-pulse" />
             <h2 className="text-8xl font-black mb-4 text-white italic uppercase tracking-tighter">
               {matchWinner === 'team1' ? 'Team 1' : 'Team 2'}
             </h2>
             <h3 className="text-4xl font-black text-amber-400 uppercase italic mb-12 tracking-[0.2em]">Champions</h3>
+            
             <button onClick={resetMatch} className="bg-amber-500 text-black px-20 py-8 rounded-full text-4xl font-black uppercase shadow-2xl active:scale-95 transition-transform flex items-center gap-4">
               <RotateCcw size={40} /> Play Again
             </button>
@@ -66,12 +89,12 @@ export default function HomePage() {
 
              <button onClick={toggleGoldenPoint} className={`py-6 rounded-3xl border-4 text-3xl font-black uppercase tracking-tighter transition-all ${useGoldenPoint ? 'bg-emerald-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Golden Point: {useGoldenPoint ? 'ON' : 'OFF'}</button>
              <button onClick={toggleServer} className="py-6 rounded-3xl bg-slate-800 border-4 border-slate-600 text-3xl font-black uppercase tracking-tighter">Swap Server</button>
-             <button onClick={() => setSettingsOpen(false)} className="py-6 bg-white text-black text-3xl font-black rounded-3xl uppercase mt-4">Close</button>
+             <button onClick={() => setSettingsOpen(false)} className="py-6 bg-white text-black text-3xl font-black rounded-3xl uppercase mt-4">Close Settings</button>
           </div>
         </div>
       )}
 
-      {/* Main Scoreboard Content */}
+      {/* Main Content Area */}
       <section className="h-[92%] flex flex-col gap-1">
         {[ { id: "team1", data: team1, label: "TEAM 1" }, { id: "team2", data: team2, label: "TEAM 2" } ].map((t) => (
           <button 
@@ -110,7 +133,7 @@ export default function HomePage() {
         ))}
       </section>
 
-      {/* FOOTER */}
+      {/* Footer */}
       <footer className="h-[8%] flex items-center justify-between px-10 border-t border-slate-900 bg-slate-950/50">
         <button onClick={undo} className="group flex items-center gap-3 bg-slate-900/50 border border-slate-800 px-6 py-2 rounded-2xl active:scale-95 transition-all">
           <Undo2 size={24} className="text-slate-500 group-hover:text-white transition-colors" />
