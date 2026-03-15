@@ -58,7 +58,7 @@ export default function HomePage() {
   const formatPoints = (p: string | number) => typeof p === "number" ? p.toString() : p;
 
   return (
-    <main className="h-screen w-full flex flex-col bg-slate-950 text-slate-50 select-none overflow-hidden p-2 md:p-3 gap-1 font-sans">
+    <main className="h-screen w-full flex flex-col bg-slate-950 text-slate-50 select-none overflow-hidden p-2 gap-2 font-sans">
       
       {/* VICTORY OVERLAY */}
       {matchWinner && !matchWinnerDismissed && (
@@ -106,40 +106,40 @@ export default function HomePage() {
           <button 
             key={t.id} 
             onClick={() => scorePoint(t.id as any)} 
-            className={`flex-1 rounded-[2.5rem] border-4 flex flex-col px-6 py-2 relative overflow-hidden transition-all duration-300 ${
+            className={`flex-1 rounded-[2.5rem] border-4 flex flex-col px-6 py-3 relative overflow-hidden transition-all duration-300 ${
               server === t.id 
-                ? "border-emerald-500 bg-emerald-500/10 shadow-[inset_0_0_50px_rgba(16,185,129,0.1)]" 
+                ? "border-emerald-500 bg-emerald-500/10" 
                 : "border-slate-800/50 bg-slate-900/40"
             }`}
           >
             {/* Header */}
-            <div className="flex justify-between w-full h-6 z-20">
-              <span className={`text-lg font-black italic tracking-tighter ${server === t.id ? "text-emerald-400" : "text-slate-600"}`}>
+            <div className="flex justify-between items-start w-full h-8 z-20">
+              <span className={`text-xl font-black italic tracking-tighter ${server === t.id ? "text-emerald-400" : "text-slate-600"}`}>
                 {t.label}
               </span>
               {server === t.id && (
-                <span className="bg-emerald-500/20 px-3 py-0.5 rounded-full text-[10px] font-black border border-emerald-400/50 text-emerald-300 tracking-widest flex items-center gap-1">
+                <span className="bg-emerald-500/20 px-4 py-1 rounded-full text-[10px] font-black border border-emerald-400/50 text-emerald-300 tracking-widest flex items-center gap-1">
                   <CircleDot size={10} className="animate-pulse" /> SERVING
                 </span>
               )}
             </div>
 
-            {/* Main Score (MAX VISIBILITY VERSION) */}
+            {/* Main Score Area */}
             <div className="flex-1 flex items-center justify-center pointer-events-none z-10 w-full">
-              <span className="text-[18rem] md:text-[22rem] font-black text-white leading-none italic drop-shadow-[0_10px_30px_rgba(0,0,0,0.8)] scale-x-110">
+              <span className="text-[14rem] md:text-[20rem] font-black text-white leading-none italic drop-shadow-[0_20px_50px_rgba(0,0,0,0.9)] scale-x-110">
                 {formatPoints(t.data.points)}
               </span>
             </div>
 
             {/* Bottom Boxes */}
-            <div className="flex items-end justify-between w-full pb-1 z-20 gap-4">
-              <div className="flex flex-col items-center bg-slate-950/70 px-8 py-2 rounded-[2rem] border-2 border-slate-800/80 flex-1 max-w-[240px]">
-                <span className="text-[10px] text-slate-500 font-black tracking-[0.2em]">SETS</span>
-                <span className="text-[10rem] font-black text-slate-100 leading-[0.7] mb-1">{t.data.sets}</span>
+            <div className="flex items-center justify-between w-full z-20 gap-4 mt-auto">
+              <div className="flex flex-col items-center bg-slate-950/80 px-10 py-4 rounded-[2.5rem] border-2 border-slate-800/80 min-w-[220px]">
+                <span className="text-[12px] text-slate-500 font-black tracking-[0.2em] mb-1">SETS</span>
+                <span className="text-[10rem] font-black text-slate-100 leading-none">{t.data.sets}</span>
               </div>
-              <div className="flex flex-col items-center bg-slate-950/70 px-8 py-2 rounded-[2rem] border-2 border-slate-800/80 flex-1 max-w-[240px]">
-                <span className="text-[10px] text-slate-500 font-black tracking-[0.2em]">GAMES</span>
-                <span className="text-[10rem] font-black text-slate-100 leading-[0.7] mb-1">{t.data.games}</span>
+              <div className="flex flex-col items-center bg-slate-950/80 px-10 py-4 rounded-[2.5rem] border-2 border-slate-800/80 min-w-[220px]">
+                <span className="text-[12px] text-slate-500 font-black tracking-[0.2em] mb-1">GAMES</span>
+                <span className="text-[10rem] font-black text-slate-100 leading-none">{t.data.games}</span>
               </div>
             </div>
 
@@ -148,17 +148,17 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="flex-[1] flex items-center justify-between px-4 py-1 border-t border-slate-800/30">
-        <button onClick={undo} className="bg-slate-900 border border-slate-700 px-4 py-2 rounded-xl font-black text-slate-300 active:scale-95 text-xs flex items-center gap-2">
+      <footer className="flex-[1] flex items-center justify-between px-4 py-2 border-t border-slate-800/30">
+        <button onClick={undo} className="bg-slate-900 border border-slate-700 px-6 py-2.5 rounded-xl font-black text-slate-300 active:scale-95 text-xs flex items-center gap-2">
           <Undo2 size={16} /> UNDO
         </button>
-        <div className={`px-3 py-0.5 rounded-full border text-[10px] font-black uppercase ${isTiebreak ? 'border-amber-500/50 text-amber-500 bg-amber-500/5' : 'border-slate-800 text-slate-600'}`}>
+        <div className={`px-4 py-1 rounded-full border text-[10px] font-black uppercase ${isTiebreak ? 'border-amber-500/50 text-amber-500 bg-amber-500/5' : 'border-slate-800 text-slate-600'}`}>
           {isTiebreak ? 'Tiebreak' : 'Regular'}
         </div>
         <div className="flex items-center gap-4">
           <button onClick={resetMatch} className="hidden md:block text-slate-700 font-bold text-[10px] uppercase hover:text-red-400">Reset</button>
-          <button onClick={() => setSettingsOpen(!settingsOpen)} className="p-2 bg-slate-900 border border-slate-700 rounded-xl">
-            <Settings size={18} className="text-slate-500" />
+          <button onClick={() => setSettingsOpen(!settingsOpen)} className="p-3 bg-slate-900 border border-slate-700 rounded-xl">
+            <Settings size={20} className="text-slate-500" />
           </button>
         </div>
       </footer>
