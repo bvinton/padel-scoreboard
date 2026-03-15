@@ -33,7 +33,7 @@ export default function HomePage() {
   const [historyLog, setHistoryLog] = useState<{id: number, time: string, msg: string}[]>([]);
   const [savedMatches, setSavedMatches] = useState<SavedMatch[]>([]);
 
-  // --- 1. CORE UTILITIES (Ordered for Vercel) ---
+  // --- 1. CORE UTILITIES ---
   const addLog = (msg: string) => {
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     setHistoryLog(prev => [{ id: Date.now(), time, msg }, ...prev].slice(0, 30));
@@ -180,12 +180,40 @@ export default function HomePage() {
     if (saved) { try { setSavedMatches(JSON.parse(saved)); } catch (e) {} }
   }, []);
 
+  // --- AGGRESSIVE WAKE LOCK ---
   useEffect(() => {
     let wakeLock: any = null;
+    
     const requestWakeLock = async () => {
-      try { if ('wakeLock' in navigator) wakeLock = await (navigator as any).wakeLock.request('screen'); } catch (err) {}
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await (navigator as any).wakeLock.request('screen');
+        }
+      } catch (err) {
+        // Silently fail if blocked
+      }
     };
+
     requestWakeLock();
+
+    const handleVisibilityChange = () => {
+      if (wakeLock !== null && document.visibilityState === 'visible') {
+        requestWakeLock();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Force a re-request every 30 seconds to stop the browser dropping it
+    const lockInterval = setInterval(requestWakeLock, 30000);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      clearInterval(lockInterval);
+      if (wakeLock) {
+        wakeLock.release().catch(() => {});
+      }
+    };
   }, []);
 
   const winSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -250,7 +278,7 @@ export default function HomePage() {
             <h2 className="text-5xl md:text-8xl font-black mb-2 md:mb-4 italic uppercase tracking-tighter">
               {matchWinner === 'team1' ? team1Name : team2Name}
             </h2>
-            <button onClick={handleReset} className="bg-amber-500 text-black px-10 md:px-20 py-4 md:py-8 rounded-full text-2xl md:text-4xl font-black uppercase shadow-2xl active:scale-95 transition-transform flex items-center gap-4">
+            <button onClick={handleReset} className="bg-amber-500 text-black px-10 md:px-20 py-4 md:py-8 rounded-full text-2xl md:text-4xl font-black uppercase active:scale-95 transition-transform flex items-center gap-4">
               <RotateCcw size={40} /> Play Again
             </button>
             <p className="mt-4 text-slate-500 text-xs uppercase tracking-widest font-bold">Tap background to dismiss</p>
