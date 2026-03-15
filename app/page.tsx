@@ -25,7 +25,10 @@ export default function HomePage() {
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [localDismissed, setLocalDismissed] = useState(false);
   const [umpireEnabled, setUmpireEnabled] = useState(false);
+  
+  // Timer States
   const [timeLeft, setTimeLeft] = useState(0);
+  const [timerStarted, setTimerStarted] = useState(false);
 
   const [team1Name, setTeam1Name] = useState("TEAM 1");
   const [team2Name, setTeam2Name] = useState("TEAM 2");
@@ -61,6 +64,7 @@ export default function HomePage() {
       return;
     }
     addLog(`${team === 'team1' ? team1Name : team2Name} scored`);
+    setTimerStarted(true);
     setTimeLeft(20);
     scorePoint(team);
   };
@@ -68,6 +72,7 @@ export default function HomePage() {
   const handleUndo = () => {
     addLog("Undo used");
     undo();
+    setTimerStarted(false);
     setTimeLeft(0);
     setLocalDismissed(false);
     prevGames1.current = team1.games; prevGames2.current = team2.games;
@@ -77,7 +82,10 @@ export default function HomePage() {
 
   const handleReset = () => {
     addLog("Match Reset");
-    setHistoryLog([]); setLocalDismissed(false); setTimeLeft(0);
+    setHistoryLog([]); 
+    setLocalDismissed(false); 
+    setTimerStarted(false);
+    setTimeLeft(0);
     prevGames1.current = 0; prevGames2.current = 0;
     prevSets1.current = 0; prevSets2.current = 0;
     prevIsTiebreak.current = false;
@@ -230,9 +238,9 @@ export default function HomePage() {
   const formatPoints = (p: string | number) => typeof p === "number" ? p.toString() : p;
 
   const getTimerStrokeColor = () => {
-    if (timeLeft > 10) return "text-emerald-500 drop-shadow-[0_0_12px_rgba(16,185,129,1)]";
-    if (timeLeft > 5) return "text-amber-500 drop-shadow-[0_0_12px_rgba(245,158,11,1)]";
-    return "text-red-500 drop-shadow-[0_0_12px_rgba(239,68,68,1)] animate-pulse";
+    if (timeLeft > 10) return "text-emerald-500 drop-shadow-[0_0_15px_rgba(16,185,129,0.8)]";
+    if (timeLeft > 5) return "text-amber-500 drop-shadow-[0_0_15px_rgba(245,158,11,0.8)]";
+    return "text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,1)] animate-pulse";
   };
 
   return (
@@ -260,32 +268,35 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* SCOREBOARD SECTION */}
+      {/* SCOREBOARD SECTION WITH NEW SVG ARENA SHOT CLOCK */}
       <section className="flex-grow flex flex-col p-1 relative overflow-hidden">
         
-        {timeLeft > 0 && (
-          <svg className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] pointer-events-none z-50" preserveAspectRatio="none" viewBox="0 0 100 100">
+        {/* THE SHOT CLOCK LASER TRACER */}
+        {timerStarted && (
+          <svg className="absolute inset-0 w-full h-full pointer-events-none z-50 rounded-lg md:rounded-[1.5rem]" preserveAspectRatio="none" viewBox="0 0 100 100">
+            {/* RIGHT HALF (Starts top-middle 50,0 -> goes to 100,0 -> down to 100,100 -> back to 50,100) */}
             <path
               d="M 50 0 L 100 0 L 100 100 L 50 100"
               fill="none"
               stroke="currentColor"
               className={`transition-all duration-100 ease-linear ${getTimerStrokeColor()}`}
-              strokeWidth="6"
+              strokeWidth="10"
               vectorEffect="non-scaling-stroke"
               pathLength="100"
               strokeDasharray="100"
-              style={{ strokeDashoffset: 100 - (timeLeft / 20) * 100 }}
+              style={{ strokeDashoffset: (timeLeft / 20) * 100 }}
             />
+            {/* LEFT HALF (Starts top-middle 50,0 -> goes to 0,0 -> down to 0,100 -> back to 50,100) */}
             <path
               d="M 50 0 L 0 0 L 0 100 L 50 100"
               fill="none"
               stroke="currentColor"
               className={`transition-all duration-100 ease-linear ${getTimerStrokeColor()}`}
-              strokeWidth="6"
+              strokeWidth="10"
               vectorEffect="non-scaling-stroke"
               pathLength="100"
               strokeDasharray="100"
-              style={{ strokeDashoffset: 100 - (timeLeft / 20) * 100 }}
+              style={{ strokeDashoffset: (timeLeft / 20) * 100 }}
             />
           </svg>
         )}
@@ -301,7 +312,6 @@ export default function HomePage() {
             }`}
           >
             
-            {/* Team Label - Brightened when serving */}
             <div className="absolute top-1 md:top-3 left-3 md:left-8 z-20">
               <span className={`text-[10px] md:text-2xl font-black italic uppercase transition-all duration-300 ${
                 server === t.id 
@@ -338,7 +348,7 @@ export default function HomePage() {
         ))}
       </section>
 
-      <footer className="flex-none h-[40px] flex items-center justify-between px-2 md:px-10 border-t border-slate-900 bg-slate-950/95">
+      <footer className="flex-none h-[40px] flex items-center justify-between px-2 md:px-10 border-t border-slate-900 bg-slate-950/95 z-50">
         <div className="flex items-center gap-1 md:gap-4 h-full">
           <button onClick={handleUndo} className="flex items-center gap-1 bg-slate-900/50 px-2 md:px-4 py-0.5 rounded h-[30px] active:scale-95 transition-all">
             <Undo2 className="w-3.5 h-3.5 md:w-5 md:h-5 text-slate-500" />
