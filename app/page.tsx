@@ -30,7 +30,7 @@ export default function HomePage() {
   const [timerStarted, setTimerStarted] = useState(false);
   const endTimeRef = useRef<number | null>(null);
 
-  // NEW: Memory Ref to hold the "Before" state for the Detailed Log
+  // Memory Ref to hold the "Before" state for the Detailed Log
   const lastActionRef = useRef<{type: 'score'|'undo', team?: 'team1'|'team2', beforePoints: string, beforeGames: number, beforeSets: number} | null>(null);
 
   const [team1Name, setTeam1Name] = useState("TEAM 1");
@@ -146,8 +146,7 @@ export default function HomePage() {
 
   // --- 3. EFFECTS ---
   
-  // NEW: DETAILED LOGGING EFFECT
-  // This watches for score changes, reads the "Before" memory, and calculates the "After" result
+  // UMPIRE-STYLE DETAILED LOGGING EFFECT
   useEffect(() => {
     if (!lastActionRef.current) return;
     
@@ -162,11 +161,13 @@ export default function HomePage() {
       const teamName = team === 'team1' ? team1Name : team2Name;
       
       if (matchWinner) {
-        addLog(`${teamName} point at (${beforePoints}) score match ${teamName}`);
-      } else if (afterGames > beforeGames || afterSets > beforeSets) {
-        addLog(`${teamName} point at (${beforePoints}) score game ${teamName}`);
+        addLog(`${teamName} point at (${beforePoints}) Game, Set and Match ${teamName}`);
+      } else if (afterSets > beforeSets) {
+        addLog(`${teamName} point at (${beforePoints}) Game and Set ${teamName}`);
+      } else if (afterGames > beforeGames) {
+        addLog(`${teamName} point at (${beforePoints}) Game ${teamName}`);
       } else {
-        addLog(`${teamName} scored at (${beforePoints}) score (${afterPoints})`);
+        addLog(`${teamName} point at (${beforePoints}) score (${afterPoints})`);
       }
     }
     
