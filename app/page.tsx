@@ -128,22 +128,22 @@ export default function HomePage() {
               )}
             </div>
 
-            {/* Main Score (0, 15, 30, 40) */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 -translate-y-4">
+            {/* Main Score (Moved down 1cm using translate-y-4) */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 translate-y-4">
               <span className="text-[12rem] md:text-[16rem] font-black text-white leading-none italic drop-shadow-2xl">
                 {formatPoints(t.data.points)}
               </span>
             </div>
 
-            {/* ENLARGED Sets/Games Boxes (75% Bigger) */}
+            {/* Enlarged Sets/Games Boxes with 10% Bigger Numbers */}
             <div className="flex-1 flex items-end justify-between w-full pb-1 z-20">
-              <div className="flex flex-col items-center bg-slate-950/60 px-10 py-4 rounded-[2rem] border-2 border-slate-800/80 min-w-[210px]">
-                <span className="text-xs text-slate-500 font-black tracking-[0.2em]">SETS</span>
-                <span className="text-9xl font-black text-slate-100 leading-none mt-1">{t.data.sets}</span>
+              <div className="flex flex-col items-center bg-slate-950/60 px-10 py-3 rounded-[2rem] border-2 border-slate-800/80 min-w-[210px]">
+                <span className="text-[10px] text-slate-500 font-black tracking-[0.2em] mb-1">SETS</span>
+                <span className="text-[9rem] font-black text-slate-100 leading-[0.8] mb-1">{t.data.sets}</span>
               </div>
-              <div className="flex flex-col items-center bg-slate-950/60 px-10 py-4 rounded-[2rem] border-2 border-slate-800/80 min-w-[210px]">
-                <span className="text-xs text-slate-500 font-black tracking-[0.2em]">GAMES</span>
-                <span className="text-9xl font-black text-slate-100 leading-none mt-1">{t.data.games}</span>
+              <div className="flex flex-col items-center bg-slate-950/60 px-10 py-3 rounded-[2rem] border-2 border-slate-800/80 min-w-[210px]">
+                <span className="text-[10px] text-slate-500 font-black tracking-[0.2em] mb-1">GAMES</span>
+                <span className="text-[9rem] font-black text-slate-100 leading-[0.8] mb-1">{t.data.games}</span>
               </div>
             </div>
 
