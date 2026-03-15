@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useMatchStore } from "../store/useMatchStore";
-// ONLY CHANGE 1: Added Maximize to the imports
-import { Undo2, Settings, CircleDot, Trophy, RotateCcw, Maximize } from "lucide-react";
+// Imported the 'List' icon for the History Log
+import { Undo2, Settings, CircleDot, Trophy, RotateCcw, Maximize, List } from "lucide-react";
 
 export default function HomePage() {
   const {
@@ -14,31 +14,80 @@ export default function HomePage() {
 
   const [lastProcessedId, setLastProcessedId] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  
+  const [historyOpen, setHistoryOpen] = useState(false);
+
+  // --- NEW: CUSTOM TEAM NAMES ---
+  const [team1Name, setTeam1Name] = useState("TEAM 1");
+  const [team2Name, setTeam2Name] = useState("TEAM 2");
+
+  // --- NEW: HISTORY LOG ---
+  const [historyLog, setHistoryLog] = useState<{id: number, time: string, msg: string}[]>([]);
+
+  const addLog = (msg: string) => {
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    setHistoryLog(prev => [{ id: Date.now(), time, msg }, ...prev].slice(0, 30)); // Keeps last 30 actions
+  };
+
+  const handleScore = (team: 'team1' | 'team2') => {
+    addLog(`${team === 'team1' ? team1Name : team2Name} scored`);
+    scorePoint(team);
+  };
+
+  const handleUndo = () => {
+    addLog("Undo button used");
+    undo();
+  };
+
+  const handleReset = () => {
+    addLog("Match Reset");
+    setHistoryLog([]);
+    resetMatch();
+  };
+
+  // --- NEW: WAKE LOCK (PREVENT SCREEN SLEEP) ---
+  useEffect(() => {
+    let wakeLock: any = null;
+    const requestWakeLock = async () => {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await (navigator as any).wakeLock.request('screen');
+        }
+      } catch (err) {
+        console.log("Wake Lock blocked by browser or not supported.");
+      }
+    };
+    
+    requestWakeLock();
+    const handleVisibilityChange = () => {
+      if (wakeLock !== null && document.visibilityState === 'visible') requestWakeLock();
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (wakeLock) wakeLock.release();
+    };
+  }, []);
+
   // --- SOUND EFFECT LOGIC ---
   const winSoundRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    // Updated to the Final Fantasy VII Victory Fanfare
     winSoundRef.current = new Audio("https://www.myinstants.com/media/sounds/final-fantasy-vii-victory-fanfare-1.mp3");
   }, []);
 
   useEffect(() => {
     if (matchWinner && !matchWinnerDismissed && winSoundRef.current) {
-      winSoundRef.current.play().catch(e => console.log("Audio play blocked. Tap the screen once at the start of the match."));
+      winSoundRef.current.play().catch(e => console.log("Audio play blocked."));
     }
   }, [matchWinner, matchWinnerDismissed]);
 
-  // ONLY CHANGE 2: Added the toggleFullscreen function
+  // --- FULLSCREEN LOGIC ---
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch((e) => {
-        console.error(`Error attempting to enable fullscreen: ${e.message}`);
-      });
+      document.documentElement.requestFullscreen().catch(e => console.error(e));
     } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
+      if (document.exitFullscreen) document.exitFullscreen();
     }
   };
 
@@ -50,15 +99,16 @@ export default function HomePage() {
         const data = await res.json();
         if (data.id > lastProcessedId) {
           setLastProcessedId(data.id);
-          if (data.type === 'team1') scorePoint('team1');
-          if (data.type === 'team2') scorePoint('team2');
-          if (data.type === 'undo') undo();
+          // Updated to use our new handleScore/handleUndo wrappers to log history
+          if (data.type === 'team1') handleScore('team1');
+          if (data.type === 'team2') handleScore('team2');
+          if (data.type === 'undo') handleUndo();
         }
       } catch (e) {}
     };
     const interval = setInterval(pollFlic, 500);
     return () => clearInterval(interval);
-  }, [lastProcessedId, scorePoint, undo]);
+  }, [lastProcessedId, team1Name, team2Name]); // Added dependencies to capture current names
 
   const formatPoints = (p: string | number) => typeof p === "number" ? p.toString() : p;
 
@@ -67,23 +117,42 @@ export default function HomePage() {
       
       {/* --- VICTORY OVERLAY --- */}
       {matchWinner && !matchWinnerDismissed && (
-        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl animate-in fade-in duration-500" onClick={resetMatch}>
+        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl animate-in fade-in duration-500" onClick={handleReset}>
           <div className="relative flex flex-col items-center bg-slate-900 border-8 border-amber-400 p-16 rounded-[4rem] text-center shadow-[0_0_100px_rgba(251,191,36,0.4)]" onClick={e => e.stopPropagation()}>
-            
             <span className="absolute -top-16 -left-16 text-8xl animate-bounce">🎇</span>
             <span className="absolute -top-16 -right-16 text-8xl animate-bounce delay-150">🎆</span>
             <span className="absolute -bottom-16 -left-16 text-8xl animate-pulse">🎊</span>
             <span className="absolute -bottom-16 -right-16 text-8xl animate-pulse delay-300">🎉</span>
-
             <Trophy className="h-24 w-24 text-amber-400 mb-8 animate-pulse" />
             <h2 className="text-8xl font-black mb-4 text-white italic uppercase tracking-tighter">
-              {matchWinner === 'team1' ? 'Team 1' : 'Team 2'}
+              {matchWinner === 'team1' ? team1Name : team2Name}
             </h2>
             <h3 className="text-4xl font-black text-amber-400 uppercase italic mb-12 tracking-[0.2em]">Victory Fanfare</h3>
-            
-            <button onClick={resetMatch} className="bg-amber-500 text-black px-20 py-8 rounded-full text-4xl font-black uppercase shadow-2xl active:scale-95 transition-transform flex items-center gap-4">
+            <button onClick={handleReset} className="bg-amber-500 text-black px-20 py-8 rounded-full text-4xl font-black uppercase shadow-2xl active:scale-95 transition-transform flex items-center gap-4">
               <RotateCcw size={40} /> Play Again
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* --- HISTORY LOG OVERLAY --- */}
+      {historyOpen && (
+        <div className="absolute inset-0 z-[60] bg-black/95 flex items-center justify-center p-4" onClick={() => setHistoryOpen(false)}>
+          <div className="bg-slate-900 border-4 border-slate-700 p-10 rounded-[3rem] w-full max-w-2xl flex flex-col gap-6 max-h-[85vh]" onClick={e => e.stopPropagation()}>
+            <h2 className="text-3xl font-black uppercase text-center text-slate-500 tracking-widest border-b-2 border-slate-800 pb-4">Match Log</h2>
+            <div className="flex-1 overflow-y-auto flex flex-col gap-3 pr-2">
+              {historyLog.length === 0 ? (
+                <div className="text-center text-slate-600 font-bold py-10 text-2xl uppercase italic">No points scored yet</div>
+              ) : (
+                historyLog.map(log => (
+                  <div key={log.id} className="bg-slate-800 p-5 rounded-2xl flex justify-between items-center border-l-4 border-emerald-500 shadow-md">
+                    <span className="text-white font-bold text-xl uppercase tracking-wider">{log.msg}</span>
+                    <span className="text-slate-400 text-lg font-mono bg-black/30 px-3 py-1 rounded-lg">{log.time}</span>
+                  </div>
+                ))
+              )}
+            </div>
+            <button onClick={() => setHistoryOpen(false)} className="py-6 bg-white text-black text-3xl font-black rounded-3xl uppercase mt-4 active:scale-95 transition-transform">Close Log</button>
           </div>
         </div>
       )}
@@ -94,7 +163,12 @@ export default function HomePage() {
           <div className="bg-slate-900 border-4 border-slate-700 p-10 rounded-[3rem] w-full max-w-xl flex flex-col gap-6" onClick={e => e.stopPropagation()}>
              <h2 className="text-2xl font-black uppercase text-center text-slate-500 tracking-widest">Match Settings</h2>
              
-             {/* ONLY CHANGE 3: Added the Fullscreen Button inside Settings */}
+             {/* TEAM NAME INPUTS */}
+             <div className="grid grid-cols-2 gap-4">
+               <input value={team1Name} onChange={e => setTeam1Name(e.target.value)} placeholder="TEAM 1" className="bg-slate-800 border-4 border-slate-700 rounded-3xl p-6 text-white text-2xl font-black uppercase text-center focus:border-indigo-500 outline-none transition-colors" maxLength={15} />
+               <input value={team2Name} onChange={e => setTeam2Name(e.target.value)} placeholder="TEAM 2" className="bg-slate-800 border-4 border-slate-700 rounded-3xl p-6 text-white text-2xl font-black uppercase text-center focus:border-indigo-500 outline-none transition-colors" maxLength={15} />
+             </div>
+
              <button onClick={toggleFullscreen} className="py-6 rounded-3xl bg-indigo-600 border-4 border-white text-3xl font-black uppercase flex items-center justify-center gap-4 transition-transform active:scale-95">
                <Maximize size={32} /> Enable Fullscreen
              </button>
@@ -113,10 +187,10 @@ export default function HomePage() {
 
       {/* Main Content Area */}
       <section className="h-[92%] flex flex-col gap-1">
-        {[ { id: "team1", data: team1, label: "TEAM 1" }, { id: "team2", data: team2, label: "TEAM 2" } ].map((t) => (
+        {[ { id: "team1", data: team1, label: team1Name }, { id: "team2", data: team2, label: team2Name } ].map((t) => (
           <button 
             key={t.id} 
-            onClick={() => scorePoint(t.id as any)} 
+            onClick={() => handleScore(t.id as any)} 
             className={`flex-1 rounded-[1.5rem] border-[6px] flex flex-row items-center relative transition-all ${
               server === t.id ? "border-emerald-500 bg-emerald-500/10" : "border-slate-800 bg-slate-900/20"
             }`}
@@ -152,7 +226,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="h-[8%] flex items-center justify-between px-10 border-t border-slate-900 bg-slate-950/50">
-        <button onClick={undo} className="group flex items-center gap-3 bg-slate-900/50 border border-slate-800 px-6 py-2 rounded-2xl active:scale-95 transition-all">
+        <button onClick={handleUndo} className="group flex items-center gap-3 bg-slate-900/50 border border-slate-800 px-6 py-2 rounded-2xl active:scale-95 transition-all">
           <Undo2 size={24} className="text-slate-500 group-hover:text-white transition-colors" />
           <span className="text-xl font-black text-slate-500 group-hover:text-white uppercase tracking-widest">Undo</span>
         </button>
@@ -165,9 +239,14 @@ export default function HomePage() {
           {isTiebreak ? 'TIEBREAK MODE' : 'REGULAR GAME'}
         </div>
 
-        <div className="flex items-center gap-10">
-          <button onClick={resetMatch} className="text-xl font-black text-red-900/80 hover:text-red-500 uppercase tracking-widest transition-colors">Reset</button>
-          <button onClick={() => setSettingsOpen(true)} className="p-3 bg-slate-900/50 border border-slate-800 rounded-2xl text-slate-600 hover:text-white transition-all">
+        <div className="flex items-center gap-6">
+          <button onClick={handleReset} className="text-xl font-black text-red-900/80 hover:text-red-500 uppercase tracking-widest transition-colors mr-4">Reset</button>
+          
+          <button onClick={() => setHistoryOpen(true)} className="p-3 bg-slate-900/50 border border-slate-800 rounded-2xl text-slate-600 hover:text-white transition-all active:scale-95">
+            <List size={28} />
+          </button>
+
+          <button onClick={() => setSettingsOpen(true)} className="p-3 bg-slate-900/50 border border-slate-800 rounded-2xl text-slate-600 hover:text-white transition-all active:scale-95">
             <Settings size={28} />
           </button>
         </div>
