@@ -183,36 +183,19 @@ export default function HomePage() {
   // --- AGGRESSIVE WAKE LOCK ---
   useEffect(() => {
     let wakeLock: any = null;
-    
     const requestWakeLock = async () => {
       try {
-        if ('wakeLock' in navigator) {
-          wakeLock = await (navigator as any).wakeLock.request('screen');
-        }
-      } catch (err) {
-        // Silently fail if blocked
-      }
+        if ('wakeLock' in navigator) wakeLock = await (navigator as any).wakeLock.request('screen');
+      } catch (err) {}
     };
-
     requestWakeLock();
-
-    const handleVisibilityChange = () => {
-      if (wakeLock !== null && document.visibilityState === 'visible') {
-        requestWakeLock();
-      }
-    };
-
+    const handleVisibilityChange = () => { if (wakeLock !== null && document.visibilityState === 'visible') requestWakeLock(); };
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    // Force a re-request every 30 seconds to stop the browser dropping it
     const lockInterval = setInterval(requestWakeLock, 30000);
-
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       clearInterval(lockInterval);
-      if (wakeLock) {
-        wakeLock.release().catch(() => {});
-      }
+      if (wakeLock) wakeLock.release().catch(() => {});
     };
   }, []);
 
@@ -246,24 +229,15 @@ export default function HomePage() {
 
   const formatPoints = (p: string | number) => typeof p === "number" ? p.toString() : p;
 
-  const getTimerColor = () => {
-    if (timeLeft > 10) return "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.7)]";
-    if (timeLeft > 5) return "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.7)]";
-    return "bg-red-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.7)]";
+  const getTimerStrokeColor = () => {
+    if (timeLeft > 10) return "text-emerald-500 drop-shadow-[0_0_12px_rgba(16,185,129,1)]";
+    if (timeLeft > 5) return "text-amber-500 drop-shadow-[0_0_12px_rgba(245,158,11,1)]";
+    return "text-red-500 drop-shadow-[0_0_12px_rgba(239,68,68,1)] animate-pulse";
   };
 
   return (
     <main className="fixed inset-0 flex flex-col bg-black text-white select-none overflow-hidden font-sans">
       
-      <div className="flex-none h-[3px] w-full bg-black relative">
-        {timeLeft > 0 && (
-          <div className="absolute top-0 left-0 h-full z-[250] transition-all duration-100 ease-linear"
-               style={{ width: `${(timeLeft / 20) * 100}%` }}>
-            <div className={`h-full w-full ${getTimerColor()}`} />
-          </div>
-        )}
-      </div>
-
       <div className="hidden portrait:flex fixed inset-0 z-[200] bg-black items-center justify-center flex-col gap-8 p-10 text-center">
         <Smartphone size={80} className="text-emerald-500 animate-pulse" />
         <h2 className="text-4xl font-black uppercase tracking-widest text-white italic">Rotate Device</h2>
@@ -286,30 +260,80 @@ export default function HomePage() {
         </div>
       )}
 
-      <section className="flex-grow flex flex-col p-0 overflow-hidden">
+      {/* SCOREBOARD SECTION */}
+      <section className="flex-grow flex flex-col p-1 relative overflow-hidden">
+        
+        {timeLeft > 0 && (
+          <svg className="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] pointer-events-none z-50" preserveAspectRatio="none" viewBox="0 0 100 100">
+            <path
+              d="M 50 0 L 100 0 L 100 100 L 50 100"
+              fill="none"
+              stroke="currentColor"
+              className={`transition-all duration-100 ease-linear ${getTimerStrokeColor()}`}
+              strokeWidth="6"
+              vectorEffect="non-scaling-stroke"
+              pathLength="100"
+              strokeDasharray="100"
+              style={{ strokeDashoffset: 100 - (timeLeft / 20) * 100 }}
+            />
+            <path
+              d="M 50 0 L 0 0 L 0 100 L 50 100"
+              fill="none"
+              stroke="currentColor"
+              className={`transition-all duration-100 ease-linear ${getTimerStrokeColor()}`}
+              strokeWidth="6"
+              vectorEffect="non-scaling-stroke"
+              pathLength="100"
+              strokeDasharray="100"
+              style={{ strokeDashoffset: 100 - (timeLeft / 20) * 100 }}
+            />
+          </svg>
+        )}
+
         {[ { id: "team1", data: team1, label: team1Name }, { id: "team2", data: team2, label: team2Name } ].map((t) => (
-          <button key={t.id} onClick={() => handleScore(t.id as any)} className={`flex-1 min-h-0 border-b border-slate-800 flex flex-row items-center relative transition-all ${server === t.id ? "bg-emerald-500/10 shadow-[inset_0_0_20px_rgba(16,185,129,0.1)]" : "bg-slate-900/20"}`}>
-            <div className="absolute top-0.5 md:top-2 left-2 md:left-6 z-20">
-              <span className="text-[10px] md:text-2xl font-black italic text-slate-400 opacity-60 uppercase">{t.label}</span>
+          <button 
+            key={t.id} 
+            onClick={() => handleScore(t.id as any)} 
+            className={`flex-1 min-h-0 border-b flex flex-row items-center relative transition-all ${
+              server === t.id 
+                ? "border-emerald-500/50 bg-emerald-500/20 shadow-[inset_0_0_40px_rgba(16,185,129,0.25)] z-10" 
+                : "border-slate-800 bg-slate-900/20"
+            }`}
+          >
+            
+            {/* Team Label - Brightened when serving */}
+            <div className="absolute top-1 md:top-3 left-3 md:left-8 z-20">
+              <span className={`text-[10px] md:text-2xl font-black italic uppercase transition-all duration-300 ${
+                server === t.id 
+                  ? "text-emerald-400 opacity-100 drop-shadow-[0_0_10px_rgba(16,185,129,0.8)]" 
+                  : "text-slate-400 opacity-60"
+              }`}>
+                {t.label}
+              </span>
             </div>
+
             {server === t.id && (
-              <div className="absolute top-0.5 md:top-2 right-2 md:right-6 z-20">
+              <div className="absolute top-1 md:top-3 right-3 md:right-8 z-20">
                 <span className="bg-emerald-500 text-black px-2 md:px-5 py-0.5 rounded-full font-black text-[8px] md:text-sm animate-pulse uppercase">SERVING</span>
               </div>
             )}
+            
             <div className="w-[28%] md:w-[22%] h-full flex flex-col items-center justify-center border-r border-slate-800/30 bg-black/40">
               <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase tracking-widest italic">Sets</span>
               <span className="text-[20vh] md:text-[23vh] font-black leading-none drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">{t.data.sets}</span>
             </div>
+            
             <div className="flex-1 h-full flex items-center justify-center overflow-hidden">
               <span className="text-[32vh] md:text-[45vh] font-black leading-none italic scale-x-[1.4] md:scale-x-[1.6] transform-gpu [text-shadow:_0_0_40px_rgb(255_255_255_/_30%),_0_0_10px_rgb(255_255_255_/_60%)]">
                 {formatPoints(t.data.points)}
               </span>
             </div>
+            
             <div className="w-[28%] md:w-[22%] h-full flex flex-col items-center justify-center border-l border-slate-800/30 bg-black/40">
               <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase tracking-widest italic">Games</span>
               <span className="text-[20vh] md:text-[23vh] font-black leading-none drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">{t.data.games}</span>
             </div>
+            
           </button>
         ))}
       </section>
