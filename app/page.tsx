@@ -30,6 +30,9 @@ export default function HomePage() {
   const [timerStarted, setTimerStarted] = useState(false);
   const endTimeRef = useRef<number | null>(null);
 
+  // NEW: Memory Ref to hold the "Before" state for the Detailed Log
+  const lastActionRef = useRef<{type: 'score'|'undo', team?: 'team1'|'team2', beforePoints: string, beforeGames: number, beforeSets: number} | null>(null);
+
   const [team1Name, setTeam1Name] = useState("TEAM 1");
   const [team2Name, setTeam2Name] = useState("TEAM 2");
 
@@ -64,12 +67,14 @@ export default function HomePage() {
       return;
     }
     
-    // Detailed Logging with Current Score Context
-    const currentScore = isTiebreak 
-      ? `Tiebreak: ${team1.points}-${team2.points}` 
-      : `${team1.points}-${team2.points}`;
-    
-    addLog(`${team === 'team1' ? team1Name : team2Name} scored (at ${currentScore})`);
+    // Memorize the state right BEFORE the point is scored
+    lastActionRef.current = {
+      type: 'score',
+      team: team,
+      beforePoints: `${team1.points}-${team2.points}`,
+      beforeGames: team1.games + team2.games,
+      beforeSets: team1.sets + team2.sets
+    };
     
     endTimeRef.current = Date.now() + 20000;
     setTimerStarted(true);
@@ -79,12 +84,14 @@ export default function HomePage() {
   };
 
   const handleUndo = () => {
-    const currentScore = isTiebreak 
-      ? `Tiebreak: ${team1.points}-${team2.points}` 
-      : `${team1.points}-${team2.points}`;
+    // Memorize the state right BEFORE the undo happens
+    lastActionRef.current = {
+      type: 'undo',
+      beforePoints: `${team1.points}-${team2.points}`,
+      beforeGames: team1.games + team2.games,
+      beforeSets: team1.sets + team2.sets
+    };
       
-    addLog(`Undo used (at ${currentScore})`);
-    
     undo();
     endTimeRef.current = null;
     setTimerStarted(false);
@@ -139,6 +146,35 @@ export default function HomePage() {
 
   // --- 3. EFFECTS ---
   
+  // NEW: DETAILED LOGGING EFFECT
+  // This watches for score changes, reads the "Before" memory, and calculates the "After" result
+  useEffect(() => {
+    if (!lastActionRef.current) return;
+    
+    const { type, team, beforePoints, beforeGames, beforeSets } = lastActionRef.current;
+    const afterPoints = `${team1.points}-${team2.points}`;
+    const afterGames = team1.games + team2.games;
+    const afterSets = team1.sets + team2.sets;
+    
+    if (type === 'undo') {
+      addLog(`Undo used at (${beforePoints}) score (${afterPoints})`);
+    } else if (type === 'score' && team) {
+      const teamName = team === 'team1' ? team1Name : team2Name;
+      
+      if (matchWinner) {
+        addLog(`${teamName} point at (${beforePoints}) score match ${teamName}`);
+      } else if (afterGames > beforeGames || afterSets > beforeSets) {
+        addLog(`${teamName} point at (${beforePoints}) score game ${teamName}`);
+      } else {
+        addLog(`${teamName} scored at (${beforePoints}) score (${afterPoints})`);
+      }
+    }
+    
+    // Clear the memory so it doesn't double-log
+    lastActionRef.current = null;
+  }, [team1.points, team2.points, team1.games, team2.games, team1.sets, team2.sets, matchWinner, team1Name, team2Name]);
+
+  // PRECISION TIMER
   useEffect(() => {
     if (!timerStarted || !endTimeRef.current) return;
 
@@ -157,6 +193,7 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, [timerStarted]);
 
+  // UMPIRE
   const prevGames1 = useRef(team1.games);
   const prevGames2 = useRef(team2.games);
   const prevSets1 = useRef(team1.sets);
