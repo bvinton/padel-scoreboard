@@ -110,7 +110,7 @@ export default function HomePage() {
           <button 
             key={t.id} 
             onClick={() => scorePoint(t.id as any)} 
-            className={`flex-1 rounded-[2.5rem] border-4 flex flex-col px-8 py-2 relative overflow-hidden transition-all duration-300 ${
+            className={`flex-1 rounded-[2.5rem] border-4 flex flex-col px-8 py-4 relative overflow-hidden transition-all duration-300 ${
               server === t.id 
                 ? "border-emerald-500 bg-emerald-500/10 shadow-[0_0_40px_rgba(16,185,129,0.2)]" 
                 : "border-slate-800/50 bg-slate-900/40"
@@ -128,22 +128,22 @@ export default function HomePage() {
               )}
             </div>
 
-            {/* Main Score (Moved down 1cm using translate-y-4) */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 translate-y-4">
-              <span className="text-[12rem] md:text-[16rem] font-black text-white leading-none italic drop-shadow-2xl">
+            {/* Main Score (Centered vertically in the middle area) */}
+            <div className="flex-1 flex items-center justify-center pointer-events-none z-10">
+              <span className="text-[12rem] md:text-[16rem] font-black text-white leading-none italic drop-shadow-2xl translate-y-2">
                 {formatPoints(t.data.points)}
               </span>
             </div>
 
-            {/* Enlarged Sets/Games Boxes with 10% Bigger Numbers */}
-            <div className="flex-1 flex items-end justify-between w-full pb-1 z-20">
+            {/* Sets/Games Boxes */}
+            <div className="flex items-end justify-between w-full pb-2 z-20">
               <div className="flex flex-col items-center bg-slate-950/60 px-10 py-3 rounded-[2rem] border-2 border-slate-800/80 min-w-[210px]">
                 <span className="text-[10px] text-slate-500 font-black tracking-[0.2em] mb-1">SETS</span>
-                <span className="text-[9rem] font-black text-slate-100 leading-[0.8] mb-1">{t.data.sets}</span>
+                <span className="text-[9.5rem] font-black text-slate-100 leading-[0.8] mb-1">{t.data.sets}</span>
               </div>
               <div className="flex flex-col items-center bg-slate-950/60 px-10 py-3 rounded-[2rem] border-2 border-slate-800/80 min-w-[210px]">
                 <span className="text-[10px] text-slate-500 font-black tracking-[0.2em] mb-1">GAMES</span>
-                <span className="text-[9rem] font-black text-slate-100 leading-[0.8] mb-1">{t.data.games}</span>
+                <span className="text-[9.5rem] font-black text-slate-100 leading-[0.8] mb-1">{t.data.games}</span>
               </div>
             </div>
 
@@ -151,7 +151,7 @@ export default function HomePage() {
         ))}
       </section>
 
-      {/* Compact Footer Controls */}
+      {/* Footer Controls */}
       <footer className="flex-[1] grid grid-cols-3 items-center pt-1 border-t border-slate-800/30">
         <div className="flex justify-start">
           <button onClick={undo} className="bg-slate-900 border border-slate-700 px-4 py-2 rounded-xl font-black text-slate-300 active:scale-95 transition-transform uppercase tracking-wider text-xs flex items-center gap-2">
