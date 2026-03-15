@@ -223,32 +223,32 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* POLITE PORTRAIT WARNING */}
+      {/* PORTRAIT OVERLAY */}
       <div className="hidden portrait:flex fixed inset-0 z-[200] bg-black items-center justify-center flex-col gap-8 p-10 text-center">
         <div className="relative flex items-center justify-center w-32 h-32">
           <Smartphone size={80} className="text-emerald-500 animate-pulse absolute" />
           <RotateCcw size={40} className="text-white absolute -bottom-2 -right-2 bg-black rounded-full p-1" />
         </div>
-        <h2 className="text-4xl md:text-5xl font-black uppercase tracking-widest text-white italic">Rotate Device</h2>
-        <p className="text-xl md:text-2xl text-slate-400 font-bold uppercase tracking-wide">Please turn your phone sideways to use the scoreboard.</p>
+        <h2 className="text-5xl font-black uppercase tracking-widest text-white italic">Rotate Device</h2>
+        <p className="text-2xl text-slate-400 font-bold uppercase tracking-wide">Please turn your phone sideways to use the scoreboard.</p>
       </div>
 
       {/* VICTORY OVERLAY */}
       {matchWinner && !matchWinnerDismissed && !localDismissed && (
-        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl" onClick={() => setLocalDismissed(true)}>
+        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl animate-in fade-in duration-500" onClick={() => setLocalDismissed(true)}>
           <div className="relative flex flex-col items-center bg-slate-900 border-4 md:border-8 border-amber-400 p-8 md:p-16 rounded-3xl md:rounded-[4rem] text-center" onClick={e => e.stopPropagation()}>
              <Trophy className="w-16 h-16 md:w-24 md:h-24 text-amber-400 mb-4 md:mb-8 animate-pulse" />
             <h2 className="text-5xl md:text-8xl font-black mb-2 md:mb-4 italic uppercase tracking-tighter">
               {matchWinner === 'team1' ? team1Name : team2Name}
             </h2>
-            <button onClick={handleReset} className="bg-amber-500 text-black px-10 md:px-20 py-4 md:py-8 rounded-full text-2xl md:text-4xl font-black uppercase active:scale-95 transition-transform flex items-center gap-4">
+            <button onClick={handleReset} className="bg-amber-500 text-black px-10 md:px-20 py-4 md:py-8 rounded-full text-2xl md:text-4xl font-black uppercase active:scale-95 transition-transform flex items-center gap-2 md:gap-4">
               <RotateCcw size={40} /> Play Again
             </button>
           </div>
         </div>
       )}
 
-      {/* OVERLAYS */}
+      {/* OVERLAYS (ARCHIVE, LOG, SETTINGS) ARE SAME AS BEFORE */}
       {archiveOpen && (
         <div className="absolute inset-0 z-[60] bg-black/95 flex items-center justify-center p-2 md:p-4" onClick={() => setArchiveOpen(false)}>
           <div className="bg-slate-900 border-2 md:border-4 border-slate-700 p-4 md:p-10 rounded-2xl md:rounded-[3rem] w-full max-w-sm md:max-w-3xl flex flex-col gap-3 md:gap-6 max-h-[90vh]" onClick={e => e.stopPropagation()}>
@@ -302,11 +302,9 @@ export default function HomePage() {
                <input value={team1Name} onChange={e => setTeam1Name(e.target.value)} placeholder="TEAM 1" className="bg-slate-800 border-2 lg:border-4 border-slate-700 rounded-xl lg:rounded-3xl p-2 lg:p-5 text-white text-sm lg:text-2xl font-black uppercase text-center focus:border-indigo-500 outline-none" maxLength={15} />
                <input value={team2Name} onChange={e => setTeam2Name(e.target.value)} placeholder="TEAM 2" className="bg-slate-800 border-2 lg:border-4 border-slate-700 rounded-xl lg:rounded-3xl p-2 lg:p-5 text-white text-sm lg:text-2xl font-black uppercase text-center focus:border-indigo-500 outline-none" maxLength={15} />
              </div>
-             
              <button onClick={() => setUmpireEnabled(!umpireEnabled)} className={`py-4 md:py-5 rounded-xl md:rounded-3xl border-2 md:border-4 text-sm md:text-2xl font-black uppercase flex items-center justify-center gap-4 transition-all ${umpireEnabled ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
                <Volume2 size={24} /> Umpire: {umpireEnabled ? 'ON' : 'OFF'}
              </button>
-
              <button onClick={toggleFullscreen} className="py-2 md:py-5 rounded-xl md:rounded-3xl bg-slate-800 border-2 md:border-4 border-slate-600 text-sm md:text-2xl font-black uppercase flex items-center justify-center gap-4 transition-transform active:scale-95">
                <Maximize size={24} /> {document.fullscreenElement ? 'Exit Fullscreen' : 'Enable Fullscreen'}
              </button>
@@ -321,46 +319,41 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* MAIN SCOREBOARD (PRIORITY SCALING RESTORED) */}
-      <section className="flex-1 flex flex-col gap-1 min-h-0 overflow-hidden">
+      {/* --- SCOREBOARD SECTION (FORCED HEIGHT RESTORED) --- */}
+      <section className="h-[92%] flex flex-col gap-1">
         {[ { id: "team1", data: team1, label: team1Name }, { id: "team2", data: team2, label: team2Name } ].map((t) => (
-          <button key={t.id} onClick={() => handleScore(t.id as any)} className={`flex-1 min-h-0 rounded-xl md:rounded-[1.5rem] border-[3px] md:border-[6px] flex flex-row items-stretch relative transition-all ${server === t.id ? "border-emerald-500 bg-emerald-500/10" : "border-slate-800 bg-slate-900/20"}`}>
+          <button key={t.id} onClick={() => handleScore(t.id as any)} className={`flex-1 rounded-xl md:rounded-[1.5rem] border-[3px] md:border-[6px] flex flex-row items-center relative transition-all ${server === t.id ? "border-emerald-500 bg-emerald-500/10" : "border-slate-800 bg-slate-900/20"}`}>
             
-            {/* Label (Mobile Safe) */}
-            <div className="absolute top-0.5 md:top-2 left-2 md:left-6 z-20">
-              <span className="text-[10px] md:text-2xl font-black italic text-slate-400 opacity-60 uppercase tracking-tighter">{t.label}</span>
+            <div className="absolute top-1 md:top-2 left-3 md:left-6 z-20">
+              <span className="text-xs md:text-2xl font-black italic text-slate-400 opacity-60 uppercase tracking-tighter">{t.label}</span>
             </div>
-            
             {server === t.id && (
-              <div className="absolute top-0.5 md:top-2 right-2 md:right-6 z-20">
-                <span className="bg-emerald-500 text-black px-1.5 md:px-4 py-0.5 md:py-1 rounded-full font-black text-[8px] md:text-sm animate-pulse uppercase">SERVING</span>
+              <div className="absolute top-1 md:top-2 right-3 md:right-6 z-20">
+                <span className="bg-emerald-500 text-black px-2 md:px-4 py-0.5 md:py-1 rounded-full font-black text-[10px] md:text-sm animate-pulse uppercase">SERVING</span>
               </div>
             )}
             
-            {/* Sets (Narrower on Mobile) */}
-            <div className="w-[18%] md:w-[22%] flex flex-col items-center justify-center border-r-2 border-slate-800/50 bg-black/40">
-              <span className="text-[8px] md:text-xl font-black text-slate-400 uppercase italic">Sets</span>
-              <span className="text-[10vh] md:text-[20vh] font-black leading-none">{t.data.sets}</span>
+            <div className="w-[22%] h-full flex flex-col items-center justify-center border-r-2 border-slate-800/50 bg-black/40">
+              <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase tracking-widest italic">Sets</span>
+              <span className="text-[15vh] md:text-[23vh] font-black leading-none">{t.data.sets}</span>
             </div>
 
-            {/* Points (MASSIVE & CENTERED) */}
-            <div className="flex-1 flex items-center justify-center overflow-hidden">
-              <span className="text-[28vh] md:text-[38vh] font-black leading-none italic scale-x-[1.3] md:scale-x-[1.6] transform-gpu [text-shadow:_0_0_40px_rgb(255_255_255_/_20%)]">
+            <div className="flex-1 h-full flex items-center justify-center overflow-hidden">
+              <span className="text-[30vh] md:text-[45vh] font-black leading-none italic scale-x-[1.6] transform-gpu [text-shadow:_0_0_40px_rgb(255_255_255_/_30%)]">
                 {formatPoints(t.data.points)}
               </span>
             </div>
 
-            {/* Games (Narrower on Mobile) */}
-            <div className="w-[18%] md:w-[22%] flex flex-col items-center justify-center border-l-2 border-slate-800/50 bg-black/40">
-              <span className="text-[8px] md:text-xl font-black text-slate-400 uppercase italic">Games</span>
-              <span className="text-[10vh] md:text-[20vh] font-black leading-none">{t.data.games}</span>
+            <div className="w-[22%] h-full flex flex-col items-center justify-center border-l-2 border-slate-800/50 bg-black/40">
+              <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase tracking-widest italic">Games</span>
+              <span className="text-[15vh] md:text-[23vh] font-black leading-none">{t.data.games}</span>
             </div>
           </button>
         ))}
       </section>
 
-      {/* Footer (Slimmer for Score Priority) */}
-      <footer className="h-[10%] md:h-[8%] flex items-center justify-between px-2 md:px-10 border-t border-slate-900 bg-slate-950/50">
+      {/* Footer */}
+      <footer className="h-[8%] flex items-center justify-between px-2 md:px-10 border-t border-slate-900 bg-slate-950/50">
         <div className="flex items-center gap-1 md:gap-4">
           <button onClick={handleUndo} className="flex items-center gap-1 md:gap-3 bg-slate-900/50 border border-slate-800 px-3 md:px-6 py-1 md:py-2 rounded-lg md:rounded-2xl active:scale-95 transition-all">
             <Undo2 className="w-4 h-4 md:w-6 md:h-6 text-slate-500" />
@@ -381,14 +374,14 @@ export default function HomePage() {
         </div>
 
         <div className="flex items-center gap-1 md:gap-4">
-          <button onClick={handleReset} className="text-xs md:text-xl font-black text-red-900/80 hover:text-red-500 uppercase tracking-widest transition-colors mr-1 md:mr-4">Reset</button>
-          <button onClick={() => setArchiveOpen(true)} className="p-1.5 md:p-3 bg-slate-900/50 border border-slate-800 rounded-lg md:rounded-2xl text-indigo-400 active:scale-95 transition-all">
+          <button onClick={handleReset} className="text-xs md:text-xl font-black text-red-900/80 hover:text-red-500 uppercase tracking-widest mr-1 md:mr-4">Reset</button>
+          <button onClick={() => setArchiveOpen(true)} className="p-2 md:p-3 bg-slate-900/50 border border-slate-800 rounded-lg md:rounded-2xl text-indigo-400 active:scale-95 transition-all">
             <History className="w-4 h-4 md:w-7 md:h-7" />
           </button>
-          <button onClick={() => setHistoryOpen(true)} className="p-1.5 md:p-3 bg-slate-900/50 border border-slate-800 rounded-lg md:rounded-2xl text-slate-600 active:scale-95 transition-all">
+          <button onClick={() => setHistoryOpen(true)} className="p-2 md:p-3 bg-slate-900/50 border border-slate-800 rounded-lg md:rounded-2xl text-slate-600 active:scale-95 transition-all">
             <MessageSquareText className="w-4 h-4 md:w-7 md:h-7" />
           </button>
-          <button onClick={() => setSettingsOpen(true)} className="p-1.5 md:p-3 bg-slate-900/50 border border-slate-800 rounded-lg md:rounded-2xl text-slate-600 active:scale-95 transition-all">
+          <button onClick={() => setSettingsOpen(true)} className="p-2 md:p-3 bg-slate-900/50 border border-slate-800 rounded-lg md:rounded-2xl text-slate-600 active:scale-95 transition-all">
             <Settings className="w-4 h-4 md:w-7 md:h-7" />
           </button>
         </div>
