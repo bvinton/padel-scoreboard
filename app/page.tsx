@@ -319,7 +319,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* --- SCOREBOARD SECTION (LOCKED BIG SCALING FOR ALL) --- */}
+      {/* --- SCOREBOARD SECTION (FORCED HEIGHT RESTORED) --- */}
       <section className="h-[92%] flex flex-col gap-1">
         {[ { id: "team1", data: team1, label: team1Name }, { id: "team2", data: team2, label: team2Name } ].map((t) => (
           <button key={t.id} onClick={() => handleScore(t.id as any)} className={`flex-1 rounded-xl md:rounded-[1.5rem] border-[3px] md:border-[6px] flex flex-row items-center relative transition-all ${server === t.id ? "border-emerald-500 bg-emerald-500/10" : "border-slate-800 bg-slate-900/20"}`}>
@@ -352,37 +352,37 @@ export default function HomePage() {
         ))}
       </section>
 
-      {/* Footer */}
+      {/* --- FOOTER (SLIMMER ON TABLET TO PREVENT OVERLAP) --- */}
       <footer className="h-[8%] flex items-center justify-between px-2 md:px-10 border-t border-slate-900 bg-slate-950/50">
         <div className="flex items-center gap-1 md:gap-4">
-          <button onClick={handleUndo} className="flex items-center gap-1 md:gap-3 bg-slate-900/50 border border-slate-800 px-3 md:px-6 py-1 md:py-2 rounded-lg md:rounded-2xl active:scale-95 transition-all">
-            <Undo2 className="w-4 h-4 md:w-6 md:h-6 text-slate-500" />
-            <span className="text-xs md:text-xl font-black text-slate-500 uppercase hidden md:inline">Undo</span>
+          <button onClick={handleUndo} className="flex items-center gap-1 md:gap-3 bg-slate-900/50 border border-slate-800 px-3 md:px-6 py-1 md:py-1.5 rounded-lg md:rounded-xl active:scale-95 transition-all">
+            <Undo2 className="w-4 h-4 md:w-5 md:h-5 text-slate-500" />
+            <span className="text-xs md:text-sm font-black text-slate-500 uppercase hidden md:inline tracking-tighter">Undo</span>
           </button>
-          <button onClick={handleSaveMatch} className="flex items-center gap-1 md:gap-3 bg-indigo-900/40 border border-indigo-500/50 px-3 md:px-6 py-1 md:py-2 rounded-lg md:rounded-2xl active:scale-95 hover:bg-indigo-600 transition-all">
-            <Save className="w-4 h-4 md:w-6 md:h-6 text-indigo-400" />
-            <span className="text-xs md:text-xl font-black text-indigo-400 uppercase hidden md:inline">Save Match</span>
+          <button onClick={handleSaveMatch} className="flex items-center gap-1 md:gap-3 bg-indigo-900/40 border border-indigo-500/50 px-3 md:px-6 py-1 md:py-1.5 rounded-lg md:rounded-xl active:scale-95 hover:bg-indigo-600 transition-all">
+            <Save className="w-4 h-4 md:w-5 md:h-5 text-indigo-400" />
+            <span className="text-xs md:text-sm font-black text-indigo-400 uppercase hidden md:inline tracking-tighter">Save Match</span>
           </button>
         </div>
         
-        <div className={`px-2 md:px-8 py-1 md:py-2 rounded-full border-2 font-black uppercase tracking-[0.2em] md:tracking-[0.4em] text-[8px] md:text-sm transition-all duration-500 ${
+        <div className={`px-2 md:px-6 py-1 md:py-1.5 rounded-full border-2 font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-[8px] md:text-xs transition-all duration-500 ${
           isTiebreak 
-          ? 'bg-amber-500/20 border-amber-500 text-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.2)] animate-pulse' 
+          ? 'bg-amber-500/20 border-amber-500 text-amber-400 animate-pulse' 
           : 'bg-slate-900/40 border-slate-800 text-slate-600'
         }`}>
           {isTiebreak ? 'TIEBREAK' : 'MATCH'}
         </div>
 
-        <div className="flex items-center gap-1 md:gap-4">
-          <button onClick={handleReset} className="text-xs md:text-xl font-black text-red-900/80 hover:text-red-500 uppercase tracking-widest transition-colors mr-1 md:mr-4">Reset</button>
-          <button onClick={() => setArchiveOpen(true)} className="p-2 md:p-3 bg-slate-900/50 border border-slate-800 rounded-lg md:rounded-2xl text-indigo-400 active:scale-95 transition-all">
-            <History className="w-4 h-4 md:w-7 md:h-7" />
+        <div className="flex items-center gap-1 md:gap-3">
+          <button onClick={handleReset} className="text-xs md:text-sm font-black text-red-900/80 hover:text-red-500 uppercase tracking-widest mr-1 md:mr-2">Reset</button>
+          <button onClick={() => setArchiveOpen(true)} className="p-1.5 md:p-2 bg-slate-900/50 border border-slate-800 rounded-lg md:rounded-xl text-indigo-400 active:scale-95 transition-all">
+            <History className="w-4 h-4 md:w-6 md:h-6" />
           </button>
-          <button onClick={() => setHistoryOpen(true)} className="p-2 md:p-3 bg-slate-900/50 border border-slate-800 rounded-lg md:rounded-2xl text-slate-600 active:scale-95 transition-all">
-            <MessageSquareText className="w-4 h-4 md:w-7 md:h-7" />
+          <button onClick={() => setHistoryOpen(true)} className="p-1.5 md:p-2 bg-slate-900/50 border border-slate-800 rounded-lg md:rounded-xl text-slate-600 active:scale-95 transition-all">
+            <MessageSquareText className="w-4 h-4 md:w-6 md:h-6" />
           </button>
-          <button onClick={() => setSettingsOpen(true)} className="p-2 md:p-3 bg-slate-900/50 border border-slate-800 rounded-lg md:rounded-2xl text-slate-600 active:scale-95 transition-all">
-            <Settings className="w-4 h-4 md:w-7 md:h-7" />
+          <button onClick={() => setSettingsOpen(true)} className="p-1.5 md:p-2 bg-slate-900/50 border border-slate-800 rounded-lg md:rounded-xl text-slate-600 active:scale-95 transition-all">
+            <Settings className="w-4 h-4 md:w-6 md:h-6" />
           </button>
         </div>
       </footer>
