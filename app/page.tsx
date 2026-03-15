@@ -216,7 +216,6 @@ export default function HomePage() {
   return (
     <main className="fixed inset-0 flex flex-col bg-black text-white select-none overflow-hidden font-sans">
       
-      {/* ULTRA THIN TIMER BAR (3px) */}
       <div className="flex-none h-[3px] w-full bg-black relative">
         {timeLeft > 0 && (
           <div className="absolute top-0 left-0 h-full z-[250] transition-all duration-100 ease-linear"
@@ -226,13 +225,11 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* PORTRAIT OVERLAY */}
       <div className="hidden portrait:flex fixed inset-0 z-[200] bg-black items-center justify-center flex-col gap-8 p-10 text-center">
         <Smartphone size={80} className="text-emerald-500 animate-pulse" />
         <h2 className="text-4xl font-black uppercase tracking-widest text-white italic">Rotate Device</h2>
       </div>
 
-      {/* SCOREBOARD (ZERO GAP, MAX HEIGHT) */}
       <section className="flex-grow flex flex-col p-0 overflow-hidden">
         {[ { id: "team1", data: team1, label: team1Name }, { id: "team2", data: team2, label: team2Name } ].map((t) => (
           <button key={t.id} onClick={() => handleScore(t.id as any)} className={`flex-1 min-h-0 border-b border-slate-800 flex flex-row items-center relative transition-all ${server === t.id ? "bg-emerald-500/10 shadow-[inset_0_0_20px_rgba(16,185,129,0.1)]" : "bg-slate-900/20"}`}>
@@ -242,30 +239,31 @@ export default function HomePage() {
             </div>
             {server === t.id && (
               <div className="absolute top-0.5 md:top-2 right-2 md:right-6 z-20">
-                <span className="bg-emerald-500 text-black px-2 py-0.5 rounded-full font-black text-[8px] md:text-sm animate-pulse uppercase">SERVING</span>
+                <span className="bg-emerald-500 text-black px-2 md:px-5 py-0.5 rounded-full font-black text-[8px] md:text-sm animate-pulse uppercase">SERVING</span>
               </div>
             )}
             
-            <div className="w-[22%] h-full flex flex-col items-center justify-center border-r border-slate-800/30 bg-black/40">
+            {/* Sets View - Targeted Width and Font for Mobile */}
+            <div className="w-[28%] md:w-[22%] h-full flex flex-col items-center justify-center border-r border-slate-800/30 bg-black/40">
               <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase italic">Sets</span>
-              <span className="text-[15vh] md:text-[23vh] font-black leading-none">{t.data.sets}</span>
+              <span className="text-[20vh] md:text-[23vh] font-black leading-none">{t.data.sets}</span>
             </div>
 
             <div className="flex-1 h-full flex items-center justify-center overflow-hidden">
-              <span className="text-[35vh] md:text-[45vh] font-black leading-none italic scale-x-[1.6] transform-gpu [text-shadow:_0_0_50px_rgb(255_255_255_/_20%)]">
+              <span className="text-[32vh] md:text-[45vh] font-black leading-none italic scale-x-[1.4] md:scale-x-[1.6] transform-gpu [text-shadow:_0_0_50px_rgb(255_255_255_/_20%)]">
                 {formatPoints(t.data.points)}
               </span>
             </div>
 
-            <div className="w-[22%] h-full flex flex-col items-center justify-center border-l border-slate-800/30 bg-black/40">
+            {/* Games View - Targeted Width and Font for Mobile */}
+            <div className="w-[28%] md:w-[22%] h-full flex flex-col items-center justify-center border-l border-slate-800/30 bg-black/40">
               <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase italic">Games</span>
-              <span className="text-[15vh] md:text-[23vh] font-black leading-none">{t.data.games}</span>
+              <span className="text-[20vh] md:text-[23vh] font-black leading-none">{t.data.games}</span>
             </div>
           </button>
         ))}
       </section>
 
-      {/* ULTRA SLIM FOOTER (40px) */}
       <footer className="flex-none h-[40px] flex items-center justify-between px-2 md:px-10 border-t border-slate-900 bg-slate-950/95">
         <div className="flex items-center gap-1 md:gap-4 h-full">
           <button onClick={handleUndo} className="flex items-center gap-1 bg-slate-900/50 px-2 md:px-4 py-0.5 rounded h-[30px] active:scale-95 transition-all">
@@ -292,7 +290,7 @@ export default function HomePage() {
         </div>
       </footer>
 
-      {/* OVERLAYS */}
+      {/* MODALS REMAIN UNCHANGED FOR CONSISTENCY */}
       {archiveOpen && (
         <div className="absolute inset-0 z-[60] bg-black/95 flex items-center justify-center p-2" onClick={() => setArchiveOpen(false)}>
           <div className="bg-slate-900 border-2 border-slate-700 p-4 rounded-2xl w-full max-w-3xl flex flex-col gap-3 max-h-[90vh]" onClick={e => e.stopPropagation()}>
@@ -349,7 +347,7 @@ export default function HomePage() {
              <button onClick={() => setUmpireEnabled(!umpireEnabled)} className={`py-4 rounded-xl border-2 text-lg font-black uppercase flex items-center justify-center gap-4 ${umpireEnabled ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
                <Volume2 size={24} /> Umpire: {umpireEnabled ? 'ON' : 'OFF'}
              </button>
-             <button onClick={toggleFullscreen} className="py-3 rounded-xl bg-slate-800 border border-slate-600 text-lg font-black uppercase flex items-center justify-center gap-4 transition-all active:scale-95">
+             <button onClick={toggleFullscreen} className="py-3 rounded-xl bg-slate-800 border border-slate-600 text-lg font-black uppercase flex items-center justify-center gap-4">
                <Maximize size={24} /> Fullscreen
              </button>
              <div className="grid grid-cols-2 gap-2">
@@ -357,8 +355,8 @@ export default function HomePage() {
                 <button onClick={() => setMatchFormat(5)} className={`py-3 rounded-xl border text-lg font-black uppercase ${matchFormat === 5 ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Best of 5</button>
              </div>
              <button onClick={toggleGoldenPoint} className={`py-3 rounded-xl border text-lg font-black uppercase ${useGoldenPoint ? 'bg-emerald-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Golden Point: {useGoldenPoint ? 'ON' : 'OFF'}</button>
-             <button onClick={toggleServer} className="py-3 bg-slate-800 border border-slate-600 rounded-xl text-lg font-black uppercase transition-all active:scale-95">Swap Server</button>
-             <button onClick={() => setSettingsOpen(false)} className="py-3 bg-white text-black font-black rounded-xl uppercase mt-2 transition-all active:scale-95">Close</button>
+             <button onClick={toggleServer} className="py-3 bg-slate-800 border border-slate-600 rounded-xl text-lg font-black uppercase">Swap Server</button>
+             <button onClick={() => setSettingsOpen(false)} className="py-3 bg-white text-black font-black rounded-xl uppercase mt-2">Close</button>
           </div>
         </div>
       )}
