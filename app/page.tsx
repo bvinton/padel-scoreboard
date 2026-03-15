@@ -2,18 +2,29 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useMatchStore } from "../store/useMatchStore";
-import { Undo2, Settings, CircleDot, Trophy, RotateCcw, Maximize, List, Smartphone } from "lucide-react";
+// Added Save, Archive, and Trash2 icons
+import { Undo2, Settings, Trophy, RotateCcw, Maximize, List, Smartphone, Save, Archive, Trash2 } from "lucide-react";
+
+// Type for our Local Storage saved matches
+interface SavedMatch {
+  id: number;
+  date: string;
+  team1Name: string;
+  team2Name: string;
+  scores: string; // The fully formatted string like "6-4, 3-6, 4-1"
+}
 
 export default function HomePage() {
   const {
     team1, team2, server, isTiebreak, useGoldenPoint, matchFormat,
-    matchWinner, matchWinnerDismissed, scorePoint, undo,
+    matchWinner, matchWinnerDismissed, setScores, scorePoint, undo,
     toggleGoldenPoint, toggleServer, setMatchFormat, resetMatch,
   } = useMatchStore();
 
   const [lastProcessedId, setLastProcessedId] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
   
   const [localDismissed, setLocalDismissed] = useState(false);
 
@@ -21,6 +32,19 @@ export default function HomePage() {
   const [team2Name, setTeam2Name] = useState("TEAM 2");
 
   const [historyLog, setHistoryLog] = useState<{id: number, time: string, msg: string}[]>([]);
+  const [savedMatches, setSavedMatches] = useState<SavedMatch[]>([]);
+
+  // Load saved matches from local storage on startup
+  useEffect(() => {
+    const saved = localStorage.getItem('padelArchive');
+    if (saved) {
+      try {
+        setSavedMatches(JSON.parse(saved));
+      } catch (e) {
+        console.error("Failed to load archive");
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (!matchWinner) {
@@ -50,23 +74,50 @@ export default function HomePage() {
     resetMatch();
   };
 
+  // --- NEW: SAVE MATCH LOGIC ---
+  const handleSaveMatch = () => {
+    // 1. Format all completed sets
+    let scoreString = setScores.map(set => `${set.team1}-${set.team2}`).join(', ');
+    
+    // 2. Append the current "friendly" games if they are playing a casual 3rd set
+    if (team1.games > 0 || team2.games > 0) {
+      const currentScore = `${team1.games}-${team2.games}`;
+      scoreString = scoreString ? `${scoreString}, ${currentScore}` : currentScore;
+    }
+    
+    if (!scoreString) scoreString = "0-0"; // Failsafe for empty games
+
+    const newMatch: SavedMatch = {
+      id: Date.now(),
+      date: new Date().toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+      team1Name,
+      team2Name,
+      scores: scoreString
+    };
+
+    const updatedArchive = [newMatch, ...savedMatches];
+    setSavedMatches(updatedArchive);
+    localStorage.setItem('padelArchive', JSON.stringify(updatedArchive));
+    addLog("Match Saved to Archive");
+  };
+
+  const deleteSavedMatch = (id: number) => {
+    const updatedArchive = savedMatches.filter(m => m.id !== id);
+    setSavedMatches(updatedArchive);
+    localStorage.setItem('padelArchive', JSON.stringify(updatedArchive));
+  };
+
   useEffect(() => {
     let wakeLock: any = null;
     const requestWakeLock = async () => {
       try {
-        if ('wakeLock' in navigator) {
-          wakeLock = await (navigator as any).wakeLock.request('screen');
-        }
-      } catch (err) {
-        console.log("Wake Lock blocked by browser or not supported.");
-      }
+        if ('wakeLock' in navigator) wakeLock = await (navigator as any).wakeLock.request('screen');
+      } catch (err) {}
     };
-    
     requestWakeLock();
     const handleVisibilityChange = () => {
       if (wakeLock !== null && document.visibilityState === 'visible') requestWakeLock();
     };
-    
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
@@ -75,11 +126,9 @@ export default function HomePage() {
   }, []);
 
   const winSoundRef = useRef<HTMLAudioElement | null>(null);
-
   useEffect(() => {
     winSoundRef.current = new Audio("https://www.myinstants.com/media/sounds/final-fantasy-vii-victory-fanfare-1.mp3");
   }, []);
-
   useEffect(() => {
     if (matchWinner && !matchWinnerDismissed && winSoundRef.current) {
       winSoundRef.current.play().catch(e => console.log("Audio play blocked."));
@@ -146,6 +195,38 @@ export default function HomePage() {
         </div>
       )}
 
+      {/* --- PLAYTOMIC ARCHIVE OVERLAY --- */}
+      {archiveOpen && (
+        <div className="absolute inset-0 z-[60] bg-black/95 flex items-center justify-center p-2 md:p-4" onClick={() => setArchiveOpen(false)}>
+          <div className="bg-slate-900 border-2 md:border-4 border-slate-700 p-4 md:p-10 rounded-2xl md:rounded-[3rem] w-full max-w-sm md:max-w-3xl flex flex-col gap-3 md:gap-6 max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            <h2 className="text-xl md:text-3xl font-black uppercase text-center text-slate-500 tracking-widest border-b-2 border-slate-800 pb-2 md:pb-4">Saved Matches</h2>
+            <div className="flex-1 overflow-y-auto flex flex-col gap-2 md:gap-4 pr-2">
+              {savedMatches.length === 0 ? (
+                <div className="text-center text-slate-600 font-bold py-6 md:py-10 text-lg md:text-2xl uppercase italic">No matches saved yet</div>
+              ) : (
+                savedMatches.map(match => (
+                  <div key={match.id} className="bg-slate-800 p-4 md:p-6 rounded-xl md:rounded-2xl flex items-center justify-between border-l-4 border-indigo-500 shadow-md">
+                    <div className="flex flex-col gap-1 md:gap-2">
+                      <span className="text-slate-400 text-xs md:text-sm font-bold uppercase tracking-widest">{match.date}</span>
+                      <span className="text-white font-black text-lg md:text-3xl uppercase italic tracking-tighter">
+                        {match.team1Name} <span className="text-indigo-400">vs</span> {match.team2Name}
+                      </span>
+                      <span className="text-emerald-400 font-mono font-bold text-xl md:text-4xl tracking-widest mt-1">
+                        {match.scores}
+                      </span>
+                    </div>
+                    <button onClick={() => deleteSavedMatch(match.id)} className="p-3 md:p-5 bg-red-900/30 text-red-500 rounded-xl md:rounded-2xl hover:bg-red-900/60 transition-colors">
+                      <Trash2 className="w-6 h-6 md:w-8 md:h-8" />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+            <button onClick={() => setArchiveOpen(false)} className="py-3 md:py-6 bg-white text-black text-xl md:text-3xl font-black rounded-xl md:rounded-3xl uppercase mt-2 md:mt-4 active:scale-95 transition-transform">Close Archive</button>
+          </div>
+        </div>
+      )}
+
       {/* HISTORY LOG OVERLAY */}
       {historyOpen && (
         <div className="absolute inset-0 z-[60] bg-black/95 flex items-center justify-center p-2 md:p-4" onClick={() => setHistoryOpen(false)}>
@@ -205,12 +286,10 @@ export default function HomePage() {
               server === t.id ? "border-emerald-500 bg-emerald-500/10" : "border-slate-800 bg-slate-900/20"
             }`}
           >
-            {/* Team Label - Brightened up opacity for better readability */}
             <div className="absolute top-1 md:top-2 left-3 md:left-6 z-20">
               <span className="text-xs md:text-2xl font-black italic text-slate-400 opacity-60 uppercase tracking-tighter">{t.label}</span>
             </div>
 
-            {/* Serving Badge */}
             {server === t.id && (
               <div className="absolute top-1 md:top-2 right-3 md:right-6 z-20">
                 <span className="bg-emerald-500 text-black px-2 md:px-4 py-0.5 md:py-1 rounded-full font-black text-[10px] md:text-sm animate-pulse uppercase shadow-[0_0_15px_rgba(16,185,129,0.5)]">SERVING</span>
@@ -223,7 +302,6 @@ export default function HomePage() {
             </div>
 
             <div className="flex-1 h-full flex items-center justify-center overflow-hidden">
-              {/* THE LED GLOW: Custom double-layered text-shadow instead of muddy drop-shadow */}
               <span className="text-[40vh] font-black leading-none italic scale-x-[1.6] transform-gpu [text-shadow:_0_0_40px_rgb(255_255_255_/_30%),_0_0_10px_rgb(255_255_255_/_60%)]">
                 {formatPoints(t.data.points)}
               </span>
@@ -239,10 +317,19 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="h-[8%] flex items-center justify-between px-2 md:px-10 border-t border-slate-900 bg-slate-950/50">
-        <button onClick={handleUndo} className="group flex items-center gap-1 md:gap-3 bg-slate-900/50 border border-slate-800 px-3 md:px-6 py-1 md:py-2 rounded-lg md:rounded-2xl active:scale-95 transition-all">
-          <Undo2 className="w-4 h-4 md:w-6 md:h-6 text-slate-500 group-hover:text-white transition-colors" />
-          <span className="text-xs md:text-xl font-black text-slate-500 group-hover:text-white uppercase tracking-widest">Undo</span>
-        </button>
+        
+        <div className="flex items-center gap-2 md:gap-4">
+          <button onClick={handleUndo} className="group flex items-center gap-1 md:gap-3 bg-slate-900/50 border border-slate-800 px-3 md:px-6 py-1 md:py-2 rounded-lg md:rounded-2xl active:scale-95 transition-all">
+            <Undo2 className="w-4 h-4 md:w-6 md:h-6 text-slate-500 group-hover:text-white transition-colors" />
+            <span className="text-xs md:text-xl font-black text-slate-500 group-hover:text-white uppercase tracking-widest hidden md:inline">Undo</span>
+          </button>
+          
+          {/* NEW: SAVE BUTTON */}
+          <button onClick={handleSaveMatch} className="group flex items-center gap-1 md:gap-3 bg-indigo-900/40 border border-indigo-500/50 px-3 md:px-6 py-1 md:py-2 rounded-lg md:rounded-2xl active:scale-95 transition-all hover:bg-indigo-600">
+            <Save className="w-4 h-4 md:w-6 md:h-6 text-indigo-400 group-hover:text-white transition-colors" />
+            <span className="text-xs md:text-xl font-black text-indigo-400 group-hover:text-white uppercase tracking-widest hidden md:inline">Save</span>
+          </button>
+        </div>
         
         <div className={`px-2 md:px-8 py-1 md:py-2 rounded-full border-2 font-black uppercase tracking-[0.2em] md:tracking-[0.4em] text-[8px] md:text-sm transition-all duration-500 ${
           isTiebreak 
@@ -252,9 +339,14 @@ export default function HomePage() {
           {isTiebreak ? 'TIEBREAK MODE' : 'REGULAR GAME'}
         </div>
 
-        <div className="flex items-center gap-2 md:gap-6">
+        <div className="flex items-center gap-2 md:gap-4">
           <button onClick={handleReset} className="text-xs md:text-xl font-black text-red-900/80 hover:text-red-500 uppercase tracking-widest transition-colors mr-1 md:mr-4">Reset</button>
           
+          {/* NEW: ARCHIVE BUTTON */}
+          <button onClick={() => setArchiveOpen(true)} className="p-2 md:p-3 bg-slate-900/50 border border-slate-800 rounded-lg md:rounded-2xl text-indigo-400 hover:bg-indigo-900 transition-all active:scale-95">
+            <Archive className="w-4 h-4 md:w-7 md:h-7" />
+          </button>
+
           <button onClick={() => setHistoryOpen(true)} className="p-2 md:p-3 bg-slate-900/50 border border-slate-800 rounded-lg md:rounded-2xl text-slate-600 hover:text-white transition-all active:scale-95">
             <List className="w-4 h-4 md:w-7 md:h-7" />
           </button>

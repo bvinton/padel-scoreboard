@@ -13,6 +13,12 @@ interface TeamState {
   sets: number;
 }
 
+// --- NEW: Type for our historical set scores ---
+export interface SetScore {
+  team1: number;
+  team2: number;
+}
+
 export interface PadelState {
   useGoldenPoint: boolean;
   matchFormat: 3 | 5; 
@@ -20,9 +26,13 @@ export interface PadelState {
   server: Server;
   isTiebreak: boolean;
   matchWinner: TeamKey | null; 
-  matchWinnerDismissed: boolean; // <-- NEW: Tracks if we hid the victory screen to keep playing
+  matchWinnerDismissed: boolean;
+  
   team1: TeamState;
   team2: TeamState;
+
+  // --- NEW: Array to store the results of finished sets (e.g. [{team1: 6, team2: 4}, {team1: 3, team2: 6}]) ---
+  setScores: SetScore[];
 
   history: PadelStateSnapshot[];
 
@@ -60,6 +70,7 @@ const createInitialState = (): PadelState => ({
   matchWinnerDismissed: false,
   team1: createInitialTeamState('Team 1'),
   team2: createInitialTeamState('Team 2'),
+  setScores: [], // <-- Initialize empty set scores
   history: [],
   scorePoint: () => {},
   undo: () => {},
@@ -74,6 +85,9 @@ const cloneSnapshot = (state: PadelState): PadelStateSnapshot => {
   return JSON.parse(JSON.stringify(rest)) as PadelStateSnapshot;
 };
 
+// ==========================================
+// SCORING LOGIC UPDATED WITH SET HISTORY
+// ==========================================
 const applyGameWin = (state: PadelState, winner: TeamKey): void => {
   const loser = getOppositeTeam(winner);
 
@@ -103,19 +117,24 @@ const applyGameWin = (state: PadelState, winner: TeamKey): void => {
   }
 
   if (state.isTiebreak) {
+    // Tiebreak is over
     winnerTeam.sets += 1;
     wonSet = true;
   }
 
   if (wonSet) {
+    // --- NEW: Save the exact game score of this set before wiping it ---
+    state.setScores.push({
+      team1: state.team1.games,
+      team2: state.team2.games
+    });
+
     state.isTiebreak = false;
     state.team1.games = 0;
     state.team2.games = 0;
     state.team1.points = '0';
     state.team2.points = '0';
 
-    // Only set a match winner if one hasn't been set yet!
-    // This prevents the screen from popping up again during "friendly" extra sets.
     if (!state.matchWinner) {
       const setsNeeded = state.matchFormat === 3 ? 2 : 3;
       if (winnerTeam.sets >= setsNeeded) {
@@ -208,8 +227,6 @@ export const useMatchStore = create<PadelState>((set, get) => {
     scorePoint: (team: TeamKey) => {
       const currentState = get();
 
-      // NEW LOGIC: If the victory screen is showing, the FIRST button click 
-      // just dismisses it. It doesn't score a point, and it doesn't save to history.
       if (currentState.matchWinner && !currentState.matchWinnerDismissed) {
         set({ matchWinnerDismissed: true });
         return; 
