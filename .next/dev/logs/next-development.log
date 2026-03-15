@@ -1,0 +1,1513 @@
+[00:00:00.752] Server  LOG     ✓ Ready in 498ms
+[00:00:01.960] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:01.985] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:08.969] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:06:13.658] Server  WARN    ⚠ Fast Refresh had to perform a full reload when ./app/page.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[00:06:13.659] Server  WARN    ⚠ Fast Refresh had to perform a full reload when ./app/page.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[00:06:13.742] Server  LOG     ✓ Compiled in 42ms
+[00:06:13.894] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:06:13.957] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:06:21.068] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:08:16.725] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.727] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.728] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.731] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.735] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.736] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.738] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.739] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.740] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.741] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.742] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.742] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.744] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.744] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.745] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.746] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.747] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.748] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.748] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.749] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.750] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.751] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.752] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.752] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.753] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.754] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.755] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.756] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.757] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.758] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.758] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.759] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.760] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.761] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.761] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.763] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.763] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.764] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.765] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.765] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.766] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.767] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.768] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.769] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.770] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.771] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.772] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.773] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.774] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.775] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.776] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.778] Server  ERROR   ⨯ ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:08:16.781] Server  LOG     ✓ Compiled in 32ms
+[00:08:16.893] Browser ERROR   ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:08:17.338] Browser ERROR   ./app/page.tsx:3:1
+Module not found: Can't resolve '@/store/useScoreStore'
+  1 | "use client";
+  2 |
+> 3 | import { useScoreStore } from "@/store/useScoreStore";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | // A quick helper to translate our numeric points (0,1,2,3,4) into tennis/padel terms
+  6 | const translatePoints = (points: number) => {
+
+Import map: aliased to relative './store/useScoreStore' inside of [project]/
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:08:22.862] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:08:22.881] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:08:26.358] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:18:12.480] Server  LOG     ✓ Compiled in 38ms
+[00:18:17.080] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:20:52.058] Server  LOG     ✓ Compiled in 35ms
+[00:20:55.801] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:24:33.339] Server  LOG     ✓ Compiled in 30ms
+[00:24:33.443] Browser ERROR   ./app/page.tsx:110:32
+Parsing ecmascript source code failed
+  108 |           {/* Middle & Bottom Layout */}
+  109 |           <div className="flex-1 flex items-end justify-between w-full pb-2 md:pb-4 relative z-10">
+> 110 |             {/* Sets (Left) */}
+      |                                ^
+
+Expected '</', got '<eof>'
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+[00:24:33.451] Browser ERROR   ./app/page.tsx:110:32
+Parsing ecmascript source code failed
+  108 |           {/* Middle & Bottom Layout */}
+  109 |           <div className="flex-1 flex items-end justify-between w-full pb-2 md:pb-4 relative z-10">
+> 110 |             {/* Sets (Left) */}
+      |                                ^
+
+Expected '</', got '<eof>'
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+[00:29:01.836] Server  LOG     ✓ Compiled in 26ms
+[00:29:01.944] Browser ERROR   ./app/page.tsx:55:117
+Parsing ecmascript source code failed
+  53 |               type="button"
+  54 |               onClick={toggleGoldenPoint}
+> 55 |               className={`relative inline-flex h-10 w-20 md:h-12 md:w-24 items-center rounded-full transition-colors
+     |                                                                                                                     ^
+
+Expected '</', got '<eof>'
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+[00:29:01.944] Browser ERROR   ./app/page.tsx:55:117
+Parsing ecmascript source code failed
+  53 |               type="button"
+  54 |               onClick={toggleGoldenPoint}
+> 55 |               className={`relative inline-flex h-10 w-20 md:h-12 md:w-24 items-center rounded-full transition-colors
+     |                                                                                                                     ^
+
+Expected '</', got '<eof>'
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+[00:29:41.395] Browser ERROR   ./app/page.tsx:69:8
+Parsing ecmascript source code failed
+  67 |       )}
+  68 |
+> 69 |       {
+     |        ^
+
+Expected '</', got '<eof>'
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+[00:29:41.395] Browser ERROR   ./app/page.tsx:69:8
+Parsing ecmascript source code failed
+  67 |       )}
+  68 |
+> 69 |       {
+     |        ^
+
+Expected '</', got '<eof>'
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+[00:32:16.400] Server  LOG     ✓ Compiled in 29ms
+[00:32:16.503] Browser ERROR   ./app/page.tsx:1:7
+Parsing ecmascript source code failed
+> 1 | Ah, I see exactly what is happening! Because we previously had the word "Points" above the numbers, I had added some hardcoded padding (pt-20) to push the 15 down so they wouldn't overlap.
+    |       ^^^
+  2 |
+  3 | Now that the word "Points" is gone, that padding is just aggressively shoving the numbers into the floor and cutting them off!
+  4 |
+
+Expected ';', '}' or <eof>
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+[00:32:16.503] Browser ERROR   ./app/page.tsx:1:7
+Parsing ecmascript source code failed
+> 1 | Ah, I see exactly what is happening! Because we previously had the word "Points" above the numbers, I had added some hardcoded padding (pt-20) to push the 15 down so they wouldn't overlap.
+    |       ^^^
+  2 |
+  3 | Now that the word "Points" is gone, that padding is just aggressively shoving the numbers into the floor and cutting them off!
+  4 |
+
+Expected ';', '}' or <eof>
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+[00:32:25.447] Server  LOG     
+[00:32:25.447] Server  LOG     Could not open page.tsx in the editor.
+[00:32:25.447] Server  LOG     
+[00:32:25.448] Server  LOG     When running on Windows, file names are checked against an access list to protect against remote code execution attacks. File names may consist only of alphanumeric characters (all languages), periods, dashes, slashes, and underscores.
+[00:32:25.448] Server  LOG     
+[00:39:07.021] Server  LOG     ✓ Compiled in 6ms
+[00:39:48.812] Server  LOG     ✓ Compiled in 49ms
+[00:41:58.606] Server  LOG     ✓ Compiled in 6ms
+[00:48:57.837] Server  LOG     ✓ Compiled in 8ms
+[00:49:25.295] Server  LOG     ✓ Compiled in 43ms
