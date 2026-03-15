@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useMatchStore } from "../store/useMatchStore";
-import { Undo2, Settings, CircleDot, Trophy, RotateCcw, Maximize, List } from "lucide-react";
+// Added 'Smartphone' to the imports for the rotate icon
+import { Undo2, Settings, CircleDot, Trophy, RotateCcw, Maximize, List, Smartphone } from "lucide-react";
 
 export default function HomePage() {
   const {
@@ -113,6 +114,17 @@ export default function HomePage() {
   return (
     <main className="h-screen w-full flex flex-col bg-black text-white select-none overflow-hidden p-1 font-sans">
       
+      {/* --- NEW: PORTRAIT MODE WARNING OVERLAY --- */}
+      {/* This ONLY shows when the device is held vertically, completely covering the screen */}
+      <div className="hidden portrait:flex fixed inset-0 z-[200] bg-black items-center justify-center flex-col gap-8 p-10 text-center">
+        <div className="relative flex items-center justify-center w-32 h-32">
+          <Smartphone size={80} className="text-emerald-500 animate-pulse absolute" />
+          <RotateCcw size={40} className="text-white absolute -bottom-2 -right-2 bg-black rounded-full p-1" />
+        </div>
+        <h2 className="text-5xl font-black uppercase tracking-widest text-white italic mt-4">Rotate Device</h2>
+        <p className="text-2xl text-slate-400 font-bold uppercase tracking-wide">Please turn your phone sideways to use the scoreboard.</p>
+      </div>
+
       {/* --- VICTORY OVERLAY --- */}
       {matchWinner && !matchWinnerDismissed && (
         <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl animate-in fade-in duration-500" onClick={handleReset}>
@@ -155,14 +167,12 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* --- SETTINGS OVERLAY (SCROLL FIX APPLIED HERE) --- */}
+      {/* --- SETTINGS OVERLAY --- */}
       {settingsOpen && (
         <div className="absolute inset-0 z-50 bg-black/95 flex items-center justify-center p-4" onClick={() => setSettingsOpen(false)}>
-          {/* Changed: max-h-[90vh], overflow-y-auto, p-8, gap-4 to fit better on landscape screens */}
           <div className="bg-slate-900 border-4 border-slate-700 p-8 rounded-[3rem] w-full max-w-xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
              <h2 className="text-2xl font-black uppercase text-center text-slate-500 tracking-widest">Match Settings</h2>
              
-             {/* TEAM NAME INPUTS */}
              <div className="grid grid-cols-2 gap-4">
                <input value={team1Name} onChange={e => setTeam1Name(e.target.value)} placeholder="TEAM 1" className="bg-slate-800 border-4 border-slate-700 rounded-3xl p-5 text-white text-2xl font-black uppercase text-center focus:border-indigo-500 outline-none transition-colors" maxLength={15} />
                <input value={team2Name} onChange={e => setTeam2Name(e.target.value)} placeholder="TEAM 2" className="bg-slate-800 border-4 border-slate-700 rounded-3xl p-5 text-white text-2xl font-black uppercase text-center focus:border-indigo-500 outline-none transition-colors" maxLength={15} />
