@@ -1,3 +1,4 @@
 {
+  "/api/flic/route": "app/api/flic/route.js",
   "/page": "app/page.js"
 }

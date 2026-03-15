@@ -1,86 +1,80 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMatchStore } from "../store/useMatchStore";
 import { Undo2, Settings, CircleDot, ArrowRightLeft, Trophy, RotateCcw } from "lucide-react";
 
-const TAP_LOCK_MS = 250;
-
 export default function HomePage() {
   const {
-    team1,
-    team2,
-    server,
-    isTiebreak,
-    useGoldenPoint,
-    matchFormat,
-    matchWinner,
-    matchWinnerDismissed, // <-- Grab the new flag
-    scorePoint,
-    undo,
-    toggleGoldenPoint,
-    toggleServer,
-    setMatchFormat,
-    resetMatch,
+    team1, team2, server, isTiebreak, useGoldenPoint, matchFormat,
+    matchWinner, matchWinnerDismissed, scorePoint, undo,
+    toggleGoldenPoint, toggleServer, setMatchFormat, resetMatch,
   } = useMatchStore();
 
-  const [tapLocked, setTapLocked] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [lastProcessedId, setLastProcessedId] = useState(0);
+  
+  const winSoundRef = useRef<HTMLAudioElement | null>(null);
 
-  const handleScore = (team: "team1" | "team2") => {
-    if (tapLocked) return;
-    setTapLocked(true);
-    // Notice we no longer block clicks if there is a matchWinner.
-    // The store will handle dismissing the screen on the first click!
-    scorePoint(team);
-    window.setTimeout(() => setTapLocked(false), TAP_LOCK_MS);
-  };
+  // --- SCREEN WAKE LOCK ---
+  useEffect(() => {
+    let wakeLock: any = null;
+    const requestWakeLock = async () => {
+      try { if ('wakeLock' in navigator) wakeLock = await (navigator as any).wakeLock.request('screen'); } catch (e) {}
+    };
+    requestWakeLock();
+    return () => { if (wakeLock) wakeLock.release(); };
+  }, []);
 
-  const formatPoints = (points: string | number) => {
-    if (typeof points === "number") return points.toString();
-    return points;
-  };
+  // --- SOUND EFFECT LOGIC ---
+  useEffect(() => {
+    winSoundRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3");
+  }, []);
+
+  useEffect(() => {
+    if (matchWinner && !matchWinnerDismissed && winSoundRef.current) {
+      winSoundRef.current.play().catch(e => console.log("Audio play blocked by browser"));
+    }
+  }, [matchWinner, matchWinnerDismissed]);
+
+  // --- FLIC POLL LOGIC ---
+  useEffect(() => {
+    const pollFlic = async () => {
+      try {
+        const res = await fetch('/api/flic');
+        const data = await res.json();
+        if (data.id > lastProcessedId) {
+          setLastProcessedId(data.id);
+          if (data.type === 'team1') scorePoint('team1');
+          if (data.type === 'team2') scorePoint('team2');
+          if (data.type === 'undo') undo();
+        }
+      } catch (e) {}
+    };
+    const interval = setInterval(pollFlic, 500);
+    return () => clearInterval(interval);
+  }, [lastProcessedId, scorePoint, undo]);
+
+  const formatPoints = (p: string | number) => typeof p === "number" ? p.toString() : p;
 
   return (
-    <main className="relative h-screen w-full flex flex-col bg-slate-950 text-slate-50 select-none overflow-hidden p-3 md:p-5 gap-3 md:gap-4">
+    <main className="h-screen w-full flex flex-col bg-slate-950 text-slate-50 select-none overflow-hidden p-2 md:p-4 gap-2 font-sans">
       
-      {/* --- VICTORY OVERLAY (FIREWORKS) --- */}
-      {/* Only show if there is a winner AND we haven't dismissed it yet */}
+      {/* VICTORY OVERLAY */}
       {matchWinner && !matchWinnerDismissed && (
-        <div 
-          className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-500"
-          // Clicking anywhere on the background also dismisses it, just like a Flic click!
-          onClick={() => scorePoint("team1")} 
-        >
-          <div 
-            className="relative flex flex-col items-center justify-center bg-slate-900 border-4 border-amber-400 p-8 md:p-16 rounded-[3rem] shadow-[0_0_100px_rgba(251,191,36,0.5)] transform transition-all scale-100 animate-in zoom-in-90 duration-500"
-            onClick={(e) => e.stopPropagation()} // Stop background clicks from firing if you click the box
-          >
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/95 backdrop-blur-xl animate-in fade-in duration-500" onClick={() => scorePoint("team1")}>
+          <div className="relative flex flex-col items-center justify-center bg-slate-900 border-4 border-amber-400 p-10 rounded-[4rem] text-center shadow-[0_0_100px_rgba(251,191,36,0.2)]" onClick={(e) => e.stopPropagation()}>
             <span className="absolute -top-10 -left-10 text-6xl animate-bounce">🎇</span>
             <span className="absolute -top-10 -right-10 text-6xl animate-bounce delay-100">🎆</span>
             <span className="absolute -bottom-10 -left-10 text-6xl animate-pulse">🎊</span>
             <span className="absolute -bottom-10 -right-10 text-6xl animate-pulse delay-200">🎉</span>
-            
-            <Trophy className="h-20 w-20 md:h-32 md:w-32 text-amber-400 mb-6 animate-pulse" />
-            
-            <h2 className="text-5xl md:text-8xl font-black text-white tracking-tight uppercase mb-2">
-              {matchWinner === 'team1' ? 'Team 1' : 'Team 2'}
+            <Trophy className="h-20 w-20 text-amber-400 mb-6 animate-pulse" />
+            <h2 className="text-6xl md:text-8xl font-black mb-2 text-white italic tracking-tighter">
+              {matchWinner === 'team1' ? 'TEAM 1' : 'TEAM 2'}
             </h2>
-            <h3 className="text-3xl md:text-5xl font-bold text-amber-400 uppercase tracking-[0.2em] mb-12">
-              Wins the Match!
-            </h3>
-            
-            <p className="text-slate-400 text-sm md:text-xl uppercase tracking-widest mb-6 text-center">
-              Tap any score button to continue playing
-            </p>
-
-            <button
-              type="button"
-              onClick={resetMatch}
-              className="inline-flex items-center gap-3 bg-amber-500 text-slate-950 px-8 py-4 md:px-12 md:py-6 rounded-full text-2xl md:text-4xl font-black uppercase tracking-wider shadow-lg active:scale-95 transition-transform hover:bg-amber-400"
-            >
-              <RotateCcw className="h-8 w-8 md:h-10 md:w-10" />
-              Reset & Play Again
+            <h3 className="text-3xl md:text-5xl font-black text-amber-400 uppercase italic mb-10 tracking-widest">VICTORY</h3>
+            <button onClick={resetMatch} className="bg-amber-500 text-slate-950 px-10 py-5 rounded-full text-2xl font-black uppercase shadow-lg active:scale-95 transition-transform">
+              <RotateCcw className="inline mr-3 w-8 h-8" /> PLAY AGAIN
             </button>
           </div>
         </div>
@@ -88,236 +82,75 @@ export default function HomePage() {
 
       {/* Settings Panel */}
       {settingsOpen && (
-        <section className="px-2 z-40">
-          <div className="flex flex-col gap-4 md:gap-6 rounded-3xl bg-slate-900/95 px-6 py-5 md:py-6 border border-slate-700 shadow-xl backdrop-blur-md">
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm md:text-lg font-semibold uppercase tracking-wide text-slate-400">
-                  Match Length
-                </p>
-                <p className="text-base md:text-xl font-medium mt-1 text-slate-200">
-                  Total sets to play
-                </p>
-              </div>
-              <div className="flex bg-slate-800 p-1.5 rounded-full border border-slate-700 gap-1">
-                <button
-                  onClick={() => setMatchFormat(3)}
-                  className={`px-4 md:px-6 py-2 rounded-full text-sm md:text-xl font-bold transition-colors ${
-                    matchFormat === 3 ? "bg-indigo-500 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"
-                  }`}
-                >
-                  Best of 3
-                </button>
-                <button
-                  onClick={() => setMatchFormat(5)}
-                  className={`px-4 md:px-6 py-2 rounded-full text-sm md:text-xl font-bold transition-colors ${
-                    matchFormat === 5 ? "bg-indigo-500 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"
-                  }`}
-                >
-                  Best of 5
-                </button>
+        <section className="absolute top-16 left-4 right-4 z-40 bg-slate-900 p-6 rounded-3xl border border-slate-700 shadow-2xl">
+          <div className="flex flex-col gap-6">
+            <div className="flex justify-between items-center">
+              <span className="font-bold text-slate-400">SETS</span>
+              <div className="flex bg-slate-800 rounded-full p-1">
+                {[3, 5].map(n => (
+                  <button key={n} onClick={() => setMatchFormat(n as 3|5)} className={`px-4 py-2 rounded-full font-bold ${matchFormat === n ? 'bg-indigo-500 text-white' : 'text-slate-500'}`}>Best of {n}</button>
+                ))}
               </div>
             </div>
-
-            <div className="h-px w-full bg-slate-800" />
-
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm md:text-lg font-semibold uppercase tracking-wide text-slate-400">
-                  Scoring Mode
-                </p>
-                <p className="text-base md:text-xl font-medium mt-1 text-slate-200">
-                  {useGoldenPoint ? "Punto de Oro (Golden Point)" : "Traditional Advantage"}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={toggleGoldenPoint}
-                className={`relative inline-flex h-10 w-20 md:h-12 md:w-24 items-center rounded-full transition-colors ${
-                  useGoldenPoint ? "bg-emerald-500" : "bg-slate-700"
-                }`}
-              >
-                <span
-                  className={`inline-block h-8 w-8 md:h-10 md:w-10 transform rounded-full bg-white shadow-md transition-transform ${
-                    useGoldenPoint ? "translate-x-11 md:translate-x-13" : "translate-x-1"
-                  }`}
-                />
-              </button>
+            <div className="flex justify-between items-center">
+              <span className="font-bold text-slate-400">GOLDEN POINT</span>
+              <button onClick={toggleGoldenPoint} className={`px-4 py-2 rounded-full font-bold border-2 ${useGoldenPoint ? 'border-emerald-500 text-emerald-400' : 'border-slate-700 text-slate-500'}`}>{useGoldenPoint ? 'On' : 'Off'}</button>
             </div>
-
-            <div className="h-px w-full bg-slate-800" />
-
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm md:text-lg font-semibold uppercase tracking-wide text-slate-400">
-                  Current Server
-                </p>
-                <p className="text-base md:text-xl font-medium mt-1 text-slate-200">
-                  Manually swap who is serving
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={toggleServer}
-                className="inline-flex items-center gap-2 rounded-full bg-slate-800 border-2 border-slate-600 px-5 py-2 md:px-6 md:py-3 text-sm md:text-xl font-bold text-slate-200 active:scale-95 transition-transform"
-              >
-                <ArrowRightLeft className="h-4 w-4 md:h-6 md:w-6" />
-                Swap
-              </button>
+            <div className="flex justify-between items-center">
+              <span className="font-bold text-slate-400">SERVER</span>
+              <button onClick={toggleServer} className="bg-slate-800 px-6 py-2 rounded-full font-bold border border-slate-600 active:bg-slate-700">Swap Server</button>
             </div>
-
           </div>
         </section>
       )}
 
-      {/* Main Scoreboard Area */}
-      <section className="flex-1 flex flex-col gap-4 min-h-0">
-        <button
-          type="button"
-          onClick={() => handleScore("team1")}
-          className={`group flex-1 rounded-[2.5rem] border-4 flex flex-col px-6 md:px-10 py-4 md:py-6 active:scale-[0.98] transition-transform relative overflow-hidden ${
-            server === "team1"
-              ? "border-emerald-400 bg-emerald-500/15 shadow-[0_0_60px_rgba(16,185,129,0.3)]"
-              : "border-slate-800 bg-slate-900/60"
-          }`}
-        >
-          <div className="flex items-center justify-between w-full h-8 md:h-12 z-20">
-            <span className="text-xl md:text-4xl uppercase tracking-[0.2em] font-bold text-slate-400">
-              Team 1
-            </span>
-            {server === "team1" && (
-              <span className="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 px-4 py-1.5 md:py-2 text-sm md:text-2xl font-bold uppercase tracking-wider text-emerald-300 border-2 border-emerald-400/50">
-                <CircleDot className="h-4 w-4 md:h-6 md:w-6" />
-                Serving
-              </span>
-            )}
-          </div>
-
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10">
-            <span className="text-[9rem] md:text-[16rem] lg:text-[20rem] font-black leading-none tabular-nums tracking-tighter text-white drop-shadow-lg scale-x-[1.2] md:scale-x-[1.3] scale-y-[1.1] origin-center">
-              {formatPoints(team1.points)}
-            </span>
-          </div>
-
-          <div className="flex-1 flex items-end justify-between w-full pb-2 md:pb-4 relative z-20">
-            <div className="flex flex-col items-start w-[25%]">
-              <span className="text-sm md:text-2xl text-slate-400 uppercase tracking-[0.2em] font-semibold">
-                Sets
-              </span>
-              <span className="text-7xl md:text-[8rem] lg:text-[9rem] font-bold leading-none tabular-nums text-slate-300">
-                {team1.sets}
-              </span>
-            </div>
+      {/* Teams Section - Utilising extra space */}
+      <section className="flex-[12] flex flex-col gap-2 min-h-0">
+        {[ { id: "team1", data: team1, color: "emerald", label: "TEAM 1" }, { id: "team2", data: team2, color: "cyan", label: "TEAM 2" } ].map((t) => (
+          <button key={t.id} onClick={() => scorePoint(t.id as any)} className={`flex-1 rounded-[2.5rem] border-4 flex flex-col px-8 py-2 relative overflow-hidden transition-all ${server === t.id ? `border-${t.color}-400 bg-${t.color}-500/10 shadow-[0_0_30px_rgba(0,0,0,0.5)]` : "border-slate-800/50 bg-slate-900/40"}`}>
             
-            <div className="flex flex-col items-end w-[25%]">
-              <span className="text-sm md:text-2xl uppercase tracking-[0.2em] text-slate-400 font-semibold">
-                Games
-              </span>
-              <span className="text-7xl md:text-[8rem] lg:text-[9rem] font-bold leading-none tabular-nums text-slate-300">
-                {team1.games}
-              </span>
+            <div className="flex justify-between w-full h-8 z-20">
+              <span className={`text-xl font-black italic tracking-tighter ${server === t.id ? `text-${t.color}-400` : "text-slate-600"}`}>{t.label}</span>
+              {server === t.id && <span className={`bg-${t.color}-500/20 px-4 py-0.5 rounded-full text-[10px] font-black border border-${t.color}-400/50 text-${t.color}-300 tracking-widest`}>SERVING</span>}
             </div>
-          </div>
-        </button>
 
-        <button
-          type="button"
-          onClick={() => handleScore("team2")}
-          className={`group flex-1 rounded-[2.5rem] border-4 flex flex-col px-6 md:px-10 py-4 md:py-6 active:scale-[0.98] transition-transform relative overflow-hidden ${
-            server === "team2"
-              ? "border-cyan-400 bg-cyan-500/15 shadow-[0_0_60px_rgba(34,211,238,0.3)]"
-              : "border-slate-800 bg-slate-900/60"
-          }`}
-        >
-          <div className="flex items-center justify-between w-full h-8 md:h-12 z-20">
-            <span className="text-xl md:text-4xl uppercase tracking-[0.2em] font-bold text-slate-400">
-              Team 2
-            </span>
-            {server === "team2" && (
-              <span className="inline-flex items-center gap-2 rounded-full bg-cyan-500/20 px-4 py-1.5 md:py-2 text-sm md:text-2xl font-bold uppercase tracking-wider text-cyan-300 border-2 border-cyan-400/50">
-                <CircleDot className="h-4 w-4 md:h-6 md:w-6" />
-                Serving
-              </span>
-            )}
-          </div>
-
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10">
-            <span className="text-[9rem] md:text-[16rem] lg:text-[20rem] font-black leading-none tabular-nums tracking-tighter text-white drop-shadow-lg scale-x-[1.2] md:scale-x-[1.3] scale-y-[1.1] origin-center">
-              {formatPoints(team2.points)}
-            </span>
-          </div>
-
-          <div className="flex-1 flex items-end justify-between w-full pb-2 md:pb-4 relative z-20">
-            <div className="flex flex-col items-start w-[25%]">
-              <span className="text-sm md:text-2xl text-slate-400 uppercase tracking-[0.2em] font-semibold">
-                Sets
-              </span>
-              <span className="text-7xl md:text-[8rem] lg:text-[9rem] font-bold leading-none tabular-nums text-slate-300">
-                {team2.sets}
-              </span>
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 translate-y-1">
+              <span className="text-[13rem] md:text-[17rem] font-black text-white leading-none italic">{formatPoints(t.data.points)}</span>
             </div>
-            
-            <div className="flex flex-col items-end w-[25%]">
-              <span className="text-sm md:text-2xl uppercase tracking-[0.2em] text-slate-400 font-semibold">
-                Games
-              </span>
-              <span className="text-7xl md:text-[8rem] lg:text-[9rem] font-bold leading-none tabular-nums text-slate-300">
-                {team2.games}
-              </span>
+
+            <div className="flex-1 flex items-end justify-between w-full pb-0 z-20">
+              <div className="flex flex-col items-start bg-slate-950/40 px-5 py-1 rounded-[20px] border border-slate-800/50 min-w-[130px] mt-1">
+                <span className="text-[10px] text-slate-500 font-black tracking-widest">SETS</span>
+                <span className="text-7xl md:text-8xl font-black text-slate-100 leading-none">{t.data.sets}</span>
+              </div>
+              <div className="flex flex-col items-end bg-slate-950/40 px-5 py-1 rounded-[20px] border border-slate-800/50 min-w-[130px] mt-1">
+                <span className="text-[10px] text-slate-500 font-black tracking-widest">GAMES</span>
+                <span className="text-7xl md:text-8xl font-black text-slate-100 leading-none">{t.data.games}</span>
+              </div>
             </div>
-          </div>
-        </button>
+
+          </button>
+        ))}
       </section>
 
-      {/* Bottom Control Bar */}
-      <footer className="relative flex items-center justify-between mt-1 md:mt-2 px-2 pb-1 md:pb-2">
+      {/* Compact Footer Controls - Reduced height to give space to scores */}
+      <footer className="flex-[1] grid grid-cols-3 items-center pt-1 border-t border-slate-800/30">
+        <div className="flex justify-start">
+          <button onClick={undo} className="bg-slate-900 border border-slate-700 px-4 py-2 rounded-xl font-black text-slate-300 active:scale-95 transition-transform uppercase tracking-wider text-xs flex items-center gap-2">
+            <Undo2 size={16} /> UNDO
+          </button>
+        </div>
         
-        <div className="flex z-10">
-          <button
-            type="button"
-            onClick={undo}
-            className="inline-flex items-center justify-center gap-2 md:gap-3 rounded-full bg-slate-900 text-slate-100 px-6 py-3 md:px-8 md:py-5 text-lg md:text-2xl font-bold border-2 border-slate-700 shadow-sm active:scale-95 disabled:opacity-50"
-            // You can't undo while the victory overlay is showing. Dismiss it first!
-            disabled={!!matchWinner && !matchWinnerDismissed}
-          >
-            <Undo2 className="h-5 w-5 md:h-8 md:w-8" />
-            Undo
-          </button>
+        <div className="text-center">
+          <div className={`inline-block px-3 py-0.5 rounded-full border text-[10px] font-black uppercase ${isTiebreak ? 'border-amber-500/50 text-amber-500' : 'border-slate-800 text-slate-600'}`}>
+            {isTiebreak ? 'Tiebreak' : 'Regular'}
+          </div>
         </div>
 
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
-          <span className="text-xs md:text-sm font-bold tracking-[0.2em] uppercase text-slate-500 mb-1">
-            Best of {matchFormat} Sets
-          </span>
-          <span
-            className={`pointer-events-auto inline-flex items-center gap-2 rounded-full px-5 md:px-8 py-2 md:py-3 border-2 md:border-4 text-sm md:text-2xl font-bold tracking-wide ${
-              isTiebreak
-                ? "border-amber-400/60 bg-amber-500/10 text-amber-300"
-                : "border-emerald-400/40 bg-emerald-500/10 text-emerald-200"
-            }`}
-          >
-            <CircleDot className="h-4 w-4 md:h-6 md:w-6" />
-            {isTiebreak ? "Tiebreak" : "Regular Games"}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-4 md:gap-8 z-10">
-          <button
-            type="button"
-            onClick={resetMatch}
-            className="text-lg md:text-2xl font-bold text-slate-400 underline underline-offset-4 active:text-slate-200"
-          >
-            Reset match
-          </button>
-          
-          <button
-            type="button"
-            onClick={() => setSettingsOpen((v) => !v)}
-            className="inline-flex items-center gap-2 rounded-full border-2 border-slate-700 bg-slate-900 px-5 py-3 md:px-8 md:py-5 text-lg md:text-2xl font-bold text-slate-100 shadow-sm active:scale-95"
-          >
-            <Settings className="h-5 w-5 md:h-8 md:w-8" />
-            Settings
+        <div className="flex justify-end items-center gap-3">
+          <button onClick={resetMatch} className="hidden md:block text-slate-600 font-bold text-[10px] uppercase hover:text-red-400">Reset</button>
+          <button onClick={() => setSettingsOpen(!settingsOpen)} className="p-2 bg-slate-900 border border-slate-700 rounded-xl active:bg-slate-800">
+            <Settings size={18} className="text-slate-400" />
           </button>
         </div>
       </footer>

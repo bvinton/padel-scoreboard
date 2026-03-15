@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 46, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/bvint/Desktop/Padel%20Scoreboard/app/api/flic/route.ts"],"sourcesContent":["import { NextResponse } from 'next/server';\r\n\r\n// We use a global variable to store the latest action\r\n// In a real app we'd use a database, but for a live scoreboard, this is faster!\r\nlet lastAction = { id: 0, type: '' };\r\n\r\nexport async function GET(request: Request) {\r\n  const { searchParams } = new URL(request.url);\r\n  const action = searchParams.get('action');\r\n\r\n  if (action) {\r\n    lastAction = { id: Date.now(), type: action };\r\n    return NextResponse.json({ success: true, action });\r\n  }\r\n\r\n  // If no action is provided, we just return the latest one\r\n  return NextResponse.json(lastAction);\r\n}"],"names":[],"mappings":";;;;AAAA;;AAEA,sDAAsD;AACtD,gFAAgF;AAChF,IAAI,aAAa;IAAE,IAAI;IAAG,MAAM;AAAG;AAE5B,eAAe,IAAI,OAAgB;IACxC,MAAM,EAAE,YAAY,EAAE,GAAG,IAAI,IAAI,QAAQ,GAAG;IAC5C,MAAM,SAAS,aAAa,GAAG,CAAC;IAEhC,IAAI,QAAQ;QACV,aAAa;YAAE,IAAI,KAAK,GAAG;YAAI,MAAM;QAAO;QAC5C,OAAO,gJAAY,CAAC,IAAI,CAAC;YAAE,SAAS;YAAM;QAAO;IACnD;IAEA,0DAA0D;IAC1D,OAAO,gJAAY,CAAC,IAAI,CAAC;AAC3B"}}]
+}
