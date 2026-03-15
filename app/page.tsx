@@ -41,8 +41,8 @@ export default function HomePage() {
       {settingsOpen && (
         <div className="absolute inset-0 z-50 bg-black/95 flex items-center justify-center p-4" onClick={() => setSettingsOpen(false)}>
           <div className="bg-slate-900 border-4 border-slate-700 p-10 rounded-[3rem] w-full max-w-xl flex flex-col gap-6" onClick={e => e.stopPropagation()}>
-             <button onClick={toggleGoldenPoint} className="py-6 rounded-3xl bg-slate-800 border-4 border-emerald-500 text-3xl font-black uppercase">Golden Point: {useGoldenPoint ? 'ON' : 'OFF'}</button>
-             <button onClick={toggleServer} className="py-6 rounded-3xl bg-slate-800 border-4 border-slate-600 text-3xl font-black uppercase">Swap Server</button>
+             <button onClick={toggleGoldenPoint} className="py-6 rounded-3xl bg-slate-800 border-4 border-emerald-500 text-3xl font-black uppercase tracking-tighter">Golden Point: {useGoldenPoint ? 'ON' : 'OFF'}</button>
+             <button onClick={toggleServer} className="py-6 rounded-3xl bg-slate-800 border-4 border-slate-600 text-3xl font-black uppercase tracking-tighter">Swap Server</button>
              <button onClick={() => setSettingsOpen(false)} className="py-6 bg-white text-black text-3xl font-black rounded-3xl uppercase">Close</button>
           </div>
         </div>
@@ -60,44 +60,46 @@ export default function HomePage() {
           >
             {/* Label Overlay (Top Left) */}
             <div className="absolute top-2 left-6 z-20">
-              <span className="text-2xl font-black italic opacity-40 uppercase">{t.label}</span>
+              <span className="text-2xl font-black italic opacity-30 uppercase tracking-tighter">{t.label}</span>
             </div>
 
-            {/* Serving Overlay (Top Right) */}
+            {/* Serving Indicator (Top Right) */}
             {server === t.id && (
               <div className="absolute top-2 right-6 z-20">
                 <span className="bg-emerald-500 text-black px-4 py-1 rounded-full font-black text-sm animate-pulse uppercase">SERVING</span>
               </div>
             )}
 
-            {/* 1. SETS (Far Left) */}
-            <div className="w-[20%] h-full flex flex-col items-center justify-center border-r-2 border-slate-800/50 bg-black/40">
+            {/* 1. SETS (Increased to 22% Width) */}
+            <div className="w-[22%] h-full flex flex-col items-center justify-center border-r-2 border-slate-800/50 bg-black/40">
               <span className="text-xl font-black text-slate-600 uppercase tracking-widest">Sets</span>
-              <span className="text-[20vh] font-black leading-none">{t.data.sets}</span>
+              {/* Increased from 20vh to 23vh */}
+              <span className="text-[23vh] font-black leading-none">{t.data.sets}</span>
             </div>
 
-            {/* 2. MAIN SCORE (Center - Stretched) */}
+            {/* 2. MAIN SCORE (Center - Max Scale) */}
             <div className="flex-1 h-full flex items-center justify-center overflow-hidden">
-              <span className="text-[40vh] font-black leading-none italic scale-x-[1.6] transform-gpu drop-shadow-[0_20px_30px_rgba(0,0,0,1)]">
+              <span className="text-[40vh] font-black leading-none italic scale-x-[1.6] transform-gpu drop-shadow-[0_20px_40px_rgba(0,0,0,1)]">
                 {formatPoints(t.data.points)}
               </span>
             </div>
 
-            {/* 3. GAMES (Far Right) */}
-            <div className="w-[20%] h-full flex flex-col items-center justify-center border-l-2 border-slate-800/50 bg-black/40">
+            {/* 3. GAMES (Increased to 22% Width) */}
+            <div className="w-[22%] h-full flex flex-col items-center justify-center border-l-2 border-slate-800/50 bg-black/40">
               <span className="text-xl font-black text-slate-600 uppercase tracking-widest">Games</span>
-              <span className="text-[20vh] font-black leading-none">{t.data.games}</span>
+              {/* Increased from 20vh to 23vh */}
+              <span className="text-[23vh] font-black leading-none">{t.data.games}</span>
             </div>
           </button>
         ))}
       </section>
 
-      {/* Footer (Minimal) */}
+      {/* Footer */}
       <footer className="h-[8%] flex items-center justify-between px-10 border-t border-slate-900">
-        <button onClick={undo} className="text-2xl font-black text-slate-600 hover:text-white uppercase">Undo</button>
+        <button onClick={undo} className="text-2xl font-black text-slate-600 hover:text-white uppercase tracking-tighter">Undo</button>
         <div className="text-xl font-black text-slate-800 uppercase tracking-[1em]">{isTiebreak ? 'Tiebreak' : 'Regular'}</div>
         <div className="flex items-center gap-10">
-          <button onClick={resetMatch} className="text-2xl font-black text-red-900 hover:text-red-500 uppercase">Reset</button>
+          <button onClick={resetMatch} className="text-2xl font-black text-red-900 hover:text-red-500 uppercase tracking-tighter">Reset</button>
           <button onClick={() => setSettingsOpen(true)} className="p-2 text-slate-600"><Settings size={32} /></button>
         </div>
       </footer>
