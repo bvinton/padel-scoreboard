@@ -14,11 +14,19 @@ export default function HomePage() {
   const [lastProcessedId, setLastProcessedId] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  
+  const [localDismissed, setLocalDismissed] = useState(false);
 
   const [team1Name, setTeam1Name] = useState("TEAM 1");
   const [team2Name, setTeam2Name] = useState("TEAM 2");
 
   const [historyLog, setHistoryLog] = useState<{id: number, time: string, msg: string}[]>([]);
+
+  useEffect(() => {
+    if (!matchWinner) {
+      setLocalDismissed(false);
+    }
+  }, [matchWinner]);
 
   const addLog = (msg: string) => {
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -38,6 +46,7 @@ export default function HomePage() {
   const handleReset = () => {
     addLog("Match Reset");
     setHistoryLog([]);
+    setLocalDismissed(false);
     resetMatch();
   };
 
@@ -118,8 +127,8 @@ export default function HomePage() {
       </div>
 
       {/* VICTORY OVERLAY */}
-      {matchWinner && !matchWinnerDismissed && (
-        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl animate-in fade-in duration-500" onClick={handleReset}>
+      {matchWinner && !matchWinnerDismissed && !localDismissed && (
+        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl animate-in fade-in duration-500" onClick={() => setLocalDismissed(true)}>
           <div className="relative flex flex-col items-center bg-slate-900 border-4 md:border-8 border-amber-400 p-8 md:p-16 rounded-3xl md:rounded-[4rem] text-center shadow-[0_0_100px_rgba(251,191,36,0.4)]" onClick={e => e.stopPropagation()}>
             <span className="absolute -top-8 md:-top-16 -left-8 md:-left-16 text-5xl md:text-8xl animate-bounce">🎇</span>
             <span className="absolute -top-8 md:-top-16 -right-8 md:-right-16 text-5xl md:text-8xl animate-bounce delay-150">🎆</span>
@@ -196,35 +205,33 @@ export default function HomePage() {
               server === t.id ? "border-emerald-500 bg-emerald-500/10" : "border-slate-800 bg-slate-900/20"
             }`}
           >
-            {/* Team Label */}
+            {/* Team Label - Brightened up opacity for better readability */}
             <div className="absolute top-1 md:top-2 left-3 md:left-6 z-20">
-              <span className="text-xs md:text-2xl font-black italic opacity-30 uppercase tracking-tighter">{t.label}</span>
+              <span className="text-xs md:text-2xl font-black italic text-slate-400 opacity-60 uppercase tracking-tighter">{t.label}</span>
             </div>
 
             {/* Serving Badge */}
             {server === t.id && (
               <div className="absolute top-1 md:top-2 right-3 md:right-6 z-20">
-                <span className="bg-emerald-500 text-black px-2 md:px-4 py-0.5 md:py-1 rounded-full font-black text-[10px] md:text-sm animate-pulse uppercase">SERVING</span>
+                <span className="bg-emerald-500 text-black px-2 md:px-4 py-0.5 md:py-1 rounded-full font-black text-[10px] md:text-sm animate-pulse uppercase shadow-[0_0_15px_rgba(16,185,129,0.5)]">SERVING</span>
               </div>
             )}
 
-            {/* Sets Box - RESTORED to exactly 23vh */}
             <div className="w-[22%] h-full flex flex-col items-center justify-center border-r-2 border-slate-800/50 bg-black/40">
-              <span className="text-[10px] md:text-xl font-black text-slate-600 uppercase tracking-widest">Sets</span>
-              <span className="text-[23vh] font-black leading-none">{t.data.sets}</span>
+              <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase tracking-widest">Sets</span>
+              <span className="text-[23vh] font-black leading-none drop-shadow-[0_0_15px_rgba(255,255,255,0.15)]">{t.data.sets}</span>
             </div>
 
-            {/* Score Box - RESTORED to exactly 40vh */}
             <div className="flex-1 h-full flex items-center justify-center overflow-hidden">
-              <span className="text-[40vh] font-black leading-none italic scale-x-[1.6] transform-gpu drop-shadow-[0_20px_40px_rgba(0,0,0,1)]">
+              {/* THE LED GLOW: Custom double-layered text-shadow instead of muddy drop-shadow */}
+              <span className="text-[40vh] font-black leading-none italic scale-x-[1.6] transform-gpu [text-shadow:_0_0_40px_rgb(255_255_255_/_30%),_0_0_10px_rgb(255_255_255_/_60%)]">
                 {formatPoints(t.data.points)}
               </span>
             </div>
 
-            {/* Games Box - RESTORED to exactly 23vh */}
             <div className="w-[22%] h-full flex flex-col items-center justify-center border-l-2 border-slate-800/50 bg-black/40">
-              <span className="text-[10px] md:text-xl font-black text-slate-600 uppercase tracking-widest">Games</span>
-              <span className="text-[23vh] font-black leading-none">{t.data.games}</span>
+              <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase tracking-widest">Games</span>
+              <span className="text-[23vh] font-black leading-none drop-shadow-[0_0_15px_rgba(255,255,255,0.15)]">{t.data.games}</span>
             </div>
           </button>
         ))}
