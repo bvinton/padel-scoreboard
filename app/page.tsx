@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useMatchStore } from "../store/useMatchStore";
-// Imported the 'List' icon for the History Log
 import { Undo2, Settings, CircleDot, Trophy, RotateCcw, Maximize, List } from "lucide-react";
 
 export default function HomePage() {
@@ -16,16 +15,16 @@ export default function HomePage() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
 
-  // --- NEW: CUSTOM TEAM NAMES ---
+  // --- CUSTOM TEAM NAMES ---
   const [team1Name, setTeam1Name] = useState("TEAM 1");
   const [team2Name, setTeam2Name] = useState("TEAM 2");
 
-  // --- NEW: HISTORY LOG ---
+  // --- HISTORY LOG ---
   const [historyLog, setHistoryLog] = useState<{id: number, time: string, msg: string}[]>([]);
 
   const addLog = (msg: string) => {
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    setHistoryLog(prev => [{ id: Date.now(), time, msg }, ...prev].slice(0, 30)); // Keeps last 30 actions
+    setHistoryLog(prev => [{ id: Date.now(), time, msg }, ...prev].slice(0, 30));
   };
 
   const handleScore = (team: 'team1' | 'team2') => {
@@ -44,7 +43,7 @@ export default function HomePage() {
     resetMatch();
   };
 
-  // --- NEW: WAKE LOCK (PREVENT SCREEN SLEEP) ---
+  // --- WAKE LOCK (PREVENT SCREEN SLEEP) ---
   useEffect(() => {
     let wakeLock: any = null;
     const requestWakeLock = async () => {
@@ -99,7 +98,6 @@ export default function HomePage() {
         const data = await res.json();
         if (data.id > lastProcessedId) {
           setLastProcessedId(data.id);
-          // Updated to use our new handleScore/handleUndo wrappers to log history
           if (data.type === 'team1') handleScore('team1');
           if (data.type === 'team2') handleScore('team2');
           if (data.type === 'undo') handleUndo();
@@ -108,7 +106,7 @@ export default function HomePage() {
     };
     const interval = setInterval(pollFlic, 500);
     return () => clearInterval(interval);
-  }, [lastProcessedId, team1Name, team2Name]); // Added dependencies to capture current names
+  }, [lastProcessedId, team1Name, team2Name]);
 
   const formatPoints = (p: string | number) => typeof p === "number" ? p.toString() : p;
 
@@ -138,7 +136,7 @@ export default function HomePage() {
       {/* --- HISTORY LOG OVERLAY --- */}
       {historyOpen && (
         <div className="absolute inset-0 z-[60] bg-black/95 flex items-center justify-center p-4" onClick={() => setHistoryOpen(false)}>
-          <div className="bg-slate-900 border-4 border-slate-700 p-10 rounded-[3rem] w-full max-w-2xl flex flex-col gap-6 max-h-[85vh]" onClick={e => e.stopPropagation()}>
+          <div className="bg-slate-900 border-4 border-slate-700 p-10 rounded-[3rem] w-full max-w-2xl flex flex-col gap-6 max-h-[90vh]" onClick={e => e.stopPropagation()}>
             <h2 className="text-3xl font-black uppercase text-center text-slate-500 tracking-widest border-b-2 border-slate-800 pb-4">Match Log</h2>
             <div className="flex-1 overflow-y-auto flex flex-col gap-3 pr-2">
               {historyLog.length === 0 ? (
@@ -157,30 +155,31 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Settings Overlay */}
+      {/* --- SETTINGS OVERLAY (SCROLL FIX APPLIED HERE) --- */}
       {settingsOpen && (
         <div className="absolute inset-0 z-50 bg-black/95 flex items-center justify-center p-4" onClick={() => setSettingsOpen(false)}>
-          <div className="bg-slate-900 border-4 border-slate-700 p-10 rounded-[3rem] w-full max-w-xl flex flex-col gap-6" onClick={e => e.stopPropagation()}>
+          {/* Changed: max-h-[90vh], overflow-y-auto, p-8, gap-4 to fit better on landscape screens */}
+          <div className="bg-slate-900 border-4 border-slate-700 p-8 rounded-[3rem] w-full max-w-xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
              <h2 className="text-2xl font-black uppercase text-center text-slate-500 tracking-widest">Match Settings</h2>
              
              {/* TEAM NAME INPUTS */}
              <div className="grid grid-cols-2 gap-4">
-               <input value={team1Name} onChange={e => setTeam1Name(e.target.value)} placeholder="TEAM 1" className="bg-slate-800 border-4 border-slate-700 rounded-3xl p-6 text-white text-2xl font-black uppercase text-center focus:border-indigo-500 outline-none transition-colors" maxLength={15} />
-               <input value={team2Name} onChange={e => setTeam2Name(e.target.value)} placeholder="TEAM 2" className="bg-slate-800 border-4 border-slate-700 rounded-3xl p-6 text-white text-2xl font-black uppercase text-center focus:border-indigo-500 outline-none transition-colors" maxLength={15} />
+               <input value={team1Name} onChange={e => setTeam1Name(e.target.value)} placeholder="TEAM 1" className="bg-slate-800 border-4 border-slate-700 rounded-3xl p-5 text-white text-2xl font-black uppercase text-center focus:border-indigo-500 outline-none transition-colors" maxLength={15} />
+               <input value={team2Name} onChange={e => setTeam2Name(e.target.value)} placeholder="TEAM 2" className="bg-slate-800 border-4 border-slate-700 rounded-3xl p-5 text-white text-2xl font-black uppercase text-center focus:border-indigo-500 outline-none transition-colors" maxLength={15} />
              </div>
 
-             <button onClick={toggleFullscreen} className="py-6 rounded-3xl bg-indigo-600 border-4 border-white text-3xl font-black uppercase flex items-center justify-center gap-4 transition-transform active:scale-95">
-               <Maximize size={32} /> Enable Fullscreen
+             <button onClick={toggleFullscreen} className="py-5 rounded-3xl bg-indigo-600 border-4 border-white text-2xl font-black uppercase flex items-center justify-center gap-4 transition-transform active:scale-95">
+               <Maximize size={28} /> {document.fullscreenElement ? 'Exit Fullscreen' : 'Enable Fullscreen'}
              </button>
              
              <div className="grid grid-cols-2 gap-4">
-                <button onClick={() => setMatchFormat(3)} className={`py-6 rounded-3xl border-4 text-3xl font-black uppercase transition-all ${matchFormat === 3 ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Best of 3</button>
-                <button onClick={() => setMatchFormat(5)} className={`py-6 rounded-3xl border-4 text-3xl font-black uppercase transition-all ${matchFormat === 5 ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Best of 5</button>
+                <button onClick={() => setMatchFormat(3)} className={`py-5 rounded-3xl border-4 text-2xl font-black uppercase transition-all ${matchFormat === 3 ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Best of 3</button>
+                <button onClick={() => setMatchFormat(5)} className={`py-5 rounded-3xl border-4 text-2xl font-black uppercase transition-all ${matchFormat === 5 ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Best of 5</button>
              </div>
 
-             <button onClick={toggleGoldenPoint} className={`py-6 rounded-3xl border-4 text-3xl font-black uppercase tracking-tighter transition-all ${useGoldenPoint ? 'bg-emerald-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Golden Point: {useGoldenPoint ? 'ON' : 'OFF'}</button>
-             <button onClick={toggleServer} className="py-6 rounded-3xl bg-slate-800 border-4 border-slate-600 text-3xl font-black uppercase tracking-tighter">Swap Server</button>
-             <button onClick={() => setSettingsOpen(false)} className="py-6 bg-white text-black text-3xl font-black rounded-3xl uppercase mt-4">Close Settings</button>
+             <button onClick={toggleGoldenPoint} className={`py-5 rounded-3xl border-4 text-2xl font-black uppercase tracking-tighter transition-all ${useGoldenPoint ? 'bg-emerald-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Golden Point: {useGoldenPoint ? 'ON' : 'OFF'}</button>
+             <button onClick={toggleServer} className="py-5 rounded-3xl bg-slate-800 border-4 border-slate-600 text-2xl font-black uppercase tracking-tighter">Swap Server</button>
+             <button onClick={() => setSettingsOpen(false)} className="py-5 bg-white text-black text-2xl font-black rounded-3xl uppercase mt-2">Close Settings</button>
           </div>
         </div>
       )}
