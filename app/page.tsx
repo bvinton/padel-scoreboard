@@ -70,7 +70,7 @@ export default function HomePage() {
         return;
     }
     prevIsTiebreak.current = isTiebreak;
-    if (matchWinner && !matchWinnerDismissed) {
+    if (matchWinner && !matchWinnerDismissed && !localDismissed) {
       speakScore(`Game, Set and Match. ${matchWinner === 'team1' ? team1Name : team2Name}`);
       return;
     }
@@ -107,7 +107,7 @@ export default function HomePage() {
       if (p1 === p2) speakScore(`${p1Text} All`);
       else speakScore(`${p1Text}, ${p2Text}`);
     }
-  }, [team1.points, team2.points, team1.games, team2.games, team1.sets, team2.sets, isTiebreak, matchWinner]);
+  }, [team1.points, team2.points, team1.games, team2.games, team1.sets, team2.sets, isTiebreak, matchWinner, localDismissed]);
 
   useEffect(() => {
     const saved = localStorage.getItem('padelArchive');
@@ -115,6 +115,10 @@ export default function HomePage() {
   }, []);
 
   const handleScore = (team: 'team1' | 'team2') => {
+    if (matchWinner && !localDismissed) {
+      setLocalDismissed(true);
+      return;
+    }
     addLog(`${team === 'team1' ? team1Name : team2Name} scored`);
     setTimeLeft(20);
     scorePoint(team);
@@ -123,6 +127,7 @@ export default function HomePage() {
   const handleUndo = () => {
     undo();
     setTimeLeft(0);
+    setLocalDismissed(false);
     prevGames1.current = team1.games; prevGames2.current = team2.games;
     prevSets1.current = team1.sets; prevSets2.current = team2.sets;
     prevIsTiebreak.current = isTiebreak;
@@ -175,8 +180,8 @@ export default function HomePage() {
   const winSoundRef = useRef<HTMLAudioElement | null>(null);
   useEffect(() => { winSoundRef.current = new Audio("https://www.myinstants.com/media/sounds/final-fantasy-vii-victory-fanfare-1.mp3"); }, []);
   useEffect(() => {
-    if (matchWinner && !matchWinnerDismissed && winSoundRef.current) { winSoundRef.current.play().catch(() => {}); }
-  }, [matchWinner, matchWinnerDismissed]);
+    if (matchWinner && !matchWinnerDismissed && !localDismissed && winSoundRef.current) { winSoundRef.current.play().catch(() => {}); }
+  }, [matchWinner, matchWinnerDismissed, localDismissed]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
@@ -198,12 +203,7 @@ export default function HomePage() {
     };
     const interval = setInterval(pollFlic, 500);
     return () => clearInterval(interval);
-  }, [lastProcessedId, team1Name, team2Name]);
-
-  const addLog = (msg: string) => {
-    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setHistoryLog(prev => [{ id: Date.now(), time, msg }, ...prev].slice(0, 30));
-  };
+  }, [lastProcessedId, team1Name, team2Name, matchWinner, localDismissed]);
 
   const formatPoints = (p: string | number) => typeof p === "number" ? p.toString() : p;
 
@@ -230,10 +230,28 @@ export default function HomePage() {
         <h2 className="text-4xl font-black uppercase tracking-widest text-white italic">Rotate Device</h2>
       </div>
 
+      {/* RESTORED: VICTORY OVERLAY WITH FIREWORKS & DISMISS LOGIC */}
+      {matchWinner && !matchWinnerDismissed && !localDismissed && (
+        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl animate-in fade-in duration-500" onClick={() => setLocalDismissed(true)}>
+          <div className="relative flex flex-col items-center bg-slate-900 border-4 md:border-8 border-amber-400 p-8 md:p-16 rounded-3xl md:rounded-[4rem] text-center shadow-[0_0_100px_rgba(251,191,36,0.4)]" onClick={e => e.stopPropagation()}>
+            <span className="absolute -top-8 -left-8 text-6xl animate-bounce">🎇</span>
+            <span className="absolute -top-8 -right-8 text-6xl animate-bounce delay-150">🎆</span>
+             <Trophy className="w-16 h-16 md:w-24 md:h-24 text-amber-400 mb-4 md:mb-8 animate-pulse" />
+            <h2 className="text-5xl md:text-8xl font-black mb-2 md:mb-4 italic uppercase tracking-tighter">
+              {matchWinner === 'team1' ? team1Name : team2Name}
+            </h2>
+            <button onClick={handleReset} className="bg-amber-500 text-black px-10 md:px-20 py-4 md:py-8 rounded-full text-2xl md:text-4xl font-black uppercase active:scale-95 transition-transform flex items-center gap-4">
+              <RotateCcw size={40} /> Play Again
+            </button>
+            <p className="mt-4 text-slate-500 text-xs uppercase tracking-widest font-bold">Tap background to dismiss</p>
+          </div>
+        </div>
+      )}
+
+      {/* MAIN SCOREBOARD */}
       <section className="flex-grow flex flex-col p-0 overflow-hidden">
         {[ { id: "team1", data: team1, label: team1Name }, { id: "team2", data: team2, label: team2Name } ].map((t) => (
           <button key={t.id} onClick={() => handleScore(t.id as any)} className={`flex-1 min-h-0 border-b border-slate-800 flex flex-row items-center relative transition-all ${server === t.id ? "bg-emerald-500/10 shadow-[inset_0_0_20px_rgba(16,185,129,0.1)]" : "bg-slate-900/20"}`}>
-            
             <div className="absolute top-0.5 md:top-2 left-2 md:left-6 z-20">
               <span className="text-[10px] md:text-2xl font-black italic text-slate-400 opacity-60 uppercase">{t.label}</span>
             </div>
@@ -242,29 +260,24 @@ export default function HomePage() {
                 <span className="bg-emerald-500 text-black px-2 md:px-5 py-0.5 rounded-full font-black text-[8px] md:text-sm animate-pulse uppercase">SERVING</span>
               </div>
             )}
-            
             <div className="w-[28%] md:w-[22%] h-full flex flex-col items-center justify-center border-r border-slate-800/30 bg-black/40">
               <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase tracking-widest italic">Sets</span>
-              {/* RESTORED: Ambient Glow on Sets */}
               <span className="text-[20vh] md:text-[23vh] font-black leading-none drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">{t.data.sets}</span>
             </div>
-
             <div className="flex-1 h-full flex items-center justify-center overflow-hidden">
-              {/* RESTORED: High-Intensity LED Glow for Points */}
               <span className="text-[32vh] md:text-[45vh] font-black leading-none italic scale-x-[1.4] md:scale-x-[1.6] transform-gpu [text-shadow:_0_0_40px_rgb(255_255_255_/_30%),_0_0_10px_rgb(255_255_255_/_60%)]">
                 {formatPoints(t.data.points)}
               </span>
             </div>
-
             <div className="w-[28%] md:w-[22%] h-full flex flex-col items-center justify-center border-l border-slate-800/30 bg-black/40">
               <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase tracking-widest italic">Games</span>
-              {/* RESTORED: Ambient Glow on Games */}
               <span className="text-[20vh] md:text-[23vh] font-black leading-none drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">{t.data.games}</span>
             </div>
           </button>
         ))}
       </section>
 
+      {/* SLIM FOOTER */}
       <footer className="flex-none h-[40px] flex items-center justify-between px-2 md:px-10 border-t border-slate-900 bg-slate-950/95">
         <div className="flex items-center gap-1 md:gap-4 h-full">
           <button onClick={handleUndo} className="flex items-center gap-1 bg-slate-900/50 px-2 md:px-4 py-0.5 rounded h-[30px] active:scale-95 transition-all">
@@ -291,7 +304,7 @@ export default function HomePage() {
         </div>
       </footer>
 
-      {/* OVERLAYS (UNCHANGED) */}
+      {/* MODALS (ARCHIVE, LOG, SETTINGS) */}
       {archiveOpen && (
         <div className="absolute inset-0 z-[60] bg-black/95 flex items-center justify-center p-2" onClick={() => setArchiveOpen(false)}>
           <div className="bg-slate-900 border-2 border-slate-700 p-4 rounded-2xl w-full max-w-3xl flex flex-col gap-3 max-h-[90vh]" onClick={e => e.stopPropagation()}>
