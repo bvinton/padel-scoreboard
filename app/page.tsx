@@ -37,70 +37,99 @@ export default function HomePage() {
   return (
     <main className="h-screen w-full flex flex-col bg-black text-white select-none overflow-hidden p-1 font-sans">
       
-      {/* Settings Overlay */}
-      {settingsOpen && (
-        <div className="absolute inset-0 z-50 bg-black/95 flex items-center justify-center p-4" onClick={() => setSettingsOpen(false)}>
-          <div className="bg-slate-900 border-4 border-slate-700 p-10 rounded-[3rem] w-full max-w-xl flex flex-col gap-6" onClick={e => e.stopPropagation()}>
-             <button onClick={toggleGoldenPoint} className="py-6 rounded-3xl bg-slate-800 border-4 border-emerald-500 text-3xl font-black uppercase tracking-tighter">Golden Point: {useGoldenPoint ? 'ON' : 'OFF'}</button>
-             <button onClick={toggleServer} className="py-6 rounded-3xl bg-slate-800 border-4 border-slate-600 text-3xl font-black uppercase tracking-tighter">Swap Server</button>
-             <button onClick={() => setSettingsOpen(false)} className="py-6 bg-white text-black text-3xl font-black rounded-3xl uppercase">Close</button>
+      {/* --- VICTORY OVERLAY (RESTORED) --- */}
+      {matchWinner && !matchWinnerDismissed && (
+        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl" onClick={resetMatch}>
+          <div className="flex flex-col items-center bg-slate-900 border-8 border-amber-400 p-16 rounded-[4rem] text-center shadow-[0_0_100px_rgba(251,191,36,0.4)]" onClick={e => e.stopPropagation()}>
+            <Trophy className="h-24 w-24 text-amber-400 mb-8 animate-bounce" />
+            <h2 className="text-8xl font-black mb-4 text-white italic uppercase tracking-tighter">
+              {matchWinner === 'team1' ? 'Team 1' : 'Team 2'}
+            </h2>
+            <h3 className="text-4xl font-black text-amber-400 uppercase italic mb-12 tracking-[0.2em]">Champions</h3>
+            <button onClick={resetMatch} className="bg-amber-500 text-black px-20 py-8 rounded-full text-4xl font-black uppercase shadow-2xl active:scale-95 transition-transform flex items-center gap-4">
+              <RotateCcw size={40} /> Play Again
+            </button>
           </div>
         </div>
       )}
 
-      {/* Main Content Area */}
+      {/* Settings Overlay */}
+      {settingsOpen && (
+        <div className="absolute inset-0 z-50 bg-black/95 flex items-center justify-center p-4" onClick={() => setSettingsOpen(false)}>
+          <div className="bg-slate-900 border-4 border-slate-700 p-10 rounded-[3rem] w-full max-w-xl flex flex-col gap-6" onClick={e => e.stopPropagation()}>
+             <h2 className="text-2xl font-black uppercase text-center text-slate-500 tracking-widest">Match Settings</h2>
+             
+             <div className="grid grid-cols-2 gap-4">
+                <button onClick={() => setMatchFormat(3)} className={`py-6 rounded-3xl border-4 text-3xl font-black uppercase transition-all ${matchFormat === 3 ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Best of 3</button>
+                <button onClick={() => setMatchFormat(5)} className={`py-6 rounded-3xl border-4 text-3xl font-black uppercase transition-all ${matchFormat === 5 ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Best of 5</button>
+             </div>
+
+             <button onClick={toggleGoldenPoint} className={`py-6 rounded-3xl border-4 text-3xl font-black uppercase tracking-tighter transition-all ${useGoldenPoint ? 'bg-emerald-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Golden Point: {useGoldenPoint ? 'ON' : 'OFF'}</button>
+             <button onClick={toggleServer} className="py-6 rounded-3xl bg-slate-800 border-4 border-slate-600 text-3xl font-black uppercase tracking-tighter">Swap Server</button>
+             <button onClick={() => setSettingsOpen(false)} className="py-6 bg-white text-black text-3xl font-black rounded-3xl uppercase mt-4">Close</button>
+          </div>
+        </div>
+      )}
+
+      {/* Main Scoreboard Content */}
       <section className="h-[92%] flex flex-col gap-1">
         {[ { id: "team1", data: team1, label: "TEAM 1" }, { id: "team2", data: team2, label: "TEAM 2" } ].map((t) => (
           <button 
             key={t.id} 
             onClick={() => scorePoint(t.id as any)} 
-            className={`h-[49%] rounded-[1.5rem] border-[6px] flex flex-row items-center relative transition-all ${
+            className={`flex-1 rounded-[1.5rem] border-[6px] flex flex-row items-center relative transition-all ${
               server === t.id ? "border-emerald-500 bg-emerald-500/10" : "border-slate-800 bg-slate-900/20"
             }`}
           >
-            {/* Label Overlay (Top Left) */}
             <div className="absolute top-2 left-6 z-20">
               <span className="text-2xl font-black italic opacity-30 uppercase tracking-tighter">{t.label}</span>
             </div>
 
-            {/* Serving Indicator (Top Right) */}
             {server === t.id && (
               <div className="absolute top-2 right-6 z-20">
                 <span className="bg-emerald-500 text-black px-4 py-1 rounded-full font-black text-sm animate-pulse uppercase">SERVING</span>
               </div>
             )}
 
-            {/* 1. SETS (Increased to 22% Width) */}
             <div className="w-[22%] h-full flex flex-col items-center justify-center border-r-2 border-slate-800/50 bg-black/40">
               <span className="text-xl font-black text-slate-600 uppercase tracking-widest">Sets</span>
-              {/* Increased from 20vh to 23vh */}
               <span className="text-[23vh] font-black leading-none">{t.data.sets}</span>
             </div>
 
-            {/* 2. MAIN SCORE (Center - Max Scale) */}
             <div className="flex-1 h-full flex items-center justify-center overflow-hidden">
               <span className="text-[40vh] font-black leading-none italic scale-x-[1.6] transform-gpu drop-shadow-[0_20px_40px_rgba(0,0,0,1)]">
                 {formatPoints(t.data.points)}
               </span>
             </div>
 
-            {/* 3. GAMES (Increased to 22% Width) */}
             <div className="w-[22%] h-full flex flex-col items-center justify-center border-l-2 border-slate-800/50 bg-black/40">
               <span className="text-xl font-black text-slate-600 uppercase tracking-widest">Games</span>
-              {/* Increased from 20vh to 23vh */}
               <span className="text-[23vh] font-black leading-none">{t.data.games}</span>
             </div>
           </button>
         ))}
       </section>
 
-      {/* Footer */}
-      <footer className="h-[8%] flex items-center justify-between px-10 border-t border-slate-900">
-        <button onClick={undo} className="text-2xl font-black text-slate-600 hover:text-white uppercase tracking-tighter">Undo</button>
-        <div className="text-xl font-black text-slate-800 uppercase tracking-[1em]">{isTiebreak ? 'Tiebreak' : 'Regular'}</div>
+      {/* FOOTER */}
+      <footer className="h-[8%] flex items-center justify-between px-10 border-t border-slate-900 bg-slate-950/50">
+        <button onClick={undo} className="group flex items-center gap-3 bg-slate-900/50 border border-slate-800 px-6 py-2 rounded-2xl active:scale-95 transition-all">
+          <Undo2 size={24} className="text-slate-500 group-hover:text-white transition-colors" />
+          <span className="text-xl font-black text-slate-500 group-hover:text-white uppercase tracking-widest">Undo</span>
+        </button>
+        
+        <div className={`px-8 py-2 rounded-full border-2 font-black uppercase tracking-[0.4em] text-sm transition-all duration-500 ${
+          isTiebreak 
+          ? 'bg-amber-500/20 border-amber-500 text-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.2)] animate-pulse' 
+          : 'bg-slate-900/40 border-slate-800 text-slate-600'
+        }`}>
+          {isTiebreak ? 'TIEBREAK MODE' : 'REGULAR GAME'}
+        </div>
+
         <div className="flex items-center gap-10">
-          <button onClick={resetMatch} className="text-2xl font-black text-red-900 hover:text-red-500 uppercase tracking-tighter">Reset</button>
-          <button onClick={() => setSettingsOpen(true)} className="p-2 text-slate-600"><Settings size={32} /></button>
+          <button onClick={resetMatch} className="text-xl font-black text-red-900/80 hover:text-red-500 uppercase tracking-widest transition-colors">Reset</button>
+          <button onClick={() => setSettingsOpen(true)} className="p-3 bg-slate-900/50 border border-slate-800 rounded-2xl text-slate-600 hover:text-white transition-all">
+            <Settings size={28} />
+          </button>
         </div>
       </footer>
     </main>
