@@ -18,14 +18,13 @@ export default function HomePage() {
   const winSoundRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    // Initializing the "Champion" sound
-    winSoundRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3");
+    // Updated to the Final Fantasy VII Victory Fanfare
+    winSoundRef.current = new Audio("https://www.myinstants.com/media/sounds/final-fantasy-vii-victory-fanfare-1.mp3");
   }, []);
 
   useEffect(() => {
-    // Trigger sound only when a winner is crowned
     if (matchWinner && !matchWinnerDismissed && winSoundRef.current) {
-      winSoundRef.current.play().catch(e => console.log("Audio play blocked by browser. Click anywhere to enable sound."));
+      winSoundRef.current.play().catch(e => console.log("Audio play blocked. Tap the screen once at the start of the match."));
     }
   }, [matchWinner, matchWinnerDismissed]);
 
@@ -52,12 +51,11 @@ export default function HomePage() {
   return (
     <main className="h-screen w-full flex flex-col bg-black text-white select-none overflow-hidden p-1 font-sans">
       
-      {/* --- VICTORY OVERLAY WITH FIREWORKS & SOUND --- */}
+      {/* --- VICTORY OVERLAY --- */}
       {matchWinner && !matchWinnerDismissed && (
         <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl animate-in fade-in duration-500" onClick={resetMatch}>
           <div className="relative flex flex-col items-center bg-slate-900 border-8 border-amber-400 p-16 rounded-[4rem] text-center shadow-[0_0_100px_rgba(251,191,36,0.4)]" onClick={e => e.stopPropagation()}>
             
-            {/* Emoji Fireworks */}
             <span className="absolute -top-16 -left-16 text-8xl animate-bounce">🎇</span>
             <span className="absolute -top-16 -right-16 text-8xl animate-bounce delay-150">🎆</span>
             <span className="absolute -bottom-16 -left-16 text-8xl animate-pulse">🎊</span>
@@ -67,7 +65,7 @@ export default function HomePage() {
             <h2 className="text-8xl font-black mb-4 text-white italic uppercase tracking-tighter">
               {matchWinner === 'team1' ? 'Team 1' : 'Team 2'}
             </h2>
-            <h3 className="text-4xl font-black text-amber-400 uppercase italic mb-12 tracking-[0.2em]">Champions</h3>
+            <h3 className="text-4xl font-black text-amber-400 uppercase italic mb-12 tracking-[0.2em]">Victory Fanfare</h3>
             
             <button onClick={resetMatch} className="bg-amber-500 text-black px-20 py-8 rounded-full text-4xl font-black uppercase shadow-2xl active:scale-95 transition-transform flex items-center gap-4">
               <RotateCcw size={40} /> Play Again
