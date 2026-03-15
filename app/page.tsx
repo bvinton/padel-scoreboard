@@ -33,7 +33,6 @@ export default function HomePage() {
   const [historyLog, setHistoryLog] = useState<{id: number, time: string, msg: string}[]>([]);
   const [savedMatches, setSavedMatches] = useState<SavedMatch[]>([]);
 
-  // Serve Timer Effect
   useEffect(() => {
     if (timeLeft <= 0) return;
     const interval = setInterval(() => {
@@ -42,37 +41,50 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, [timeLeft]);
 
-  // --- UMPIRE LOGIC WITH CUSTOM NAMES AND FASTER RATE ---
+  // --- MALE UMPIRE LOGIC ---
   const speakScore = (text: string) => {
     if (!umpireEnabled || typeof window === "undefined") return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     
+    // Prioritize Male voices
     const voices = window.speechSynthesis.getVoices();
-    const premiumVoice = voices.find(v => v.name.includes("Google UK English Male") || v.name.includes("en-GB"));
-    if (premiumVoice) utterance.voice = premiumVoice;
+    const maleVoice = voices.find(v => 
+      (v.name.toLowerCase().includes("male") || v.name.toLowerCase().includes("low")) && 
+      (v.lang.includes("en-GB") || v.lang.includes("en-US"))
+    );
+    
+    if (maleVoice) {
+      utterance.voice = maleVoice;
+    }
 
-    utterance.rate = 1.0; // Sped up from 0.85 to 1.0 for a snappier response
-    utterance.pitch = 0.95;
+    utterance.rate = 1.05; // Snappy professional pace
+    utterance.pitch = 0.85; // Lower pitch for a more masculine, authoritative sound
     window.speechSynthesis.speak(utterance);
   };
 
-  // Tracking game/set counts to detect when a game/set has just been won
   const prevGames1 = useRef(team1.games);
   const prevGames2 = useRef(team2.games);
   const prevSets1 = useRef(team1.sets);
   const prevSets2 = useRef(team2.sets);
+  const prevIsTiebreak = useRef(isTiebreak);
 
   useEffect(() => {
     if (!umpireEnabled) return;
     
-    // 1. Check for Match Win
+    // Announce Tiebreak Start
+    if (isTiebreak && !prevIsTiebreak.current) {
+        speakScore("Six games all. Tiebreak.");
+        prevIsTiebreak.current = true;
+        return;
+    }
+    prevIsTiebreak.current = isTiebreak;
+
     if (matchWinner && !matchWinnerDismissed) {
       speakScore(`Game, Set and Match. ${matchWinner === 'team1' ? team1Name : team2Name}`);
       return;
     }
 
-    // 2. Check for Set Win
     if (team1.sets > prevSets1.current) {
         speakScore(`Game and Set, ${team1Name}`);
         prevSets1.current = team1.sets;
@@ -88,7 +100,6 @@ export default function HomePage() {
         return;
     }
 
-    // 3. Check for Game Win (But not a set win)
     if (team1.games > prevGames1.current) {
         speakScore(`Game, ${team1Name}`);
         prevGames1.current = team1.games;
@@ -100,13 +111,12 @@ export default function HomePage() {
         return;
     }
 
-    // 4. Regular Points
     const p1 = team1.points;
     const p2 = team2.points;
 
-    if (p1 === '0' && p2 === '0') {
-      if (isTiebreak) speakScore("Tiebreak");
-    } else if (p1 === 'Ad' || p2 === 'Ad') {
+    if (p1 === '0' && p2 === '0') return;
+
+    if (p1 === 'Ad' || p2 === 'Ad') {
       speakScore("Advantage");
     } else if (p1 === '40' && p2 === '40') {
       speakScore("Deuce");
@@ -118,7 +128,7 @@ export default function HomePage() {
       if (p1 === p2) speakScore(`${p1Text} All`);
       else speakScore(`${p1Text}, ${p2Text}`);
     }
-  }, [team1.points, team2.points, team1.games, team2.games, team1.sets, team2.sets, matchWinner]);
+  }, [team1.points, team2.points, team1.games, team2.games, team1.sets, team2.sets, isTiebreak, matchWinner]);
 
   useEffect(() => {
     const saved = localStorage.getItem('padelArchive');
@@ -127,15 +137,6 @@ export default function HomePage() {
     }
   }, []);
 
-  useEffect(() => {
-    if (!matchWinner) setLocalDismissed(false);
-  }, [matchWinner]);
-
-  const addLog = (msg: string) => {
-    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setHistoryLog(prev => [{ id: Date.now(), time, msg }, ...prev].slice(0, 30));
-  };
-
   const handleScore = (team: 'team1' | 'team2') => {
     addLog(`${team === 'team1' ? team1Name : team2Name} scored`);
     setTimeLeft(20);
@@ -143,18 +144,16 @@ export default function HomePage() {
   };
 
   const handleUndo = () => {
-    addLog("Undo used");
-    setTimeLeft(0);
     undo();
-    // Update refs on undo so umpire doesn't get confused
+    setTimeLeft(0);
     prevGames1.current = team1.games;
     prevGames2.current = team2.games;
     prevSets1.current = team1.sets;
     prevSets2.current = team2.sets;
+    prevIsTiebreak.current = isTiebreak;
   };
 
   const handleReset = () => {
-    addLog("Match Reset");
     setHistoryLog([]);
     setLocalDismissed(false);
     setTimeLeft(0);
@@ -162,6 +161,7 @@ export default function HomePage() {
     prevGames2.current = 0;
     prevSets1.current = 0;
     prevSets2.current = 0;
+    prevIsTiebreak.current = false;
     resetMatch();
   };
 
@@ -179,7 +179,6 @@ export default function HomePage() {
     const updated = [newMatch, ...savedMatches];
     setSavedMatches(updated);
     localStorage.setItem('padelArchive', JSON.stringify(updated));
-    addLog("Match Saved");
   };
 
   const deleteSavedMatch = (id: number) => {
@@ -234,6 +233,11 @@ export default function HomePage() {
     const interval = setInterval(pollFlic, 500);
     return () => clearInterval(interval);
   }, [lastProcessedId, team1Name, team2Name]);
+
+  const addLog = (msg: string) => {
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setHistoryLog(prev => [{ id: Date.now(), time, msg }, ...prev].slice(0, 30));
+  };
 
   const formatPoints = (p: string | number) => typeof p === "number" ? p.toString() : p;
 
@@ -316,7 +320,7 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
-            <button onClick={() => setHistoryOpen(false)} className="py-3 md:py-6 bg-white text-black text-sm md:text-2xl font-black rounded-xl md:rounded-3xl uppercase active:scale-95">Close Log</button>
+            <button onClick={() => setHistoryOpen(false)} className="py-3 md:py-6 bg-white text-black text-xl md:text-3xl font-black rounded-xl md:rounded-3xl uppercase active:scale-95">Close Log</button>
           </div>
         </div>
       )}
