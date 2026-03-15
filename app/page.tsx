@@ -63,9 +63,14 @@ export default function HomePage() {
       setLocalDismissed(true);
       return;
     }
-    addLog(`${team === 'team1' ? team1Name : team2Name} scored`);
     
-    // Absolute Time Logic Setup
+    // Detailed Logging with Current Score Context
+    const currentScore = isTiebreak 
+      ? `Tiebreak: ${team1.points}-${team2.points}` 
+      : `${team1.points}-${team2.points}`;
+    
+    addLog(`${team === 'team1' ? team1Name : team2Name} scored (at ${currentScore})`);
+    
     endTimeRef.current = Date.now() + 20000;
     setTimerStarted(true);
     setTimeLeft(20);
@@ -74,7 +79,12 @@ export default function HomePage() {
   };
 
   const handleUndo = () => {
-    addLog("Undo used");
+    const currentScore = isTiebreak 
+      ? `Tiebreak: ${team1.points}-${team2.points}` 
+      : `${team1.points}-${team2.points}`;
+      
+    addLog(`Undo used (at ${currentScore})`);
+    
     undo();
     endTimeRef.current = null;
     setTimerStarted(false);
@@ -86,7 +96,7 @@ export default function HomePage() {
   };
 
   const handleReset = () => {
-    addLog("Match Reset");
+    addLog("Match Reset to 0-0");
     setHistoryLog([]); 
     setLocalDismissed(false);
     endTimeRef.current = null;
@@ -112,7 +122,7 @@ export default function HomePage() {
     const updated = [newMatch, ...savedMatches];
     setSavedMatches(updated);
     localStorage.setItem('padelArchive', JSON.stringify(updated));
-    addLog("Match Saved");
+    addLog("Match Saved to Archive");
   };
 
   const deleteSavedMatch = (id: number) => {
@@ -129,7 +139,6 @@ export default function HomePage() {
 
   // --- 3. EFFECTS ---
   
-  // NEW: Absolute Precision Timer Logic
   useEffect(() => {
     if (!timerStarted || !endTimeRef.current) return;
 
@@ -139,12 +148,11 @@ export default function HomePage() {
 
       if (remaining <= 0) {
         clearInterval(interval);
-        // Flash red for 2 seconds, then dismiss
         setTimeout(() => {
           setTimerStarted(false);
         }, 2000);
       }
-    }, 50); // Updates every 50ms for ultra-smooth rendering
+    }, 50);
 
     return () => clearInterval(interval);
   }, [timerStarted]);
@@ -256,7 +264,6 @@ export default function HomePage() {
 
   const formatPoints = (p: string | number) => typeof p === "number" ? p.toString() : p;
 
-  // --- PURE MATH FOR SOLID SVG LINES ---
   const getBottomLeftX2 = () => timeLeft >= 16 ? ((timeLeft - 16) / 4) * 50 : 0;
   const getBottomRightX1 = () => timeLeft >= 16 ? 100 - (((timeLeft - 16) / 4) * 50) : 100;
   const getSideY2 = () => timeLeft >= 16 ? 100 : timeLeft >= 4 ? ((timeLeft - 4) / 12) * 100 : 0;
@@ -293,14 +300,11 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* SCOREBOARD SECTION WITH CLIPPED BORDER CLOCK */}
+      {/* SCOREBOARD SECTION */}
       <section className="flex-grow flex flex-col p-1 relative overflow-hidden">
         
-        {/* TIMER WRAPPER */}
         {timerStarted && (
           <div className="absolute inset-1 pointer-events-none z-50 rounded-lg md:rounded-[1.5rem] overflow-hidden">
-            
-            {/* DRAINING TIMER */}
             {timeLeft > 0 && (
               <svg className="absolute inset-0 w-full h-full">
                 <line x1={`${getTopLeftX1()}%`} y1="0%" x2="50%" y2="0%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerStrokeColor()}`} />
@@ -312,7 +316,6 @@ export default function HomePage() {
               </svg>
             )}
 
-            {/* AUTO-DISMISS ALARM (0s) */}
             {timeLeft <= 0 && (
               <div className="absolute inset-0 border-[6px] border-red-600 shadow-[inset_0_0_40px_rgba(220,38,38,0.8)] animate-pulse" />
             )}
@@ -426,7 +429,7 @@ export default function HomePage() {
             <div className="flex-1 overflow-y-auto flex flex-col gap-2">
               {historyLog.map(log => (
                 <div key={log.id} className="bg-slate-800 p-3 rounded-xl flex justify-between items-center border-l-4 border-emerald-500">
-                  <span className="text-white font-bold text-sm uppercase">{log.msg}</span>
+                  <span className="text-white font-bold text-sm md:text-lg uppercase">{log.msg}</span>
                   <span className="text-slate-400 text-xs font-mono bg-black/30 px-2 py-1 rounded-lg">{log.time}</span>
                 </div>
               ))}
