@@ -26,9 +26,11 @@ export const dict = {
       on: "ON",
       off: "OFF",
       fullscreen: "Fullscreen",
-      format: "Match Format", // NEW
+      format: "Match Format",
       bestOf3: "Best of 3",
       bestOf5: "Best of 5",
+      proSet: "Pro Set (To 8)", // NEW
+      superTiebreak: "Super Tiebreak 3rd", // NEW
       court: "Court",
       outdoor: "Outdoor",
       indoor: "Indoor",
@@ -82,9 +84,11 @@ export const dict = {
       on: "SÍ",
       off: "NO",
       fullscreen: "Pantalla Completa",
-      format: "Formato de Partido", // NEW
+      format: "Formato de Partido",
       bestOf3: "Mejor de 3",
       bestOf5: "Mejor de 5",
+      proSet: "Pro Set (A 8)", // NEW
+      superTiebreak: "Súper Tiebreak 3º", // NEW
       court: "Pista",
       outdoor: "Exterior",
       indoor: "Interior",

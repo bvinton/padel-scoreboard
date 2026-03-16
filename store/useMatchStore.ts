@@ -5,6 +5,7 @@ type TeamKey = 'team1' | 'team2';
 type Server = TeamKey;
 type StandardPoint = '0' | '15' | '30' | '40' | 'Ad';
 export type Language = 'en' | 'es';
+export type MatchFormat = 'bestOf3' | 'bestOf5' | 'proSet' | 'superTiebreak';
 
 interface TeamState {
   name: string;
@@ -20,11 +21,10 @@ export interface SetScore {
 
 export interface PadelState {
   useGoldenPoint: boolean;
-  matchFormat: 3 | 5; 
+  matchFormat: MatchFormat; 
   umpireEnabled: boolean;
   isOutdoorMode: boolean; 
 
-  // Global Language State
   language: Language;
   hasSelectedLanguage: boolean;
 
@@ -43,13 +43,10 @@ export interface PadelState {
   undo: () => void;
   toggleGoldenPoint: () => void;
   toggleServer: () => void;
-  setMatchFormat: (format: 3 | 5) => void; 
+  setMatchFormat: (format: MatchFormat) => void; 
   toggleUmpire: () => void;
   toggleOutdoorMode: () => void;
-  
-  // Language Action
   setLanguage: (lang: Language) => void;
-  
   setTeamName: (team: TeamKey, name: string) => void;
   resetMatch: () => void;
 }
@@ -60,23 +57,17 @@ export type PadelStateSnapshot = Omit<
 >;
 
 const STANDARD_POINTS: StandardPoint[] = ['0', '15', '30', '40', 'Ad'];
-
 const getOppositeTeam = (team: TeamKey): TeamKey => team === 'team1' ? 'team2' : 'team1';
 
-const createInitialTeamState = (name: string): TeamState => ({
-  name,
-  points: '0',
-  games: 0,
-  sets: 0,
-});
+const createInitialTeamState = (name: string): TeamState => ({ name, points: '0', games: 0, sets: 0 });
 
 const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setLanguage' | 'setTeamName' | 'toggleOutdoorMode'> => ({
   useGoldenPoint: true,
-  matchFormat: 3,
+  matchFormat: 'bestOf3',
   umpireEnabled: false,
   isOutdoorMode: false, 
-  language: 'en', // Default fallback
-  hasSelectedLanguage: false, // Forces the initial popup
+  language: 'en', 
+  hasSelectedLanguage: false, 
   server: 'team1',
   isTiebreak: false,
   matchWinner: null,
@@ -103,13 +94,16 @@ const applyGameWin = (state: PadelState, winner: TeamKey): void => {
 
   const gamesDiff = winnerTeam.games - loserTeam.games;
   let wonSet = false;
+  
+  // Custom logic for Pro Set (first to 8) vs Standard (first to 6)
+  const targetGames = state.matchFormat === 'proSet' ? 8 : 6;
 
-  if (!state.isTiebreak && winnerTeam.games >= 6 && gamesDiff >= 2) {
+  if (!state.isTiebreak && winnerTeam.games >= targetGames && gamesDiff >= 2) {
     winnerTeam.sets += 1;
     wonSet = true;
   }
 
-  if (!state.isTiebreak && state.team1.games === 6 && state.team2.games === 6) {
+  if (!state.isTiebreak && state.team1.games === targetGames && state.team2.games === targetGames) {
     state.isTiebreak = true;
     state.team1.points = 0;
     state.team2.points = 0;
@@ -130,10 +124,16 @@ const applyGameWin = (state: PadelState, winner: TeamKey): void => {
     state.team2.points = '0';
 
     if (!state.matchWinner) {
-      const setsNeeded = state.matchFormat === 3 ? 2 : 3;
+      let setsNeeded = 2; // Default for bestOf3 & superTiebreak
+      if (state.matchFormat === 'bestOf5') setsNeeded = 3;
+      if (state.matchFormat === 'proSet') setsNeeded = 1;
+
       if (winnerTeam.sets >= setsNeeded) {
         state.matchWinner = winner;
         state.matchWinnerDismissed = false;
+      } else if (state.matchFormat === 'superTiebreak' && state.team1.sets === 1 && state.team2.sets === 1) {
+        // Force the 3rd set to instantly be a Super Tiebreak
+        state.isTiebreak = true;
       }
     }
   }
@@ -173,18 +173,19 @@ const handleTiebreakPoint = (state: PadelState, scoringTeamKey: TeamKey): void =
   const otherTeam = state[otherTeamKey];
   const scoringPoints = Number(scoringTeam.points || 0);
   const otherPoints = Number(otherTeam.points || 0);
-  const totalPointsBefore = scoringPoints + otherPoints;
-  const newScoringPoints = scoringPoints + 1;
-  const totalPointsAfter = totalPointsBefore + 1;
-
-  scoringTeam.points = newScoringPoints;
+  
+  scoringTeam.points = scoringPoints + 1;
+  const totalPointsAfter = (scoringPoints + 1) + otherPoints;
 
   if (totalPointsAfter === 1 || (totalPointsAfter > 1 && totalPointsAfter % 2 === 1)) {
     state.server = getOppositeTeam(state.server);
   }
 
-  const pointsDiff = newScoringPoints - otherPoints;
-  if (newScoringPoints >= 7 && pointsDiff >= 2) {
+  // A Super Tiebreak goes to 10 points. A normal Tiebreak goes to 7.
+  const targetPoints = (state.matchFormat === 'superTiebreak' && state.team1.sets === 1 && state.team2.sets === 1) ? 10 : 7;
+  const pointsDiff = (scoringPoints + 1) - otherPoints;
+
+  if ((scoringPoints + 1) >= targetPoints && pointsDiff >= 2) {
     applyGameWin(state, scoringTeamKey);
   }
 };
@@ -213,7 +214,7 @@ export const useMatchStore = create<PadelState>()(
           });
         },
         toggleServer: () => set((state) => ({ server: state.server === 'team1' ? 'team2' : 'team1' })),
-        setMatchFormat: (format: 3 | 5) => set({ matchFormat: format }),
+        setMatchFormat: (format: MatchFormat) => set({ matchFormat: format }),
         toggleUmpire: () => set((state) => ({ umpireEnabled: !state.umpireEnabled })),
         setLanguage: (lang: Language) => set({ language: lang, hasSelectedLanguage: true }), 
         toggleOutdoorMode: () => set((state) => ({ isOutdoorMode: !state.isOutdoorMode })),
