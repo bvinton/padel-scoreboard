@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useMatchStore } from "../../store/useMatchStore";
 import { dict } from "../translations";
 import { Volume2, Maximize, Languages, ChevronDown } from "lucide-react";
@@ -21,6 +22,9 @@ export default function SettingsModal({ isOpen, onClose, roomCode, generateNewRo
   } = useMatchStore();
   
   const t = dict[language] || dict.en;
+  
+  // State to track if our custom dropdown is open
+  const [isFormatDropdownOpen, setIsFormatDropdownOpen] = useState(false);
 
   const toggleFullscreen = () => { 
     if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {}); 
@@ -47,18 +51,40 @@ export default function SettingsModal({ isOpen, onClose, roomCode, generateNewRo
            <input value={team2.name} onChange={e => setTeamName('team2', e.target.value)} placeholder={t.team2} className="bg-slate-800 rounded-xl p-3 text-white font-black uppercase text-center outline-none" />
          </div>
 
-         {/* DROPDOWN MENU FOR FORMATS */}
-         <div className="relative bg-slate-800 rounded-xl border border-slate-700">
-           <span className="absolute top-1.5 left-3 text-[10px] font-black uppercase text-slate-400">{t.format}</span>
-           <select 
-             value={matchFormat} 
-             onChange={(e) => setMatchFormat(Number(e.target.value) as 3 | 5)}
-             className="w-full bg-transparent text-white font-black uppercase pt-6 pb-2 px-3 appearance-none outline-none cursor-pointer"
+         {/* CUSTOM POLISHED DROPDOWN MENU */}
+         <div className="relative">
+           <button 
+             onClick={() => setIsFormatDropdownOpen(!isFormatDropdownOpen)}
+             className={`w-full py-3 px-4 bg-slate-800 border ${isFormatDropdownOpen ? 'border-emerald-500' : 'border-slate-700'} rounded-xl flex items-center justify-between text-white transition-all active:scale-[0.98]`}
            >
-             <option value={3} className="bg-slate-900">{t.bestOf3}</option>
-             <option value={5} className="bg-slate-900">{t.bestOf5}</option>
-           </select>
-           <ChevronDown className="absolute right-3 top-4 text-slate-400 pointer-events-none" size={20} />
+             <div className="flex flex-col items-start">
+               <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-0.5">{t.format}</span>
+               <span className="font-black uppercase text-lg leading-none">
+                 {matchFormat === 3 ? t.bestOf3 : t.bestOf5}
+               </span>
+             </div>
+             <ChevronDown className={`text-slate-400 transition-transform duration-300 ${isFormatDropdownOpen ? 'rotate-180 text-emerald-400' : ''}`} size={24} />
+           </button>
+
+           {/* Dropdown Options List */}
+           {isFormatDropdownOpen && (
+             <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border-2 border-slate-700 rounded-xl overflow-hidden z-50 shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex flex-col animate-in fade-in slide-in-from-top-2 duration-200">
+               {[3, 5].map((format) => (
+                 <button
+                   key={format}
+                   onClick={() => {
+                     setMatchFormat(format as 3 | 5);
+                     setIsFormatDropdownOpen(false);
+                   }}
+                   className={`w-full py-4 px-4 text-left font-black uppercase tracking-wider transition-colors border-b border-slate-700/50 last:border-0 ${
+                     matchFormat === format ? 'bg-indigo-600 text-white' : 'text-slate-300 hover:bg-slate-700'
+                   }`}
+                 >
+                   {format === 3 ? t.bestOf3 : t.bestOf5}
+                 </button>
+               ))}
+             </div>
+           )}
          </div>
 
          <button onClick={toggleUmpire} className={`py-4 rounded-xl border-2 font-black uppercase flex items-center justify-center gap-4 ${umpireEnabled ? 'bg-indigo-600 border-white text-white shadow-[0_0_15px_rgba(79,70,229,0.5)]' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
