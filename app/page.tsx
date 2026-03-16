@@ -19,7 +19,7 @@ export default function HomePage() {
     matchWinner, matchWinnerDismissed, setScores, scorePoint, undo,
     toggleGoldenPoint, toggleServer, setMatchFormat, resetMatch,
     umpireEnabled, toggleUmpire, setTeamName, 
-    isOutdoorMode, setOutdoorMode // <-- Pulling in the mode setter
+    isOutdoorMode, toggleOutdoorMode // <-- Perfectly matched here!
   } = useMatchStore();
 
   const [appStarted, setAppStarted] = useState(false); 
@@ -223,6 +223,20 @@ export default function HomePage() {
   return (
     <main className={`fixed inset-0 flex flex-col select-none overflow-hidden font-sans transition-colors duration-500 ${isOutdoorMode ? 'bg-white text-black' : 'bg-black text-white'}`}>
       
+      {/* OVERLAY 1: ROTATE DEVICE (Highest Priority z-[600]) */}
+      <div className="hidden portrait:flex fixed inset-0 z-[600] bg-slate-950 items-center justify-center flex-col gap-8 p-10 text-center">
+        <div className="relative flex items-center justify-center">
+          <div className="absolute inset-0 bg-emerald-500 blur-3xl opacity-20 animate-pulse rounded-full" />
+          <Smartphone size={100} className="text-emerald-400 relative z-10" />
+          <RotateCcw size={45} className="text-amber-400 absolute -bottom-2 -right-4 z-20" />
+        </div>
+        <div className="flex flex-col gap-2">
+          <h2 className="text-4xl md:text-6xl font-black uppercase tracking-widest text-white italic drop-shadow-lg">Rotate Device</h2>
+          <p className="text-slate-400 font-bold uppercase tracking-wider text-sm md:text-lg">Landscape Mode Required</p>
+        </div>
+      </div>
+
+      {/* OVERLAY 2: TAP TO START (Secondary Priority z-[500]) */}
       {!appStarted && (
         <div className="absolute inset-0 z-[500] bg-slate-950 flex flex-col items-center justify-center gap-6 cursor-pointer" onClick={handleAppStart}>
           <div className="relative">
@@ -238,11 +252,7 @@ export default function HomePage() {
         </div>
       )}
 
-      <div className="hidden portrait:flex fixed inset-0 z-[200] bg-black items-center justify-center flex-col gap-8 p-10 text-center">
-        <Smartphone size={80} className="text-emerald-500 animate-pulse" />
-        <h2 className="text-4xl font-black uppercase tracking-widest text-white italic">Rotate Device</h2>
-      </div>
-
+      {/* OVERLAY 3: MATCH WINNER */}
       {matchWinner && !matchWinnerDismissed && !localDismissed && (
         <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl animate-in fade-in duration-500" onClick={() => setLocalDismissed(true)}>
           <div className="relative flex flex-col items-center bg-slate-900 border-4 md:border-8 border-amber-400 p-8 md:p-16 rounded-3xl md:rounded-[4rem] text-center shadow-[0_0_100px_rgba(251,191,36,0.4)]" onClick={e => e.stopPropagation()}>
@@ -355,6 +365,7 @@ export default function HomePage() {
         </div>
       </footer>
 
+      {/* KEEPING MODALS DARK FOR HIGH CONTRAST */}
       {readmeOpen && (
         <div className="absolute inset-0 z-[300] bg-black/95 flex items-center justify-center p-4" onClick={handleCloseReadme}>
           <div className="bg-slate-900 border-2 md:border-4 border-emerald-500 p-6 md:p-10 rounded-2xl md:rounded-[3rem] w-full max-w-2xl flex flex-col gap-4 md:gap-6 max-h-[90vh] overflow-y-auto shadow-[0_0_50px_rgba(16,185,129,0.2)]" onClick={e => e.stopPropagation()}>
@@ -423,9 +434,9 @@ export default function HomePage() {
                 <button onClick={() => setMatchFormat(5)} className={`py-3 rounded-xl border text-lg font-black uppercase ${matchFormat === 5 ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Best of 5</button>
              </div>
              
-             {/* THE NEW CHAMELEON COURT TOGGLE & GOLDEN POINT IN A CLEAN GRID */}
+             {/* THE CHAMELEON COURT TOGGLE & GOLDEN POINT IN A CLEAN GRID */}
              <div className="grid grid-cols-2 gap-2">
-                <button onClick={() => setOutdoorMode(!isOutdoorMode)} className={`py-3 rounded-xl border-2 text-lg font-black uppercase transition-all ${isOutdoorMode ? 'bg-white border-white text-black shadow-[0_0_15px_rgba(255,255,255,0.6)]' : 'bg-black border-white text-white shadow-[0_0_15px_rgba(255,255,255,0.3)] [text-shadow:_0_0_10px_rgba(255,255,255,0.8)]'}`}>
+                <button onClick={toggleOutdoorMode} className={`py-3 rounded-xl border-2 text-lg font-black uppercase transition-all ${isOutdoorMode ? 'bg-white border-white text-black shadow-[0_0_15px_rgba(255,255,255,0.6)]' : 'bg-black border-white text-white shadow-[0_0_15px_rgba(255,255,255,0.3)] [text-shadow:_0_0_10px_rgba(255,255,255,0.8)]'}`}>
                   Court: {isOutdoorMode ? 'Outdoor' : 'Indoor'}
                 </button>
                 <button onClick={toggleGoldenPoint} className={`py-3 rounded-xl border text-lg font-black uppercase transition-all ${useGoldenPoint ? 'bg-amber-500 border-white text-black shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>

@@ -40,7 +40,7 @@ export interface PadelState {
   toggleServer: () => void;
   setMatchFormat: (format: 3 | 5) => void; 
   toggleUmpire: () => void;
-  toggleOutdoorMode: () => void; 
+  toggleOutdoorMode: () => void; // <-- Perfectly named here
   setTeamName: (team: TeamKey, name: string) => void;
   resetMatch: () => void;
 }
@@ -204,7 +204,7 @@ export const useMatchStore = create<PadelState>()(
         toggleServer: () => set((state) => ({ server: state.server === 'team1' ? 'team2' : 'team1' })),
         setMatchFormat: (format: 3 | 5) => set({ matchFormat: format }),
         toggleUmpire: () => set((state) => ({ umpireEnabled: !state.umpireEnabled })),
-        toggleOutdoorMode: () => set((state) => ({ isOutdoorMode: !state.isOutdoorMode })), 
+        toggleOutdoorMode: () => set((state) => ({ isOutdoorMode: !state.isOutdoorMode })), // <-- And here
         setTeamName: (team: TeamKey, name: string) => set((state) => ({ [team]: { ...state[team], name } })),
         undo: () => {
           const { history } = get();
