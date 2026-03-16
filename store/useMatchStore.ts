@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 type TeamKey = 'team1' | 'team2';
 
@@ -61,7 +62,7 @@ const createInitialTeamState = (name: string): TeamState => ({
   sets: 0,
 });
 
-const createInitialState = (): PadelState => ({
+const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch'> => ({
   useGoldenPoint: true,
   matchFormat: 3,
   server: 'team1',
@@ -72,12 +73,6 @@ const createInitialState = (): PadelState => ({
   team2: createInitialTeamState('Team 2'),
   setScores: [], // <-- Initialize empty set scores
   history: [],
-  scorePoint: () => {},
-  undo: () => {},
-  toggleGoldenPoint: () => {},
-  toggleServer: () => {},
-  setMatchFormat: () => {},
-  resetMatch: () => {},
 });
 
 const cloneSnapshot = (state: PadelState): PadelStateSnapshot => {
@@ -219,80 +214,77 @@ const handleTiebreakPoint = (state: PadelState, scoringTeamKey: TeamKey): void =
   }
 };
 
-export const useMatchStore = create<PadelState>((set, get) => {
-  const initialState = createInitialState();
+export const useMatchStore = create<PadelState>()(
+  persist(
+    (set, get) => {
+      const initialState = createInitialState();
 
-  return {
-    ...initialState,
-    scorePoint: (team: TeamKey) => {
-      const currentState = get();
+      return {
+        ...initialState,
+        scorePoint: (team: TeamKey) => {
+          const currentState = get();
 
-      if (currentState.matchWinner && !currentState.matchWinnerDismissed) {
-        set({ matchWinnerDismissed: true });
-        return; 
-      }
+          if (currentState.matchWinner && !currentState.matchWinnerDismissed) {
+            set({ matchWinnerDismissed: true });
+            return; 
+          }
 
-      const snapshot = cloneSnapshot(currentState);
+          const snapshot = cloneSnapshot(currentState);
 
-      set((state) => {
-        const nextState = { ...state };
-        nextState.history = [...nextState.history, snapshot];
+          set((state) => {
+            // We use JSON parse/stringify here to ensure we do a deep clone of the nested team objects
+            // before mutating them, which is safer when working with Zustand's persist middleware.
+            const nextState = JSON.parse(JSON.stringify(state)) as PadelState;
+            nextState.history = [...state.history, snapshot];
 
-        if (nextState.isTiebreak) {
-          handleTiebreakPoint(nextState, team);
-        } else {
-          handleStandardPoint(nextState, team);
-        }
+            if (nextState.isTiebreak) {
+              handleTiebreakPoint(nextState, team);
+            } else {
+              handleStandardPoint(nextState, team);
+            }
 
-        return nextState;
-      });
+            return nextState;
+          });
+        },
+        toggleServer: () => {
+          set((state) => ({
+            server: state.server === 'team1' ? 'team2' : 'team1',
+          }));
+        },
+        setMatchFormat: (format: 3 | 5) => {
+          set((state) => ({
+            matchFormat: format,
+          }));
+        },
+        undo: () => {
+          const { history } = get();
+          if (history.length === 0) return;
+
+          const previous = history[history.length - 1];
+          set((state) => ({
+            ...(JSON.parse(JSON.stringify(previous)) as PadelStateSnapshot),
+            history: state.history.slice(0, -1),
+          }));
+        },
+        toggleGoldenPoint: () => {
+          set((state) => ({
+            ...state,
+            useGoldenPoint: !state.useGoldenPoint,
+          }));
+        },
+        resetMatch: () => {
+          const { useGoldenPoint, matchFormat } = get();
+          const base = createInitialState();
+          set({
+            ...base,
+            useGoldenPoint,
+            matchFormat, 
+          });
+        },
+      };
     },
-    toggleServer: () => {
-      set((state) => ({
-        server: state.server === 'team1' ? 'team2' : 'team1',
-      }));
-    },
-    setMatchFormat: (format: 3 | 5) => {
-      set((state) => ({
-        matchFormat: format,
-      }));
-    },
-    undo: () => {
-      const { history } = get();
-      if (history.length === 0) return;
-
-      const previous = history[history.length - 1];
-      set((state) => ({
-        ...(JSON.parse(JSON.stringify(previous)) as PadelStateSnapshot),
-        history: state.history.slice(0, -1),
-        scorePoint: state.scorePoint,
-        undo: state.undo,
-        toggleGoldenPoint: state.toggleGoldenPoint,
-        toggleServer: state.toggleServer,
-        setMatchFormat: state.setMatchFormat,
-        resetMatch: state.resetMatch,
-      }) as PadelState);
-    },
-    toggleGoldenPoint: () => {
-      set((state) => ({
-        ...state,
-        useGoldenPoint: !state.useGoldenPoint,
-      }));
-    },
-    resetMatch: () => {
-      const { useGoldenPoint, matchFormat } = get();
-      const base = createInitialState();
-      set((state) => ({
-        ...base,
-        useGoldenPoint,
-        matchFormat, 
-        scorePoint: state.scorePoint,
-        undo: state.undo,
-        toggleGoldenPoint: state.toggleGoldenPoint,
-        toggleServer: state.toggleServer,
-        setMatchFormat: state.setMatchFormat,
-        resetMatch: state.resetMatch,
-      }));
-    },
-  };
-});
+    {
+      name: 'padel-match-storage', // This is the key used in the browser's local storage
+    }
+  )
+);

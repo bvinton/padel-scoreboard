@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useMatchStore } from "../store/useMatchStore";
-import { Undo2, Settings, Trophy, RotateCcw, Maximize, MessageSquareText, Smartphone, Save, History, Trash2, Volume2, HelpCircle, Copy, Check } from "lucide-react";
-import PusherClient from 'pusher-js'; // <-- NEW: WebSocket Client
+import { Undo2, Settings, Trophy, RotateCcw, Maximize, MessageSquareText, Smartphone, Save, History, Trash2, Volume2, HelpCircle, Copy, Check, Wifi, WifiOff, Play } from "lucide-react"; // <-- Added Wifi & Play icons
+import PusherClient from 'pusher-js';
 
 interface SavedMatch {
   id: number;
@@ -20,6 +20,10 @@ export default function HomePage() {
     toggleGoldenPoint, toggleServer, setMatchFormat, resetMatch,
   } = useMatchStore();
 
+  // --- NEW: Real-World Polish States ---
+  const [appStarted, setAppStarted] = useState(false); // Bypasses browser autoplay blocks
+  const [isOnline, setIsOnline] = useState(false);     // Tracks Pusher WiFi connection
+  
   const [lastProcessedId, setLastProcessedId] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -38,6 +42,8 @@ export default function HomePage() {
 
   const lastActionRef = useRef<{type: 'score'|'undo', team?: 'team1'|'team2', beforePoints: string, beforeGames: number, beforeSets: number} | null>(null);
 
+  // Note: If you want these saved too, move them into useMatchStore! 
+  // But for now, they are fine here if you use the App Started overlay.
   const [team1Name, setTeam1Name] = useState("TEAM 1");
   const [team2Name, setTeam2Name] = useState("TEAM 2");
 
@@ -51,7 +57,7 @@ export default function HomePage() {
   };
 
   const speakScore = (text: string) => {
-    if (!umpireEnabled || typeof window === "undefined") return;
+    if (!umpireEnabled || typeof window === "undefined" || !appStarted) return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     const voices = window.speechSynthesis.getVoices();
@@ -71,128 +77,72 @@ export default function HomePage() {
     setTimeout(() => setCopiedLink(null), 2000);
   };
 
+  // --- NEW: Startup Handler to unlock audio and wake lock ---
+  const handleAppStart = async () => {
+    setAppStarted(true);
+    
+    // 1. Legally unlock audio on iOS/Android by playing a silent utterance on tap
+    if (typeof window !== "undefined") {
+      const silentUtterance = new SpeechSynthesisUtterance("");
+      window.speechSynthesis.speak(silentUtterance);
+    }
+
+    // 2. Legally request Wake Lock now that user has interacted
+    try {
+      if ('wakeLock' in navigator) {
+        await (navigator as any).wakeLock.request('screen');
+      }
+    } catch (err) {
+      console.log("Wake lock failed:", err);
+    }
+  };
+
   // --- 2. HANDLERS ---
   const handleScore = (team: 'team1' | 'team2') => {
-    if (matchWinner && !localDismissed) {
-      setLocalDismissed(true);
-      return;
-    }
-    
-    lastActionRef.current = {
-      type: 'score',
-      team: team,
-      beforePoints: `${team1.points}-${team2.points}`,
-      beforeGames: team1.games + team2.games,
-      beforeSets: team1.sets + team2.sets
-    };
-    
-    endTimeRef.current = Date.now() + 20000;
-    setTimerStarted(true);
-    setTimeLeft(20);
-    
+    if (matchWinner && !localDismissed) { setLocalDismissed(true); return; }
+    lastActionRef.current = { type: 'score', team: team, beforePoints: `${team1.points}-${team2.points}`, beforeGames: team1.games + team2.games, beforeSets: team1.sets + team2.sets };
+    endTimeRef.current = Date.now() + 20000; setTimerStarted(true); setTimeLeft(20);
     scorePoint(team);
   };
 
   const handleUndo = () => {
-    lastActionRef.current = {
-      type: 'undo',
-      beforePoints: `${team1.points}-${team2.points}`,
-      beforeGames: team1.games + team2.games,
-      beforeSets: team1.sets + team2.sets
-    };
-      
-    undo();
-    endTimeRef.current = null;
-    setTimerStarted(false);
-    setTimeLeft(0);
-    setLocalDismissed(false);
-    prevGames1.current = team1.games; prevGames2.current = team2.games;
-    prevSets1.current = team1.sets; prevSets2.current = team2.sets;
-    prevIsTiebreak.current = isTiebreak;
+    lastActionRef.current = { type: 'undo', beforePoints: `${team1.points}-${team2.points}`, beforeGames: team1.games + team2.games, beforeSets: team1.sets + team2.sets };
+    undo(); endTimeRef.current = null; setTimerStarted(false); setTimeLeft(0); setLocalDismissed(false);
+    prevGames1.current = team1.games; prevGames2.current = team2.games; prevSets1.current = team1.sets; prevSets2.current = team2.sets; prevIsTiebreak.current = isTiebreak;
   };
 
   const handleReset = () => {
-    addLog("Match Reset to 0-0");
-    setHistoryLog([]); 
-    setLocalDismissed(false);
-    endTimeRef.current = null;
-    setTimerStarted(false);
-    setTimeLeft(0);
-    prevGames1.current = 0; prevGames2.current = 0;
-    prevSets1.current = 0; prevSets2.current = 0;
-    prevIsTiebreak.current = false;
-    resetMatch();
+    addLog("Match Reset to 0-0"); setHistoryLog([]); setLocalDismissed(false); endTimeRef.current = null; setTimerStarted(false); setTimeLeft(0);
+    prevGames1.current = 0; prevGames2.current = 0; prevSets1.current = 0; prevSets2.current = 0; prevIsTiebreak.current = false; resetMatch();
   };
 
   const handleSaveMatch = () => {
     let scoreString = setScores.map(set => `${set.team1}-${set.team2}`).join(', ');
-    if (team1.games > 0 || team2.games > 0) {
-      const currentScore = `${team1.games}-${team2.games}`;
-      scoreString = scoreString ? `${scoreString}, ${currentScore}` : currentScore;
-    }
-    const newMatch: SavedMatch = {
-      id: Date.now(),
-      date: new Date().toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
-      team1Name, team2Name, scores: scoreString || "0-0"
-    };
-    const updated = [newMatch, ...savedMatches];
-    setSavedMatches(updated);
-    localStorage.setItem('padelArchive', JSON.stringify(updated));
-    addLog("Match Saved to Archive");
+    if (team1.games > 0 || team2.games > 0) { const currentScore = `${team1.games}-${team2.games}`; scoreString = scoreString ? `${scoreString}, ${currentScore}` : currentScore; }
+    const newMatch: SavedMatch = { id: Date.now(), date: new Date().toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), team1Name, team2Name, scores: scoreString || "0-0" };
+    const updated = [newMatch, ...savedMatches]; setSavedMatches(updated); localStorage.setItem('padelArchive', JSON.stringify(updated)); addLog("Match Saved to Archive");
   };
 
-  const deleteSavedMatch = (id: number) => {
-    const updated = savedMatches.filter(m => m.id !== id);
-    setSavedMatches(updated);
-    localStorage.setItem('padelArchive', JSON.stringify(updated));
-  };
-
-  const clearArchive = () => {
-    if (window.confirm("Clear all match history?")) {
-      setSavedMatches([]); localStorage.removeItem('padelArchive');
-    }
-  };
-
-  const handleCloseReadme = () => {
-    if (dontShowAgain) {
-      localStorage.setItem('padelReadmeDismissed', 'true');
-    }
-    setReadmeOpen(false);
-  };
-
-  const generateNewRoomCode = () => {
-    if (window.confirm("This will disconnect your current Flic buttons. Are you sure?")) {
-      const newRoom = Math.random().toString(36).substring(2, 6).toUpperCase();
-      localStorage.setItem('padelRoomCode', newRoom);
-      setRoomCode(newRoom);
-      setLastProcessedId(Date.now());
-    }
-  };
+  const deleteSavedMatch = (id: number) => { const updated = savedMatches.filter(m => m.id !== id); setSavedMatches(updated); localStorage.setItem('padelArchive', JSON.stringify(updated)); };
+  const clearArchive = () => { if (window.confirm("Clear all match history?")) { setSavedMatches([]); localStorage.removeItem('padelArchive'); } };
+  const handleCloseReadme = () => { if (dontShowAgain) localStorage.setItem('padelReadmeDismissed', 'true'); setReadmeOpen(false); };
+  const generateNewRoomCode = () => { if (window.confirm("Disconnect Flic buttons?")) { const newRoom = Math.random().toString(36).substring(2, 6).toUpperCase(); localStorage.setItem('padelRoomCode', newRoom); setRoomCode(newRoom); setLastProcessedId(Date.now()); } };
 
   // --- 3. EFFECTS ---
-
   useEffect(() => {
     let savedRoom = localStorage.getItem('padelRoomCode');
-    if (!savedRoom) {
-      savedRoom = Math.random().toString(36).substring(2, 6).toUpperCase();
-      localStorage.setItem('padelRoomCode', savedRoom);
-    }
+    if (!savedRoom) { savedRoom = Math.random().toString(36).substring(2, 6).toUpperCase(); localStorage.setItem('padelRoomCode', savedRoom); }
     setRoomCode(savedRoom);
-
-    const isDismissed = localStorage.getItem('padelReadmeDismissed');
-    if (isDismissed !== 'true') setReadmeOpen(true);
+    if (localStorage.getItem('padelReadmeDismissed') !== 'true') setReadmeOpen(true);
   }, []);
   
   useEffect(() => {
     if (!lastActionRef.current) return;
     const { type, team, beforePoints, beforeGames, beforeSets } = lastActionRef.current;
-    const afterPoints = `${team1.points}-${team2.points}`;
-    const afterGames = team1.games + team2.games;
-    const afterSets = team1.sets + team2.sets;
+    const afterPoints = `${team1.points}-${team2.points}`; const afterGames = team1.games + team2.games; const afterSets = team1.sets + team2.sets;
     
-    if (type === 'undo') {
-      addLog(`Undo used at (${beforePoints}) score (${afterPoints})`);
-    } else if (type === 'score' && team) {
+    if (type === 'undo') addLog(`Undo used at (${beforePoints}) score (${afterPoints})`);
+    else if (type === 'score' && team) {
       const teamName = team === 'team1' ? team1Name : team2Name;
       if (matchWinner) addLog(`${teamName} point at (${beforePoints}) Game, Set and Match ${teamName}`);
       else if (afterSets > beforeSets) addLog(`${teamName} point at (${beforePoints}) Game and Set ${teamName}`);
@@ -207,40 +157,22 @@ export default function HomePage() {
     const interval = setInterval(() => {
       const remaining = Math.max(0, (endTimeRef.current! - Date.now()) / 1000);
       setTimeLeft(remaining);
-      if (remaining <= 0) {
-        clearInterval(interval);
-        setTimeout(() => setTimerStarted(false), 2000);
-      }
+      if (remaining <= 0) { clearInterval(interval); setTimeout(() => setTimerStarted(false), 2000); }
     }, 50);
     return () => clearInterval(interval);
   }, [timerStarted]);
 
-  const prevGames1 = useRef(team1.games);
-  const prevGames2 = useRef(team2.games);
-  const prevSets1 = useRef(team1.sets);
-  const prevSets2 = useRef(team2.sets);
+  const prevGames1 = useRef(team1.games); const prevGames2 = useRef(team2.games);
+  const prevSets1 = useRef(team1.sets); const prevSets2 = useRef(team2.sets);
   const prevIsTiebreak = useRef(isTiebreak);
 
   useEffect(() => {
     if (!umpireEnabled) return;
-    if (isTiebreak && !prevIsTiebreak.current) {
-        speakScore("Six games all. Tiebreak.");
-        prevIsTiebreak.current = true;
-        return;
-    }
+    if (isTiebreak && !prevIsTiebreak.current) { speakScore("Six games all. Tiebreak."); prevIsTiebreak.current = true; return; }
     prevIsTiebreak.current = isTiebreak;
-    if (matchWinner && !matchWinnerDismissed && !localDismissed) {
-      speakScore(`Game, Set and Match. ${matchWinner === 'team1' ? team1Name : team2Name}`);
-      return;
-    }
-    if (team1.sets > prevSets1.current) {
-        speakScore(`Game and Set, ${team1Name}`);
-        prevSets1.current = team1.sets; prevGames1.current = 0; prevGames2.current = 0; return;
-    }
-    if (team2.sets > prevSets2.current) {
-        speakScore(`Game and Set, ${team2Name}`);
-        prevSets2.current = team2.sets; prevGames1.current = 0; prevGames2.current = 0; return;
-    }
+    if (matchWinner && !matchWinnerDismissed && !localDismissed) { speakScore(`Game, Set and Match. ${matchWinner === 'team1' ? team1Name : team2Name}`); return; }
+    if (team1.sets > prevSets1.current) { speakScore(`Game and Set, ${team1Name}`); prevSets1.current = team1.sets; prevGames1.current = 0; prevGames2.current = 0; return; }
+    if (team2.sets > prevSets2.current) { speakScore(`Game and Set, ${team2Name}`); prevSets2.current = team2.sets; prevGames1.current = 0; prevGames2.current = 0; return; }
     if (team1.games > prevGames1.current) { speakScore(`Game, ${team1Name}`); prevGames1.current = team1.games; return; }
     if (team2.games > prevGames2.current) { speakScore(`Game, ${team2Name}`); prevGames2.current = team2.games; return; }
     
@@ -250,40 +182,20 @@ export default function HomePage() {
     else if (p1 === '40' && p2 === '40') speakScore("Deuce");
     else if (isTiebreak) speakScore(`${p1}, ${p2}`);
     else {
-      const p1Text = p1 === '0' ? "Love" : p1;
-      const p2Text = p2 === '0' ? "Love" : p2;
-      if (p1 === p2) speakScore(`${p1Text} All`);
-      else speakScore(`${p1Text}, ${p2Text}`);
+      const p1Text = p1 === '0' ? "Love" : p1; const p2Text = p2 === '0' ? "Love" : p2;
+      if (p1 === p2) speakScore(`${p1Text} All`); else speakScore(`${p1Text}, ${p2Text}`);
     }
   }, [team1.points, team2.points, team1.games, team2.games, team1.sets, team2.sets, isTiebreak, matchWinner, localDismissed, team1Name, team2Name, matchWinnerDismissed, umpireEnabled]);
 
-  useEffect(() => {
-    const saved = localStorage.getItem('padelArchive');
-    if (saved) { try { setSavedMatches(JSON.parse(saved)); } catch (e) {} }
-  }, []);
-
-  useEffect(() => {
-    let wakeLock: any = null;
-    const requestWakeLock = async () => { try { if ('wakeLock' in navigator) wakeLock = await (navigator as any).wakeLock.request('screen'); } catch (err) {} };
-    requestWakeLock();
-    const handleVisibilityChange = () => { if (wakeLock !== null && document.visibilityState === 'visible') requestWakeLock(); };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    const lockInterval = setInterval(requestWakeLock, 30000);
-    return () => { document.removeEventListener('visibilitychange', handleVisibilityChange); clearInterval(lockInterval); if (wakeLock) wakeLock.release().catch(() => {}); };
-  }, []);
+  useEffect(() => { const saved = localStorage.getItem('padelArchive'); if (saved) { try { setSavedMatches(JSON.parse(saved)); } catch (e) {} } }, []);
 
   const winSoundRef = useRef<HTMLAudioElement | null>(null);
   useEffect(() => { winSoundRef.current = new Audio("https://www.myinstants.com/media/sounds/final-fantasy-vii-victory-fanfare-1.mp3"); }, []);
   useEffect(() => { if (matchWinner && !matchWinnerDismissed && !localDismissed && winSoundRef.current) winSoundRef.current.play().catch(() => {}); }, [matchWinner, matchWinnerDismissed, localDismissed]);
 
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
-    else document.exitFullscreen();
-  };
+  const toggleFullscreen = () => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {}); else document.exitFullscreen(); };
 
-  // --- THE NEW WEBSOCKET REAL-TIME ENGINE ---
-  
-  // We use refs to guarantee the WebSocket always triggers the latest score functions
+  // --- WEBSOCKET ENGINE WITH CONNECTION TRACKING ---
   const lastIdRef = useRef(lastProcessedId);
   const handlersRef = useRef({ handleScore, handleUndo });
   useEffect(() => { handlersRef.current = { handleScore, handleUndo }; });
@@ -291,63 +203,64 @@ export default function HomePage() {
   useEffect(() => {
     if (!roomCode) return; 
     
-    // 1. On load, do a single fetch to grab the current state
-    fetch(`/api/flic?room=${roomCode}`)
-      .then(res => res.json())
-      .then(data => {
-         if (data.id) {
-           lastIdRef.current = data.id;
-           setLastProcessedId(data.id);
-         }
-      }).catch(() => {});
+    fetch(`/api/flic?room=${roomCode}`).then(res => res.json()).then(data => {
+         if (data.id) { lastIdRef.current = data.id; setLastProcessedId(data.id); }
+    }).catch(() => {});
 
-    // 2. Open the silent WebSockets connection
-    // Ensure you have NEXT_PUBLIC_PUSHER_KEY and NEXT_PUBLIC_PUSHER_CLUSTER in Vercel
     const pusherKey = process.env.NEXT_PUBLIC_PUSHER_KEY || '';
     const pusherCluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER || '';
-    
-    if (!pusherKey) return; // Prevent crashing if keys aren't added yet
+    if (!pusherKey) return; 
 
     const pusher = new PusherClient(pusherKey, { cluster: pusherCluster });
+    
+    // --- NEW: Track if WiFi drops ---
+    pusher.connection.bind('state_change', function(states: { current: string }) {
+      setIsOnline(states.current === 'connected');
+    });
+
     const channel = pusher.subscribe(`room-${roomCode}`);
 
     channel.bind('button-pressed', (data: { id: number, type: string }) => {
-      // If we receive a new timestamp ID, update the score!
       if (data.id > lastIdRef.current) {
         lastIdRef.current = data.id;
         setLastProcessedId(data.id);
-        
         if (data.type === 'team1') handlersRef.current.handleScore('team1');
         if (data.type === 'team2') handlersRef.current.handleScore('team2');
         if (data.type === 'undo') handlersRef.current.handleUndo();
       }
     });
 
-    return () => {
-      channel.unbind_all();
-      channel.unsubscribe();
-      pusher.disconnect();
-    };
+    return () => { channel.unbind_all(); channel.unsubscribe(); pusher.disconnect(); };
   }, [roomCode]);
 
-  // --- UI RENDERING ---
-
   const formatPoints = (p: string | number) => typeof p === "number" ? p.toString() : p;
-
-  const getBottomLeftX2 = () => timeLeft >= 16 ? ((timeLeft - 16) / 4) * 50 : 0;
-  const getBottomRightX1 = () => timeLeft >= 16 ? 100 - (((timeLeft - 16) / 4) * 50) : 100;
-  const getSideY2 = () => timeLeft >= 16 ? 100 : timeLeft >= 4 ? ((timeLeft - 4) / 12) * 100 : 0;
-  const getTopLeftX1 = () => timeLeft >= 4 ? 0 : 50 - ((timeLeft / 4) * 50);
+  const getBottomLeftX2 = () => timeLeft >= 16 ? ((timeLeft - 16) / 4) * 50 : 0; const getBottomRightX1 = () => timeLeft >= 16 ? 100 - (((timeLeft - 16) / 4) * 50) : 100;
+  const getSideY2 = () => timeLeft >= 16 ? 100 : timeLeft >= 4 ? ((timeLeft - 4) / 12) * 100 : 0; const getTopLeftX1 = () => timeLeft >= 4 ? 0 : 50 - ((timeLeft / 4) * 50);
   const getTopRightX2 = () => timeLeft >= 4 ? 100 : 50 + ((timeLeft / 4) * 50);
-
-  const getTimerStrokeColor = () => {
-    if (timeLeft > 10) return "text-emerald-500 drop-shadow-[0_0_12px_rgba(16,185,129,1)]";
-    return "text-amber-500 drop-shadow-[0_0_12px_rgba(245,158,11,1)]";
-  };
+  const getTimerStrokeColor = () => { if (timeLeft > 10) return "text-emerald-500 drop-shadow-[0_0_12px_rgba(16,185,129,1)]"; return "text-amber-500 drop-shadow-[0_0_12px_rgba(245,158,11,1)]"; };
 
   return (
     <main className="fixed inset-0 flex flex-col bg-black text-white select-none overflow-hidden font-sans">
       
+      {/* NEW: TAP TO START OVERLAY */}
+      {!appStarted && (
+        <div 
+          className="absolute inset-0 z-[500] bg-slate-950 flex flex-col items-center justify-center gap-6 cursor-pointer"
+          onClick={handleAppStart}
+        >
+          <div className="relative">
+            <div className="absolute inset-0 bg-emerald-500 blur-3xl opacity-20 animate-pulse rounded-full" />
+            <Play size={100} className="text-emerald-400 relative z-10" />
+          </div>
+          <h1 className="text-4xl md:text-6xl font-black uppercase tracking-widest italic text-center text-white drop-shadow-lg">
+            Tap to Start Match
+          </h1>
+          <p className="text-slate-400 text-sm md:text-lg font-bold uppercase tracking-wider text-center px-8">
+            Enables Umpire Audio & Keeps Screen Awake
+          </p>
+        </div>
+      )}
+
       <div className="hidden portrait:flex fixed inset-0 z-[200] bg-black items-center justify-center flex-col gap-8 p-10 text-center">
         <Smartphone size={80} className="text-emerald-500 animate-pulse" />
         <h2 className="text-4xl font-black uppercase tracking-widest text-white italic">Rotate Device</h2>
@@ -385,38 +298,16 @@ export default function HomePage() {
                 <line x1={`${getBottomRightX1()}%`} y1="100%" x2="100%" y2="100%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerStrokeColor()}`} />
               </svg>
             )}
-
-            {timeLeft <= 0 && (
-              <div className="absolute inset-0 border-[6px] border-red-600 shadow-[inset_0_0_40px_rgba(220,38,38,0.8)] animate-pulse" />
-            )}
+            {timeLeft <= 0 && <div className="absolute inset-0 border-[6px] border-red-600 shadow-[inset_0_0_40px_rgba(220,38,38,0.8)] animate-pulse" />}
           </div>
         )}
 
         {[ { id: "team1", data: team1, label: team1Name }, { id: "team2", data: team2, label: team2Name } ].map((t) => (
-          <button 
-            key={t.id} 
-            onClick={() => handleScore(t.id as any)} 
-            className={`flex-1 min-h-0 border-b flex flex-row items-center relative transition-all ${
-              server === t.id 
-                ? "border-emerald-500/50 bg-emerald-500/20 shadow-[inset_0_0_40px_rgba(16,185,129,0.25)] z-10" 
-                : "border-slate-800 bg-slate-900/20"
-            }`}
-          >
+          <button key={t.id} onClick={() => handleScore(t.id as any)} className={`flex-1 min-h-0 border-b flex flex-row items-center relative transition-all ${server === t.id ? "border-emerald-500/50 bg-emerald-500/20 shadow-[inset_0_0_40px_rgba(16,185,129,0.25)] z-10" : "border-slate-800 bg-slate-900/20"}`}>
             <div className="absolute top-1 md:top-3 left-3 md:left-8 z-20">
-              <span className={`text-[10px] md:text-2xl font-black italic uppercase transition-all duration-300 ${
-                server === t.id 
-                  ? "text-emerald-400 opacity-100 drop-shadow-[0_0_10px_rgba(16,185,129,0.8)]" 
-                  : "text-slate-400 opacity-60"
-              }`}>
-                {t.label}
-              </span>
+              <span className={`text-[10px] md:text-2xl font-black italic uppercase transition-all duration-300 ${server === t.id ? "text-emerald-400 opacity-100 drop-shadow-[0_0_10px_rgba(16,185,129,0.8)]" : "text-slate-400 opacity-60"}`}>{t.label}</span>
             </div>
-
-            {server === t.id && (
-              <div className="absolute top-1 md:top-3 right-3 md:right-8 z-20">
-                <span className="bg-emerald-500 text-black px-2 md:px-5 py-0.5 rounded-full font-black text-[8px] md:text-sm animate-pulse uppercase">SERVING</span>
-              </div>
-            )}
+            {server === t.id && <div className="absolute top-1 md:top-3 right-3 md:right-8 z-20"><span className="bg-emerald-500 text-black px-2 md:px-5 py-0.5 rounded-full font-black text-[8px] md:text-sm animate-pulse uppercase">SERVING</span></div>}
             
             <div className="w-[28%] md:w-[22%] h-full flex flex-col items-center justify-center border-r border-slate-800/30 bg-black/40">
               <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase tracking-widest italic">Sets</span>
@@ -424,9 +315,7 @@ export default function HomePage() {
             </div>
             
             <div className="flex-1 h-full flex items-center justify-center overflow-hidden">
-              <span className="text-[32vh] md:text-[45vh] font-black leading-none italic scale-x-[1.4] md:scale-x-[1.6] transform-gpu [text-shadow:_0_0_40px_rgb(255_255_255_/_30%),_0_0_10px_rgb(255_255_255_/_60%)]">
-                {formatPoints(t.data.points)}
-              </span>
+              <span className="text-[32vh] md:text-[45vh] font-black leading-none italic scale-x-[1.4] md:scale-x-[1.6] transform-gpu [text-shadow:_0_0_40px_rgb(255_255_255_/_30%),_0_0_10px_rgb(255_255_255_/_60%)]">{formatPoints(t.data.points)}</span>
             </div>
             
             <div className="w-[28%] md:w-[22%] h-full flex flex-col items-center justify-center border-l border-slate-800/30 bg-black/40">
@@ -449,19 +338,23 @@ export default function HomePage() {
           </button>
         </div>
         
-        <div className={`px-3 py-0.5 rounded-full border-slate-800 font-black uppercase text-[8px] md:text-sm ${
-          isTiebreak ? 'text-amber-400 animate-pulse' : 'text-slate-600'
-        }`}>
+        <div className={`px-3 py-0.5 rounded-full border-slate-800 font-black uppercase text-[8px] md:text-sm ${isTiebreak ? 'text-amber-400 animate-pulse' : 'text-slate-600'}`}>
           {isTiebreak ? 'TIEBREAK' : 'MATCH'}
         </div>
 
         <div className="flex items-center gap-1 md:gap-3 h-full">
-          <button onClick={handleReset} className="text-[10px] md:text-lg font-black text-red-900/80 uppercase mr-1 md:mr-4">Reset</button>
+          <button onClick={handleReset} className="text-[10px] md:text-lg font-black text-red-900/80 uppercase mr-1 md:mr-2">Reset</button>
           
-          <button onClick={() => setReadmeOpen(true)} className="p-1 text-emerald-500 active:scale-95">
-            <HelpCircle size={20} />
-          </button>
-
+          {/* NEW: WIFI CONNECTION STATUS LIGHT */}
+          <div className="flex items-center justify-center bg-black/40 p-1 md:p-1.5 rounded-full border border-slate-800 mr-1 md:mr-2" title={isOnline ? "Connected to Server" : "Offline / Reconnecting"}>
+            {isOnline ? (
+              <Wifi size={16} className="text-emerald-500 drop-shadow-[0_0_5px_rgba(16,185,129,0.8)]" />
+            ) : (
+              <WifiOff size={16} className="text-red-500 animate-pulse drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]" />
+            )}
+          </div>
+          
+          <button onClick={() => setReadmeOpen(true)} className="p-1 text-emerald-500 active:scale-95"><HelpCircle size={20} /></button>
           <button onClick={() => setArchiveOpen(true)} className="p-1 text-indigo-400 active:scale-95"><History size={20} /></button>
           <button onClick={() => setHistoryOpen(true)} className="p-1 text-slate-600 active:scale-95"><MessageSquareText size={20} /></button>
           <button onClick={() => setSettingsOpen(true)} className="p-1 text-slate-600 active:scale-95"><Settings size={20} /></button>
@@ -476,7 +369,6 @@ export default function HomePage() {
              
              <div className="text-slate-300 text-sm md:text-lg space-y-4 font-medium flex-1 overflow-y-auto pr-2 custom-scrollbar">
                 <p>Welcome to your professional Padel Scoreboard! You can simply tap the screen to score points, but for the ultimate experience, connect your <strong>Flic Smart Buttons</strong>.</p>
-                
                 <h3 className="text-white font-bold uppercase tracking-wider mt-4">How to Bind Flic Buttons:</h3>
                 <ol className="list-decimal pl-5 space-y-2 text-slate-400 mb-6">
                   <li>Open the <strong>Flic App</strong> on your device.</li>
@@ -491,38 +383,21 @@ export default function HomePage() {
                      <span className="block text-emerald-400 font-bold mb-2 uppercase text-sm">Team 1 Button</span>
                      <div className="flex items-center gap-2 bg-black/40 p-2 md:p-3 rounded-lg border border-slate-700">
                        <code className="text-white font-mono break-all text-xs md:text-sm flex-1">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=team1</code>
-                       <button 
-                         onClick={() => handleCopy(`https://padel-scoreboard-mocha.vercel.app/api/flic?room=${roomCode}&type=team1`, 'team1')}
-                         className={`p-2 rounded-lg transition-all flex-shrink-0 ${copiedLink === 'team1' ? 'bg-emerald-500 text-black' : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white'}`}
-                       >
-                         {copiedLink === 'team1' ? <Check size={18} /> : <Copy size={18} />}
-                       </button>
+                       <button onClick={() => handleCopy(`https://padel-scoreboard-mocha.vercel.app/api/flic?room=${roomCode}&type=team1`, 'team1')} className={`p-2 rounded-lg transition-all flex-shrink-0 ${copiedLink === 'team1' ? 'bg-emerald-500 text-black' : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white'}`}>{copiedLink === 'team1' ? <Check size={18} /> : <Copy size={18} />}</button>
                      </div>
                    </div>
-                   
                    <div className="bg-slate-800 p-4 rounded-xl border-l-4 border-indigo-500 shadow-md">
                      <span className="block text-indigo-400 font-bold mb-2 uppercase text-sm">Team 2 Button</span>
                      <div className="flex items-center gap-2 bg-black/40 p-2 md:p-3 rounded-lg border border-slate-700">
                        <code className="text-white font-mono break-all text-xs md:text-sm flex-1">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=team2</code>
-                       <button 
-                         onClick={() => handleCopy(`https://padel-scoreboard-mocha.vercel.app/api/flic?room=${roomCode}&type=team2`, 'team2')}
-                         className={`p-2 rounded-lg transition-all flex-shrink-0 ${copiedLink === 'team2' ? 'bg-indigo-500 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white'}`}
-                       >
-                         {copiedLink === 'team2' ? <Check size={18} /> : <Copy size={18} />}
-                       </button>
+                       <button onClick={() => handleCopy(`https://padel-scoreboard-mocha.vercel.app/api/flic?room=${roomCode}&type=team2`, 'team2')} className={`p-2 rounded-lg transition-all flex-shrink-0 ${copiedLink === 'team2' ? 'bg-indigo-500 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white'}`}>{copiedLink === 'team2' ? <Check size={18} /> : <Copy size={18} />}</button>
                      </div>
                    </div>
-
                    <div className="bg-slate-800 p-4 rounded-xl border-l-4 border-amber-500 shadow-md">
                      <span className="block text-amber-400 font-bold mb-2 uppercase text-sm">Undo Button</span>
                      <div className="flex items-center gap-2 bg-black/40 p-2 md:p-3 rounded-lg border border-slate-700">
                        <code className="text-white font-mono break-all text-xs md:text-sm flex-1">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=undo</code>
-                       <button 
-                         onClick={() => handleCopy(`https://padel-scoreboard-mocha.vercel.app/api/flic?room=${roomCode}&type=undo`, 'undo')}
-                         className={`p-2 rounded-lg transition-all flex-shrink-0 ${copiedLink === 'undo' ? 'bg-amber-500 text-black' : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white'}`}
-                       >
-                         {copiedLink === 'undo' ? <Check size={18} /> : <Copy size={18} />}
-                       </button>
+                       <button onClick={() => handleCopy(`https://padel-scoreboard-mocha.vercel.app/api/flic?room=${roomCode}&type=undo`, 'undo')} className={`p-2 rounded-lg transition-all flex-shrink-0 ${copiedLink === 'undo' ? 'bg-amber-500 text-black' : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white'}`}>{copiedLink === 'undo' ? <Check size={18} /> : <Copy size={18} />}</button>
                      </div>
                    </div>
                 </div>
@@ -531,20 +406,10 @@ export default function HomePage() {
 
              <div className="flex flex-col gap-3 mt-2 border-t border-slate-800 pt-4">
                <div className="flex items-center gap-3 justify-center">
-                 <input 
-                    type="checkbox" 
-                    id="dontShow" 
-                    checked={dontShowAgain} 
-                    onChange={e => setDontShowAgain(e.target.checked)} 
-                    className="w-5 h-5 md:w-6 md:h-6 accent-emerald-500 cursor-pointer" 
-                 />
-                 <label htmlFor="dontShow" className="text-slate-400 font-bold uppercase tracking-wider text-xs md:text-sm cursor-pointer select-none">
-                   Don't show this automatically again
-                 </label>
+                 <input type="checkbox" id="dontShow" checked={dontShowAgain} onChange={e => setDontShowAgain(e.target.checked)} className="w-5 h-5 md:w-6 md:h-6 accent-emerald-500 cursor-pointer" />
+                 <label htmlFor="dontShow" className="text-slate-400 font-bold uppercase tracking-wider text-xs md:text-sm cursor-pointer select-none">Don't show this automatically again</label>
                </div>
-               <button onClick={handleCloseReadme} className="py-3 md:py-5 bg-emerald-500 text-black font-black rounded-xl md:rounded-2xl uppercase active:scale-95 transition-transform text-lg md:text-2xl shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)]">
-                 Got It, Let's Play
-               </button>
+               <button onClick={handleCloseReadme} className="py-3 md:py-5 bg-emerald-500 text-black font-black rounded-xl md:rounded-2xl uppercase active:scale-95 transition-transform text-lg md:text-2xl shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)]">Got It, Let's Play</button>
              </div>
           </div>
         </div>
@@ -555,10 +420,7 @@ export default function HomePage() {
           <div className="bg-slate-900 border-2 border-slate-700 p-4 rounded-2xl w-full max-w-3xl flex flex-col gap-3 max-h-[90vh]" onClick={e => e.stopPropagation()}>
             <h2 className="text-xl font-black uppercase text-center text-slate-500 border-b border-slate-800 pb-2 italic">Saved Matches</h2>
             <div className="flex-1 overflow-y-auto flex flex-col gap-2">
-              {savedMatches.length === 0 ? (
-                <div className="text-center text-slate-600 font-bold py-10 text-xl uppercase italic">No matches saved yet</div>
-              ) : (
-                savedMatches.map(match => (
+              {savedMatches.length === 0 ? <div className="text-center text-slate-600 font-bold py-10 text-xl uppercase italic">No matches saved yet</div> : savedMatches.map(match => (
                   <div key={match.id} className="bg-slate-800 p-3 rounded-xl flex items-center justify-between border-l-4 border-indigo-500">
                     <div className="flex flex-col">
                       <span className="text-slate-400 text-xs font-bold uppercase">{match.date}</span>
@@ -567,8 +429,7 @@ export default function HomePage() {
                     </div>
                     <button onClick={() => deleteSavedMatch(match.id)} className="p-2 text-red-500"><Trash2 size={24} /></button>
                   </div>
-                ))
-              )}
+                ))}
             </div>
             <div className="flex items-center justify-between border-t border-slate-800 pt-3">
               <button onClick={clearArchive} className="text-red-900/50 text-xs uppercase">Clear All</button>
