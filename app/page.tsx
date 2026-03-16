@@ -28,11 +28,13 @@ export default function HomePage() {
   const [localDismissed, setLocalDismissed] = useState(false);
   const [umpireEnabled, setUmpireEnabled] = useState(false);
   
+  // NEW: Room Code State
+  const [roomCode, setRoomCode] = useState<string>("");
+  
   const [timeLeft, setTimeLeft] = useState(0);
   const [timerStarted, setTimerStarted] = useState(false);
   const endTimeRef = useRef<number | null>(null);
 
-  // Memory Ref to hold the "Before" state for the Detailed Log
   const lastActionRef = useRef<{type: 'score'|'undo', team?: 'team1'|'team2', beforePoints: string, beforeGames: number, beforeSets: number} | null>(null);
 
   const [team1Name, setTeam1Name] = useState("TEAM 1");
@@ -151,17 +153,32 @@ export default function HomePage() {
     setReadmeOpen(false);
   };
 
+  const generateNewRoomCode = () => {
+    if (window.confirm("This will disconnect your current Flic buttons. Are you sure?")) {
+      const newRoom = Math.random().toString(36).substring(2, 6).toUpperCase();
+      localStorage.setItem('padelRoomCode', newRoom);
+      setRoomCode(newRoom);
+      setLastProcessedId(Date.now()); // Reset polling tracker for new room
+    }
+  };
+
   // --- 3. EFFECTS ---
 
-  // Check for README on initial load
+  // Generate or Load Room Code & Check Readme
   useEffect(() => {
+    let savedRoom = localStorage.getItem('padelRoomCode');
+    if (!savedRoom) {
+      savedRoom = Math.random().toString(36).substring(2, 6).toUpperCase();
+      localStorage.setItem('padelRoomCode', savedRoom);
+    }
+    setRoomCode(savedRoom);
+
     const isDismissed = localStorage.getItem('padelReadmeDismissed');
     if (isDismissed !== 'true') {
       setReadmeOpen(true);
     }
   }, []);
   
-  // UMPIRE-STYLE DETAILED LOGGING EFFECT
   useEffect(() => {
     if (!lastActionRef.current) return;
     
@@ -189,26 +206,19 @@ export default function HomePage() {
     lastActionRef.current = null;
   }, [team1.points, team2.points, team1.games, team2.games, team1.sets, team2.sets, matchWinner, team1Name, team2Name]);
 
-  // PRECISION TIMER
   useEffect(() => {
     if (!timerStarted || !endTimeRef.current) return;
-
     const interval = setInterval(() => {
       const remaining = Math.max(0, (endTimeRef.current! - Date.now()) / 1000);
       setTimeLeft(remaining);
-
       if (remaining <= 0) {
         clearInterval(interval);
-        setTimeout(() => {
-          setTimerStarted(false);
-        }, 2000);
+        setTimeout(() => setTimerStarted(false), 2000);
       }
     }, 50);
-
     return () => clearInterval(interval);
   }, [timerStarted]);
 
-  // UMPIRE VOICE
   const prevGames1 = useRef(team1.games);
   const prevGames2 = useRef(team2.games);
   const prevSets1 = useRef(team1.sets);
@@ -267,13 +277,10 @@ export default function HomePage() {
     if (saved) { try { setSavedMatches(JSON.parse(saved)); } catch (e) {} }
   }, []);
 
-  // --- AGGRESSIVE WAKE LOCK ---
   useEffect(() => {
     let wakeLock: any = null;
     const requestWakeLock = async () => {
-      try {
-        if ('wakeLock' in navigator) wakeLock = await (navigator as any).wakeLock.request('screen');
-      } catch (err) {}
+      try { if ('wakeLock' in navigator) wakeLock = await (navigator as any).wakeLock.request('screen'); } catch (err) {}
     };
     requestWakeLock();
     const handleVisibilityChange = () => { if (wakeLock !== null && document.visibilityState === 'visible') requestWakeLock(); };
@@ -297,10 +304,13 @@ export default function HomePage() {
     else document.exitFullscreen();
   };
 
+  // ROOM CODE POLLING
   useEffect(() => {
+    if (!roomCode) return; // Don't poll until we have a room code
+    
     const pollFlic = async () => {
       try {
-        const res = await fetch('/api/flic');
+        const res = await fetch(`/api/flic?room=${roomCode}`);
         const data = await res.json();
         if (data.id > lastProcessedId) {
           setLastProcessedId(data.id);
@@ -312,7 +322,7 @@ export default function HomePage() {
     };
     const interval = setInterval(pollFlic, 500);
     return () => clearInterval(interval);
-  }, [lastProcessedId, team1Name, team2Name, matchWinner, localDismissed]);
+  }, [lastProcessedId, team1Name, team2Name, matchWinner, localDismissed, roomCode]);
 
   const formatPoints = (p: string | number) => typeof p === "number" ? p.toString() : p;
 
@@ -451,7 +461,7 @@ export default function HomePage() {
       </footer>
 
       {/* MODALS */}
-      {/* README / ONBOARDING MODAL WITH IMAGE */}
+      {/* README / ONBOARDING MODAL WITH DYNAMIC ROOM CODES */}
       {readmeOpen && (
         <div className="absolute inset-0 z-[300] bg-black/95 flex items-center justify-center p-4" onClick={handleCloseReadme}>
           <div className="bg-slate-900 border-2 md:border-4 border-emerald-500 p-6 md:p-10 rounded-2xl md:rounded-[3rem] w-full max-w-2xl flex flex-col gap-4 md:gap-6 max-h-[90vh] overflow-y-auto shadow-[0_0_50px_rgba(16,185,129,0.2)]" onClick={e => e.stopPropagation()}>
@@ -469,7 +479,6 @@ export default function HomePage() {
                   <li>Copy and paste the exact URL for each button:</li>
                 </ol>
 
-                {/* Screenshot Placeholder */}
                 <div className="w-full bg-black/50 border border-slate-700 rounded-xl overflow-hidden my-4 relative min-h-[150px] flex items-center justify-center">
                   <img 
                     src="/flic-setup.png" 
@@ -490,15 +499,15 @@ export default function HomePage() {
                 <div className="space-y-3">
                    <div className="bg-slate-800 p-3 rounded-xl border-l-4 border-emerald-500">
                      <span className="block text-emerald-400 font-bold mb-1 uppercase text-xs">Team 1 Button</span>
-                     <code className="text-white font-mono break-all text-xs md:text-sm">https://padel-scoreboard-mocha.vercel.app/api/flic?type=team1</code>
+                     <code className="text-white font-mono break-all text-xs md:text-sm">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=team1</code>
                    </div>
                    <div className="bg-slate-800 p-3 rounded-xl border-l-4 border-indigo-500">
                      <span className="block text-indigo-400 font-bold mb-1 uppercase text-xs">Team 2 Button</span>
-                     <code className="text-white font-mono break-all text-xs md:text-sm">https://padel-scoreboard-mocha.vercel.app/api/flic?type=team2</code>
+                     <code className="text-white font-mono break-all text-xs md:text-sm">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=team2</code>
                    </div>
                    <div className="bg-slate-800 p-3 rounded-xl border-l-4 border-amber-500">
                      <span className="block text-amber-400 font-bold mb-1 uppercase text-xs">Undo Button</span>
-                     <code className="text-white font-mono break-all text-xs md:text-sm">https://padel-scoreboard-mocha.vercel.app/api/flic?type=undo</code>
+                     <code className="text-white font-mono break-all text-xs md:text-sm">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=undo</code>
                    </div>
                 </div>
                 <p className="mt-4 font-bold text-white uppercase italic">Save the action. You are ready to play!</p>
@@ -572,9 +581,20 @@ export default function HomePage() {
 
       {settingsOpen && (
         <div className="absolute inset-0 z-50 bg-black/95 flex items-center justify-center p-2" onClick={() => setSettingsOpen(false)}>
-          <div className="bg-slate-900 border-2 border-slate-700 p-4 rounded-2xl w-full max-w-xl flex flex-col gap-3 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="bg-slate-900 border-2 border-slate-700 p-4 rounded-2xl w-full max-w-xl flex flex-col gap-3 max-h-[90vh overflow-y-auto" onClick={e => e.stopPropagation()}>
              <h2 className="text-xl font-black uppercase text-center text-slate-500 italic">Settings</h2>
-             <div className="grid grid-cols-2 gap-2">
+             
+             {/* NEW: ROOM CODE DISPLAY */}
+             <div className="flex flex-col gap-1 bg-slate-800 border border-slate-700 rounded-xl p-3 text-center">
+               <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Active Room Code</span>
+               <div className="flex items-center justify-center gap-4">
+                 <span className="text-emerald-400 text-3xl font-black font-mono tracking-widest">{roomCode}</span>
+                 <button onClick={generateNewRoomCode} className="text-slate-400 text-xs uppercase underline hover:text-white">Regenerate</button>
+               </div>
+               <p className="text-[10px] text-slate-500 uppercase mt-1">Required for Flic Button connections</p>
+             </div>
+
+             <div className="grid grid-cols-2 gap-2 mt-2">
                <input value={team1Name} onChange={e => setTeam1Name(e.target.value)} placeholder="TEAM 1" className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-white text-lg font-black uppercase text-center outline-none" maxLength={15} />
                <input value={team2Name} onChange={e => setTeam2Name(e.target.value)} placeholder="TEAM 2" className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-white text-lg font-black uppercase text-center outline-none" maxLength={15} />
              </div>
