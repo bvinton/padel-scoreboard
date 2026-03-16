@@ -4,6 +4,7 @@ import { persist } from 'zustand/middleware';
 type TeamKey = 'team1' | 'team2';
 type Server = TeamKey;
 type StandardPoint = '0' | '15' | '30' | '40' | 'Ad';
+export type Language = 'en' | 'es';
 
 interface TeamState {
   name: string;
@@ -23,6 +24,10 @@ export interface PadelState {
   umpireEnabled: boolean;
   isOutdoorMode: boolean; 
 
+  // Global Language State
+  language: Language;
+  hasSelectedLanguage: boolean;
+
   server: Server;
   isTiebreak: boolean;
   matchWinner: TeamKey | null; 
@@ -41,13 +46,17 @@ export interface PadelState {
   setMatchFormat: (format: 3 | 5) => void; 
   toggleUmpire: () => void;
   toggleOutdoorMode: () => void;
+  
+  // Language Action
+  setLanguage: (lang: Language) => void;
+  
   setTeamName: (team: TeamKey, name: string) => void;
   resetMatch: () => void;
 }
 
 export type PadelStateSnapshot = Omit<
   PadelState,
-  'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setTeamName' | 'toggleOutdoorMode'
+  'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setLanguage' | 'setTeamName' | 'toggleOutdoorMode'
 >;
 
 const STANDARD_POINTS: StandardPoint[] = ['0', '15', '30', '40', 'Ad'];
@@ -61,11 +70,13 @@ const createInitialTeamState = (name: string): TeamState => ({
   sets: 0,
 });
 
-const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setTeamName' | 'toggleOutdoorMode'> => ({
+const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setLanguage' | 'setTeamName' | 'toggleOutdoorMode'> => ({
   useGoldenPoint: true,
   matchFormat: 3,
   umpireEnabled: false,
   isOutdoorMode: false, 
+  language: 'en', // Default fallback
+  hasSelectedLanguage: false, // Forces the initial popup
   server: 'team1',
   isTiebreak: false,
   matchWinner: null,
@@ -76,7 +87,7 @@ const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint
 });
 
 const cloneSnapshot = (state: PadelState): PadelStateSnapshot => {
-  const { history, scorePoint, undo, toggleGoldenPoint, toggleServer, setMatchFormat, resetMatch, toggleUmpire, setTeamName, toggleOutdoorMode, ...rest } = state;
+  const { history, scorePoint, undo, toggleGoldenPoint, toggleServer, setMatchFormat, resetMatch, toggleUmpire, setLanguage, setTeamName, toggleOutdoorMode, ...rest } = state;
   return JSON.parse(JSON.stringify(rest)) as PadelStateSnapshot;
 };
 
@@ -204,6 +215,7 @@ export const useMatchStore = create<PadelState>()(
         toggleServer: () => set((state) => ({ server: state.server === 'team1' ? 'team2' : 'team1' })),
         setMatchFormat: (format: 3 | 5) => set({ matchFormat: format }),
         toggleUmpire: () => set((state) => ({ umpireEnabled: !state.umpireEnabled })),
+        setLanguage: (lang: Language) => set({ language: lang, hasSelectedLanguage: true }), 
         toggleOutdoorMode: () => set((state) => ({ isOutdoorMode: !state.isOutdoorMode })),
         setTeamName: (team: TeamKey, name: string) => set((state) => ({ [team]: { ...state[team], name } })),
         undo: () => {
@@ -217,7 +229,7 @@ export const useMatchStore = create<PadelState>()(
         },
         toggleGoldenPoint: () => set((state) => ({ useGoldenPoint: !state.useGoldenPoint })),
         resetMatch: () => {
-          const { useGoldenPoint, matchFormat, umpireEnabled, isOutdoorMode, team1, team2 } = get();
+          const { useGoldenPoint, matchFormat, umpireEnabled, language, hasSelectedLanguage, isOutdoorMode, team1, team2 } = get();
           const base = createInitialState();
           set({
             ...base,
@@ -225,6 +237,8 @@ export const useMatchStore = create<PadelState>()(
             useGoldenPoint,
             matchFormat, 
             umpireEnabled,
+            language, 
+            hasSelectedLanguage, 
             isOutdoorMode, 
             team1: { ...base.team1, name: team1.name },
             team2: { ...base.team2, name: team2.name },
