@@ -356,7 +356,7 @@ export default function HomePage() {
                     
                     {/* SWIPABLE GALLERY - Improved to allow vertical scrolling */}
                     <div 
-                      className="relative bg-black/40 rounded-2xl border-2 border-slate-700 overflow-hidden shadow-2xl touch-none"
+                      className="relative bg-black/40 rounded-2xl border-2 border-slate-700 overflow-hidden shadow-2xl"
                       onTouchStart={onTouchStart}
                       onTouchEnd={onTouchEnd}
                     >
@@ -382,9 +382,9 @@ export default function HomePage() {
                       
                       <div className="bg-slate-800/95 p-4 flex items-center justify-between border-t border-slate-700">
                         <p className="text-white font-black uppercase text-[10px] md:text-xs tracking-widest italic pr-4">
-                          {wizardImageIndex === 1 && "Step 1: Select Button & Trigger"}
-                          {wizardImageIndex === 2 && "Step 2: Add Internet Request"}
-                          {wizardImageIndex === 3 && "Step 3: Set Method to GET and paste in URL from next screens"}
+                          {wizardImageIndex === 1 && "1: Assign 'Click' to 'Internet Request'"}
+                          {wizardImageIndex === 2 && "2: Ensure Method is set to 'GET'"}
+                          {wizardImageIndex === 3 && "3: Set GET and Paste URL from next screens"}
                         </p>
                         <div className="flex gap-2 flex-shrink-0">
                           {[1,2,3].map(i => (
