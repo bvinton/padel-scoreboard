@@ -6,7 +6,7 @@ import {
   Undo2, Settings, Trophy, RotateCcw, Maximize, MessageSquareText, 
   Smartphone, Save, History, Trash2, Volume2, HelpCircle, Copy, 
   Check, Wifi, WifiOff, Play, ChevronRight, ChevronLeft, 
-  CheckCircle2, RadioTower, Globe, MousePointer2, Image as ImageIcon
+  CheckCircle2, RadioTower, Globe, Image as ImageIcon
 } from "lucide-react"; 
 import PusherClient from 'pusher-js';
 
@@ -48,8 +48,7 @@ export default function HomePage() {
   const [burnInShift, setBurnInShift] = useState({ x: 0, y: 0 });
   
   // Swipe Logic Refs
-  const touchStart = useRef<number | null>(null);
-  const touchEnd = useRef<number | null>(null);
+  const touchStart = useRef<{x: number, y: number} | null>(null);
 
   const [timeLeft, setTimeLeft] = useState(0);
   const [timerStarted, setTimerStarted] = useState(false);
@@ -60,17 +59,25 @@ export default function HomePage() {
   const [historyLog, setHistoryLog] = useState<{id: number, time: string, msg: string}[]>([]);
   const [savedMatches, setSavedMatches] = useState<SavedMatch[]>([]);
 
-  const handleSwipe = () => {
-    if (!touchStart.current || !touchEnd.current) return;
-    const distance = touchStart.current - touchEnd.current;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
+  // Improved Swipe Detection (allows vertical scroll)
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStart.current = {
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY
+    };
+  };
 
-    if (isLeftSwipe && wizardImageIndex < 3) setWizardImageIndex(prev => prev + 1);
-    if (isRightSwipe && wizardImageIndex > 1) setWizardImageIndex(prev => prev - 1);
-    
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStart.current) return;
+    const xDist = touchStart.current.x - e.changedTouches[0].clientX;
+    const yDist = touchStart.current.y - e.changedTouches[0].clientY;
+
+    // Only trigger swipe if movement is horizontal and significant
+    if (Math.abs(xDist) > Math.abs(yDist) && Math.abs(xDist) > 40) {
+      if (xDist > 0 && wizardImageIndex < 3) setWizardImageIndex(prev => prev + 1);
+      if (xDist < 0 && wizardImageIndex > 1) setWizardImageIndex(prev => prev - 1);
+    }
     touchStart.current = null;
-    touchEnd.current = null;
   };
 
   const addLog = (msg: string) => {
@@ -217,7 +224,7 @@ export default function HomePage() {
   useEffect(() => { const saved = localStorage.getItem('padelArchive'); if (saved) { try { setSavedMatches(JSON.parse(saved)); } catch (e) {} } }, []);
 
   const winSoundRef = useRef<HTMLAudioElement | null>(null);
-  useEffect(() => { winSoundRef.current = new Audio("https://www.myinstants.com/sounds/final-fantasy-vii-victory-fanfare-1.mp3"); }, []);
+  useEffect(() => { winSoundRef.current = new Audio("https://www.myinstants.com/media/sounds/final-fantasy-vii-victory-fanfare-1.mp3"); }, []);
   useEffect(() => { if (matchWinner && !matchWinnerDismissed && !localDismissed && winSoundRef.current) winSoundRef.current.play().catch(() => {}); }, [matchWinner, matchWinnerDismissed, localDismissed]);
 
   const toggleFullscreen = () => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {}); else document.exitFullscreen(); };
@@ -345,14 +352,13 @@ export default function HomePage() {
                     <h3 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
                       <Globe className="text-emerald-400" /> 1. Flic App Instructions
                     </h3>
-                    <p className="text-slate-300 md:text-lg italic">Swipe left/right on the image to see the 3 setup steps:</p>
+                    <p className="text-slate-300 md:text-lg italic tracking-tight">Swipe left/right on the image or use the arrows to see the 3 setup steps:</p>
                     
-                    {/* SWIPABLE GALLERY */}
+                    {/* SWIPABLE GALLERY - Improved to allow vertical scrolling */}
                     <div 
-                      className="relative bg-black/40 rounded-2xl border-2 border-slate-700 overflow-hidden shadow-2xl touch-none"
-                      onTouchStart={e => touchStart.current = e.targetTouches[0].clientX}
-                      onTouchMove={e => touchEnd.current = e.targetTouches[0].clientX}
-                      onTouchEnd={handleSwipe}
+                      className="relative bg-black/40 rounded-2xl border-2 border-slate-700 overflow-hidden shadow-2xl"
+                      onTouchStart={onTouchStart}
+                      onTouchEnd={onTouchEnd}
                     >
                       <div className="aspect-[16/9] flex items-center justify-center relative bg-slate-950">
                         <img 
@@ -362,27 +368,27 @@ export default function HomePage() {
                         />
                         <button 
                           onClick={() => setWizardImageIndex(prev => Math.max(1, prev - 1))}
-                          className={`absolute left-4 p-2 bg-black/60 text-white rounded-full transition-opacity ${wizardImageIndex === 1 ? 'opacity-0 pointer-events-none' : 'opacity-100 hover:bg-emerald-500 hover:text-black'}`}
+                          className={`absolute left-2 md:left-4 p-2 md:p-4 bg-emerald-500 text-black rounded-full shadow-lg transition-all active:scale-90 ${wizardImageIndex === 1 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
                         >
-                          <ChevronLeft size={32} />
+                          <ChevronLeft size={36} strokeWidth={3} />
                         </button>
                         <button 
                           onClick={() => setWizardImageIndex(prev => Math.min(3, prev + 1))}
-                          className={`absolute right-4 p-2 bg-black/60 text-white rounded-full transition-opacity ${wizardImageIndex === 3 ? 'opacity-0 pointer-events-none' : 'opacity-100 hover:bg-emerald-500 hover:text-black'}`}
+                          className={`absolute right-2 md:right-4 p-2 md:p-4 bg-emerald-500 text-black rounded-full shadow-lg transition-all active:scale-90 ${wizardImageIndex === 3 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
                         >
-                          <ChevronRight size={32} />
+                          <ChevronRight size={36} strokeWidth={3} />
                         </button>
                       </div>
                       
-                      <div className="bg-slate-800/90 p-4 flex items-center justify-between border-t border-slate-700">
-                        <p className="text-white font-black uppercase text-[10px] md:text-xs tracking-widest italic">
-                          {wizardImageIndex === 1 && "Step 1: Assign 'Click' to 'Internet Request'"}
-                          {wizardImageIndex === 2 && "Step 2: Ensure Method is set to 'GET'"}
-                          {wizardImageIndex === 3 && "Step 3: Paste URLs from next screens"}
+                      <div className="bg-slate-800/95 p-4 flex items-center justify-between border-t border-slate-700">
+                        <p className="text-white font-black uppercase text-[10px] md:text-xs tracking-widest italic pr-4">
+                          {wizardImageIndex === 1 && "1: Assign 'Click' to 'Internet Request'"}
+                          {wizardImageIndex === 2 && "2: Ensure Method is set to 'GET'"}
+                          {wizardImageIndex === 3 && "3: Set GET and Paste URL from next screens"}
                         </p>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-shrink-0">
                           {[1,2,3].map(i => (
-                            <div key={i} className={`h-1.5 w-6 rounded-full transition-colors ${wizardImageIndex === i ? 'bg-emerald-400 shadow-[0_0_5px_rgba(52,211,153,1)]' : 'bg-slate-600'}`} />
+                            <div key={i} className={`h-2 w-6 rounded-full transition-colors ${wizardImageIndex === i ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,1)]' : 'bg-slate-600'}`} />
                           ))}
                         </div>
                       </div>
@@ -393,6 +399,7 @@ export default function HomePage() {
                 {wizardStep === 2 && (
                   <div className="space-y-6">
                     <div className="flex items-center gap-3"><span className="w-4 h-12 bg-emerald-500 rounded-full"></span><h3 className="text-2xl md:text-3xl font-black uppercase text-white">Team 1 Button</h3></div>
+                    <p className="text-slate-300">Copy this URL and paste it into the URL field in your Flic app for Team 1:</p>
                     <div className="flex items-center gap-2 bg-black/60 p-3 md:p-4 rounded-xl border border-slate-700">
                       <code className="text-emerald-400 font-mono break-all text-sm md:text-base flex-1">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=team1</code>
                       <button onClick={() => handleCopy(`https://padel-scoreboard-mocha.vercel.app/api/flic?room=${roomCode}&type=team1`, 'team1')} className={`p-3 md:p-4 rounded-xl ${copiedLink === 'team1' ? 'bg-emerald-500 text-black' : 'bg-slate-700 text-white hover:bg-slate-600'}`}>
@@ -405,6 +412,7 @@ export default function HomePage() {
                 {wizardStep === 3 && (
                   <div className="space-y-6">
                     <div className="flex items-center gap-3"><span className="w-4 h-12 bg-indigo-500 rounded-full"></span><h3 className="text-2xl md:text-3xl font-black uppercase text-white">Team 2 Button</h3></div>
+                    <p className="text-slate-300">Copy this URL and paste it into the URL field in your Flic app for Team 2:</p>
                     <div className="flex items-center gap-2 bg-black/60 p-3 md:p-4 rounded-xl border border-slate-700">
                       <code className="text-indigo-400 font-mono break-all text-sm md:text-base flex-1">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=team2</code>
                       <button onClick={() => handleCopy(`https://padel-scoreboard-mocha.vercel.app/api/flic?room=${roomCode}&type=team2`, 'team2')} className={`p-3 md:p-4 rounded-xl ${copiedLink === 'team2' ? 'bg-indigo-500 text-white' : 'bg-slate-700 text-white hover:bg-slate-600'}`}>
@@ -417,6 +425,7 @@ export default function HomePage() {
                 {wizardStep === 4 && (
                   <div className="space-y-6">
                     <div className="flex items-center gap-3"><span className="w-4 h-12 bg-amber-500 rounded-full"></span><h3 className="text-2xl md:text-3xl font-black uppercase text-white">Undo Button</h3></div>
+                    <p className="text-slate-300">Copy this URL and paste it into the URL field in your Flic app for your Undo button:</p>
                     <div className="flex items-center gap-2 bg-black/60 p-3 md:p-4 rounded-xl border border-slate-700">
                       <code className="text-amber-400 font-mono break-all text-sm md:text-base flex-1">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=undo</code>
                       <button onClick={() => handleCopy(`https://padel-scoreboard-mocha.vercel.app/api/flic?room=${roomCode}&type=undo`, 'undo')} className={`p-3 md:p-4 rounded-xl ${copiedLink === 'undo' ? 'bg-amber-500 text-black' : 'bg-slate-700 text-white hover:bg-slate-600'}`}>
