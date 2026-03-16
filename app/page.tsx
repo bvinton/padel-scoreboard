@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useMatchStore } from "../store/useMatchStore";
-import { Undo2, Settings, Trophy, RotateCcw, Maximize, MessageSquareText, Smartphone, Save, History, Trash2, Volume2, HelpCircle } from "lucide-react";
+import { Undo2, Settings, Trophy, RotateCcw, Maximize, MessageSquareText, Smartphone, Save, History, Trash2, Volume2, HelpCircle, Copy, Check } from "lucide-react";
 
 interface SavedMatch {
   id: number;
@@ -28,8 +28,9 @@ export default function HomePage() {
   const [localDismissed, setLocalDismissed] = useState(false);
   const [umpireEnabled, setUmpireEnabled] = useState(false);
   
-  // Room Code State
+  // Room Code & Copy State
   const [roomCode, setRoomCode] = useState<string>("");
+  const [copiedLink, setCopiedLink] = useState<string | null>(null);
   
   const [timeLeft, setTimeLeft] = useState(0);
   const [timerStarted, setTimerStarted] = useState(false);
@@ -62,6 +63,12 @@ export default function HomePage() {
     utterance.rate = 1.05;
     utterance.pitch = 0.85;
     window.speechSynthesis.speak(utterance);
+  };
+
+  const handleCopy = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedLink(id);
+    setTimeout(() => setCopiedLink(null), 2000);
   };
 
   // --- 2. HANDLERS ---
@@ -462,7 +469,7 @@ export default function HomePage() {
       </footer>
 
       {/* MODALS */}
-      {/* README / ONBOARDING MODAL (CLEAN TEXT ONLY) */}
+      {/* README / ONBOARDING MODAL WITH ONE-TAP COPY */}
       {readmeOpen && (
         <div className="absolute inset-0 z-[300] bg-black/95 flex items-center justify-center p-4" onClick={handleCloseReadme}>
           <div className="bg-slate-900 border-2 md:border-4 border-emerald-500 p-6 md:p-10 rounded-2xl md:rounded-[3rem] w-full max-w-2xl flex flex-col gap-4 md:gap-6 max-h-[90vh] overflow-y-auto shadow-[0_0_50px_rgba(16,185,129,0.2)]" onClick={e => e.stopPropagation()}>
@@ -482,16 +489,42 @@ export default function HomePage() {
 
                 <div className="space-y-4">
                    <div className="bg-slate-800 p-4 rounded-xl border-l-4 border-emerald-500 shadow-md">
-                     <span className="block text-emerald-400 font-bold mb-1 uppercase text-sm">Team 1 Button</span>
-                     <code className="text-white font-mono break-all text-sm md:text-base">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=team1</code>
+                     <span className="block text-emerald-400 font-bold mb-2 uppercase text-sm">Team 1 Button</span>
+                     <div className="flex items-center gap-2 bg-black/40 p-2 md:p-3 rounded-lg border border-slate-700">
+                       <code className="text-white font-mono break-all text-xs md:text-sm flex-1">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=team1</code>
+                       <button 
+                         onClick={() => handleCopy(`https://padel-scoreboard-mocha.vercel.app/api/flic?room=${roomCode}&type=team1`, 'team1')}
+                         className={`p-2 rounded-lg transition-all flex-shrink-0 ${copiedLink === 'team1' ? 'bg-emerald-500 text-black' : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white'}`}
+                       >
+                         {copiedLink === 'team1' ? <Check size={18} /> : <Copy size={18} />}
+                       </button>
+                     </div>
                    </div>
+                   
                    <div className="bg-slate-800 p-4 rounded-xl border-l-4 border-indigo-500 shadow-md">
-                     <span className="block text-indigo-400 font-bold mb-1 uppercase text-sm">Team 2 Button</span>
-                     <code className="text-white font-mono break-all text-sm md:text-base">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=team2</code>
+                     <span className="block text-indigo-400 font-bold mb-2 uppercase text-sm">Team 2 Button</span>
+                     <div className="flex items-center gap-2 bg-black/40 p-2 md:p-3 rounded-lg border border-slate-700">
+                       <code className="text-white font-mono break-all text-xs md:text-sm flex-1">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=team2</code>
+                       <button 
+                         onClick={() => handleCopy(`https://padel-scoreboard-mocha.vercel.app/api/flic?room=${roomCode}&type=team2`, 'team2')}
+                         className={`p-2 rounded-lg transition-all flex-shrink-0 ${copiedLink === 'team2' ? 'bg-indigo-500 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white'}`}
+                       >
+                         {copiedLink === 'team2' ? <Check size={18} /> : <Copy size={18} />}
+                       </button>
+                     </div>
                    </div>
+
                    <div className="bg-slate-800 p-4 rounded-xl border-l-4 border-amber-500 shadow-md">
-                     <span className="block text-amber-400 font-bold mb-1 uppercase text-sm">Undo Button</span>
-                     <code className="text-white font-mono break-all text-sm md:text-base">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=undo</code>
+                     <span className="block text-amber-400 font-bold mb-2 uppercase text-sm">Undo Button</span>
+                     <div className="flex items-center gap-2 bg-black/40 p-2 md:p-3 rounded-lg border border-slate-700">
+                       <code className="text-white font-mono break-all text-xs md:text-sm flex-1">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=undo</code>
+                       <button 
+                         onClick={() => handleCopy(`https://padel-scoreboard-mocha.vercel.app/api/flic?room=${roomCode}&type=undo`, 'undo')}
+                         className={`p-2 rounded-lg transition-all flex-shrink-0 ${copiedLink === 'undo' ? 'bg-amber-500 text-black' : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white'}`}
+                       >
+                         {copiedLink === 'undo' ? <Check size={18} /> : <Copy size={18} />}
+                       </button>
+                     </div>
                    </div>
                 </div>
                 <p className="mt-6 font-bold text-emerald-400 uppercase italic text-center">Save the action. You are ready to play!</p>
