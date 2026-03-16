@@ -63,7 +63,7 @@ const createInitialTeamState = (name: string): TeamState => ({ name, points: '0'
 
 const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setLanguage' | 'setTeamName' | 'toggleOutdoorMode'> => ({
   useGoldenPoint: true,
-  matchFormat: 'bestOf3',
+  matchFormat: 'bestOf3', // The default standard
   umpireEnabled: false,
   isOutdoorMode: false, 
   language: 'en', 
@@ -230,13 +230,13 @@ export const useMatchStore = create<PadelState>()(
         },
         toggleGoldenPoint: () => set((state) => ({ useGoldenPoint: !state.useGoldenPoint })),
         resetMatch: () => {
-          const { useGoldenPoint, matchFormat, umpireEnabled, language, hasSelectedLanguage, isOutdoorMode, team1, team2 } = get();
+          // We removed matchFormat from this list so it defaults back to 'bestOf3' automatically!
+          const { useGoldenPoint, umpireEnabled, language, hasSelectedLanguage, isOutdoorMode, team1, team2 } = get();
           const base = createInitialState();
           set({
             ...base,
             history: [], 
             useGoldenPoint,
-            matchFormat, 
             umpireEnabled,
             language, 
             hasSelectedLanguage, 
