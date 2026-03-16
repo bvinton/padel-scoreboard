@@ -41,13 +41,11 @@ export default function HomePage() {
   const [roomCode, setRoomCode] = useState<string>("");
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
   
-  // States for Wizard & Burn-In
   const [wizardStep, setWizardStep] = useState(1);
   const [wizardImageIndex, setWizardImageIndex] = useState(1); 
   const [testSignals, setTestSignals] = useState({ team1: false, team2: false, undo: false });
   const [burnInShift, setBurnInShift] = useState({ x: 0, y: 0 });
   
-  // Swipe Logic Refs
   const touchStart = useRef<{x: number, y: number} | null>(null);
 
   const [timeLeft, setTimeLeft] = useState(0);
@@ -59,20 +57,14 @@ export default function HomePage() {
   const [historyLog, setHistoryLog] = useState<{id: number, time: string, msg: string}[]>([]);
   const [savedMatches, setSavedMatches] = useState<SavedMatch[]>([]);
 
-  // Improved Swipe Detection (allows vertical scroll)
   const onTouchStart = (e: React.TouchEvent) => {
-    touchStart.current = {
-      x: e.targetTouches[0].clientX,
-      y: e.targetTouches[0].clientY
-    };
+    touchStart.current = { x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY };
   };
 
   const onTouchEnd = (e: React.TouchEvent) => {
     if (!touchStart.current) return;
     const xDist = touchStart.current.x - e.changedTouches[0].clientX;
     const yDist = touchStart.current.y - e.changedTouches[0].clientY;
-
-    // Only trigger swipe if movement is horizontal and significant
     if (Math.abs(xDist) > Math.abs(yDist) && Math.abs(xDist) > 40) {
       if (xDist > 0 && wizardImageIndex < 3) setWizardImageIndex(prev => prev + 1);
       if (xDist < 0 && wizardImageIndex > 1) setWizardImageIndex(prev => prev - 1);
@@ -354,9 +346,8 @@ export default function HomePage() {
                     </h3>
                     <p className="text-slate-300 md:text-lg italic tracking-tight">Swipe left/right on the image or use the arrows to see the 3 setup steps:</p>
                     
-                    {/* SWIPABLE GALLERY - Improved to allow vertical scrolling */}
                     <div 
-                      className="relative bg-black/40 rounded-2xl border-2 border-slate-700 overflow-hidden shadow-2xl"
+                      className="relative bg-black/40 rounded-2xl border-2 border-slate-700 overflow-hidden shadow-2xl touch-none"
                       onTouchStart={onTouchStart}
                       onTouchEnd={onTouchEnd}
                     >
@@ -382,9 +373,9 @@ export default function HomePage() {
                       
                       <div className="bg-slate-800/95 p-4 flex items-center justify-between border-t border-slate-700">
                         <p className="text-white font-black uppercase text-[10px] md:text-xs tracking-widest italic pr-4">
-                          {wizardImageIndex === 1 && "1: Assign 'Click' to 'Internet Request'"}
-                          {wizardImageIndex === 2 && "2: Ensure Method is set to 'GET'"}
-                          {wizardImageIndex === 3 && "3: Set GET and Paste URL from next screens"}
+                          {wizardImageIndex === 1 && "Step 1: Select Button & Trigger"}
+                          {wizardImageIndex === 2 && "Step 2: Add Internet Request"}
+                          {wizardImageIndex === 3 && "Step 3: Set Method to GET and paste in URL from next screens"}
                         </p>
                         <div className="flex gap-2 flex-shrink-0">
                           {[1,2,3].map(i => (
@@ -399,7 +390,7 @@ export default function HomePage() {
                 {wizardStep === 2 && (
                   <div className="space-y-6">
                     <div className="flex items-center gap-3"><span className="w-4 h-12 bg-emerald-500 rounded-full"></span><h3 className="text-2xl md:text-3xl font-black uppercase text-white">Team 1 Button</h3></div>
-                    <p className="text-slate-300">Copy this URL and paste it into the URL field in your Flic app for Team 1:</p>
+                    <p className="text-slate-300">Copy the exact URL below and paste it into the Internet Request URL field for Team 1.</p>
                     <div className="flex items-center gap-2 bg-black/60 p-3 md:p-4 rounded-xl border border-slate-700">
                       <code className="text-emerald-400 font-mono break-all text-sm md:text-base flex-1">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=team1</code>
                       <button onClick={() => handleCopy(`https://padel-scoreboard-mocha.vercel.app/api/flic?room=${roomCode}&type=team1`, 'team1')} className={`p-3 md:p-4 rounded-xl ${copiedLink === 'team1' ? 'bg-emerald-500 text-black' : 'bg-slate-700 text-white hover:bg-slate-600'}`}>
@@ -412,7 +403,7 @@ export default function HomePage() {
                 {wizardStep === 3 && (
                   <div className="space-y-6">
                     <div className="flex items-center gap-3"><span className="w-4 h-12 bg-indigo-500 rounded-full"></span><h3 className="text-2xl md:text-3xl font-black uppercase text-white">Team 2 Button</h3></div>
-                    <p className="text-slate-300">Copy this URL and paste it into the URL field in your Flic app for Team 2:</p>
+                    <p className="text-slate-300">Copy the exact URL below and paste it into the Internet Request URL field for Team 2.</p>
                     <div className="flex items-center gap-2 bg-black/60 p-3 md:p-4 rounded-xl border border-slate-700">
                       <code className="text-indigo-400 font-mono break-all text-sm md:text-base flex-1">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=team2</code>
                       <button onClick={() => handleCopy(`https://padel-scoreboard-mocha.vercel.app/api/flic?room=${roomCode}&type=team2`, 'team2')} className={`p-3 md:p-4 rounded-xl ${copiedLink === 'team2' ? 'bg-indigo-500 text-white' : 'bg-slate-700 text-white hover:bg-slate-600'}`}>
@@ -425,7 +416,7 @@ export default function HomePage() {
                 {wizardStep === 4 && (
                   <div className="space-y-6">
                     <div className="flex items-center gap-3"><span className="w-4 h-12 bg-amber-500 rounded-full"></span><h3 className="text-2xl md:text-3xl font-black uppercase text-white">Undo Button</h3></div>
-                    <p className="text-slate-300">Copy this URL and paste it into the URL field in your Flic app for your Undo button:</p>
+                    <p className="text-slate-300">Copy the exact URL below and paste it into the Internet Request URL field for your Undo button.</p>
                     <div className="flex items-center gap-2 bg-black/60 p-3 md:p-4 rounded-xl border border-slate-700">
                       <code className="text-amber-400 font-mono break-all text-sm md:text-base flex-1">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=undo</code>
                       <button onClick={() => handleCopy(`https://padel-scoreboard-mocha.vercel.app/api/flic?room=${roomCode}&type=undo`, 'undo')} className={`p-3 md:p-4 rounded-xl ${copiedLink === 'undo' ? 'bg-amber-500 text-black' : 'bg-slate-700 text-white hover:bg-slate-600'}`}>
