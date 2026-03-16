@@ -19,7 +19,7 @@ export default function HomePage() {
     matchWinner, matchWinnerDismissed, setScores, scorePoint, undo,
     toggleGoldenPoint, toggleServer, setMatchFormat, resetMatch,
     umpireEnabled, toggleUmpire, setTeamName, 
-    isOutdoorMode, toggleOutdoorMode 
+    isOutdoorMode, setOutdoorMode // <-- Pulling in the mode setter
   } = useMatchStore();
 
   const [appStarted, setAppStarted] = useState(false); 
@@ -214,7 +214,6 @@ export default function HomePage() {
   const getSideY2 = () => timeLeft >= 16 ? 100 : timeLeft >= 4 ? ((timeLeft - 4) / 12) * 100 : 0; const getTopLeftX1 = () => timeLeft >= 4 ? 0 : 50 - ((timeLeft / 4) * 50);
   const getTopRightX2 = () => timeLeft >= 4 ? 100 : 50 + ((timeLeft / 4) * 50);
   
-  // Clean timer logic that removes dropshadows in outdoor mode
   const getTimerStrokeColor = () => { 
     if (isOutdoorMode) return timeLeft > 10 ? "text-emerald-500" : "text-amber-500";
     if (timeLeft > 10) return "text-emerald-500 drop-shadow-[0_0_12px_rgba(16,185,129,1)]"; 
@@ -281,7 +280,6 @@ export default function HomePage() {
         {[ { id: "team1", data: team1 }, { id: "team2", data: team2 } ].map((t) => {
           const isServing = server === t.id;
           
-          // Theme logic extracted for cleanliness
           const btnTheme = isOutdoorMode 
             ? (isServing ? "border-emerald-500 bg-emerald-50 z-10 shadow-sm" : "border-gray-300 bg-white")
             : (isServing ? "border-emerald-500/50 bg-emerald-500/20 shadow-[inset_0_0_40px_rgba(16,185,129,0.25)] z-10" : "border-slate-800 bg-slate-900/20");
@@ -357,7 +355,6 @@ export default function HomePage() {
         </div>
       </footer>
 
-      {/* KEEPING MODALS DARK FOR HIGH CONTRAST AGAINST OUTDOOR MODE */}
       {readmeOpen && (
         <div className="absolute inset-0 z-[300] bg-black/95 flex items-center justify-center p-4" onClick={handleCloseReadme}>
           <div className="bg-slate-900 border-2 md:border-4 border-emerald-500 p-6 md:p-10 rounded-2xl md:rounded-[3rem] w-full max-w-2xl flex flex-col gap-4 md:gap-6 max-h-[90vh] overflow-y-auto shadow-[0_0_50px_rgba(16,185,129,0.2)]" onClick={e => e.stopPropagation()}>
@@ -414,14 +411,26 @@ export default function HomePage() {
                <input value={team1.name} onChange={e => setTeamName('team1', e.target.value)} placeholder="TEAM 1" className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-white text-lg font-black uppercase text-center outline-none" maxLength={15} />
                <input value={team2.name} onChange={e => setTeamName('team2', e.target.value)} placeholder="TEAM 2" className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-white text-lg font-black uppercase text-center outline-none" maxLength={15} />
              </div>
+             
              <button onClick={toggleUmpire} className={`py-4 rounded-xl border-2 text-lg font-black uppercase flex items-center justify-center gap-4 transition-all ${umpireEnabled ? 'bg-indigo-600 border-white text-white shadow-[0_0_15px_rgba(79,70,229,0.5)]' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
                <Volume2 size={24} /> Umpire: {umpireEnabled ? 'ON' : 'OFF'}
              </button>
+             
              <button onClick={toggleFullscreen} className="py-3 rounded-xl bg-slate-800 border border-slate-600 text-lg font-black uppercase flex items-center justify-center gap-4 transition-all active:scale-95"><Maximize size={24} /> Fullscreen</button>
              
              <div className="grid grid-cols-2 gap-2">
-                <button onClick={toggleGoldenPoint} className={`py-3 rounded-xl border text-lg font-black uppercase transition-all ${useGoldenPoint ? 'bg-amber-500 border-white text-black shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Golden Point: {useGoldenPoint ? 'ON' : 'OFF'}</button>
-                <button onClick={toggleOutdoorMode} className={`py-3 rounded-xl border text-lg font-black uppercase transition-all ${isOutdoorMode ? 'bg-white border-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)]' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Court: {isOutdoorMode ? 'Outdoor' : 'Indoor'}</button>
+                <button onClick={() => setMatchFormat(3)} className={`py-3 rounded-xl border text-lg font-black uppercase ${matchFormat === 3 ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Best of 3</button>
+                <button onClick={() => setMatchFormat(5)} className={`py-3 rounded-xl border text-lg font-black uppercase ${matchFormat === 5 ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Best of 5</button>
+             </div>
+             
+             {/* THE NEW CHAMELEON COURT TOGGLE & GOLDEN POINT IN A CLEAN GRID */}
+             <div className="grid grid-cols-2 gap-2">
+                <button onClick={() => setOutdoorMode(!isOutdoorMode)} className={`py-3 rounded-xl border-2 text-lg font-black uppercase transition-all ${isOutdoorMode ? 'bg-white border-white text-black shadow-[0_0_15px_rgba(255,255,255,0.6)]' : 'bg-black border-white text-white shadow-[0_0_15px_rgba(255,255,255,0.3)] [text-shadow:_0_0_10px_rgba(255,255,255,0.8)]'}`}>
+                  Court: {isOutdoorMode ? 'Outdoor' : 'Indoor'}
+                </button>
+                <button onClick={toggleGoldenPoint} className={`py-3 rounded-xl border text-lg font-black uppercase transition-all ${useGoldenPoint ? 'bg-amber-500 border-white text-black shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
+                  Golden Point: {useGoldenPoint ? 'ON' : 'OFF'}
+                </button>
              </div>
              
              <button onClick={toggleServer} className="py-3 bg-slate-800 border border-slate-600 rounded-xl text-lg font-black uppercase transition-all active:scale-95">Swap Server</button>
