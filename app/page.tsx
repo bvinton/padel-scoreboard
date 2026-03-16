@@ -26,10 +26,10 @@ export default function HomePage() {
     toggleGoldenPoint, toggleServer, setMatchFormat, resetMatch,
     umpireEnabled, toggleUmpire, setTeamName, 
     isOutdoorMode, toggleOutdoorMode,
-    language, setLanguage, hasSelectedLanguage // New language states
+    language, setLanguage, hasSelectedLanguage 
   } = useMatchStore();
 
-  const t = dict[language] || dict.en; // Pulls the correct dictionary words
+  const t = dict[language] || dict.en; 
 
   const [appStarted, setAppStarted] = useState(false); 
   const [isOnline, setIsOnline] = useState(false);     
@@ -138,7 +138,7 @@ export default function HomePage() {
   };
 
   const handleReset = () => {
-    addLog("Match Reset"); setHistoryLog([]); setLocalDismissed(false); endTimeRef.current = null; setTimerStarted(false); setTimeLeft(0);
+    addLog(language === 'es' ? "Partido Reiniciado" : "Match Reset"); setHistoryLog([]); setLocalDismissed(false); endTimeRef.current = null; setTimerStarted(false); setTimeLeft(0);
     prevGames1.current = 0; prevGames2.current = 0; prevSets1.current = 0; prevSets2.current = 0; prevIsTiebreak.current = false; resetMatch();
   };
 
@@ -146,11 +146,11 @@ export default function HomePage() {
     let scoreString = setScores.map(set => `${set.team1}-${set.team2}`).join(', ');
     if (team1.games > 0 || team2.games > 0) { const currentScore = `${team1.games}-${team2.games}`; scoreString = scoreString ? `${scoreString}, ${currentScore}` : currentScore; }
     const newMatch: SavedMatch = { id: Date.now(), date: new Date().toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), team1Name: team1.name, team2Name: team2.name, scores: scoreString || "0-0" };
-    const updated = [newMatch, ...savedMatches]; setSavedMatches(updated); localStorage.setItem('padelArchive', JSON.stringify(updated)); addLog("Match Saved");
+    const updated = [newMatch, ...savedMatches]; setSavedMatches(updated); localStorage.setItem('padelArchive', JSON.stringify(updated)); addLog(language === 'es' ? "Partido Guardado" : "Match Saved");
   };
 
   const deleteSavedMatch = (id: number) => { const updated = savedMatches.filter(m => m.id !== id); setSavedMatches(updated); localStorage.setItem('padelArchive', JSON.stringify(updated)); };
-  const clearArchive = () => { if (window.confirm("Clear all match history?")) { setSavedMatches([]); localStorage.removeItem('padelArchive'); } };
+  const clearArchive = () => { if (window.confirm(language === 'es' ? "¿Borrar todo el historial?" : "Clear all match history?")) { setSavedMatches([]); localStorage.removeItem('padelArchive'); } };
   
   const handleCloseReadme = () => { 
     if (dontShowAgain) localStorage.setItem('padelReadmeDismissed', 'true'); 
@@ -158,7 +158,7 @@ export default function HomePage() {
     setTimeout(() => { setWizardStep(1); setWizardImageIndex(1); setTestSignals({team1: false, team2: false, undo: false}); }, 500);
   };
   
-  const generateNewRoomCode = () => { if (window.confirm("Disconnect Flic buttons?")) { const newRoom = Math.random().toString(36).substring(2, 6).toUpperCase(); localStorage.setItem('padelRoomCode', newRoom); setRoomCode(newRoom); setLastProcessedId(Date.now()); } };
+  const generateNewRoomCode = () => { if (window.confirm(language === 'es' ? "¿Desconectar botones Flic?" : "Disconnect Flic buttons?")) { const newRoom = Math.random().toString(36).substring(2, 6).toUpperCase(); localStorage.setItem('padelRoomCode', newRoom); setRoomCode(newRoom); setLastProcessedId(Date.now()); } };
 
   useEffect(() => {
     let savedRoom = localStorage.getItem('padelRoomCode');
@@ -228,6 +228,23 @@ export default function HomePage() {
       else speakScore(`${p1Text}, ${p2Text}`);
     }
   }, [team1.points, team2.points, team1.games, team2.games, team1.sets, team2.sets, isTiebreak, matchWinner, localDismissed, team1.name, team2.name, matchWinnerDismissed, umpireEnabled, language]);
+
+  useEffect(() => {
+    if (!lastActionRef.current) return;
+    const { type, team, beforePoints, beforeGames, beforeSets } = lastActionRef.current;
+    const afterPoints = `${team1.points}-${team2.points}`; const afterGames = team1.games + team2.games; const afterSets = team1.sets + team2.sets;
+    const isEs = language === 'es';
+    
+    if (type === 'undo') addLog(isEs ? `Deshacer en (${beforePoints}) a (${afterPoints})` : `Undo used at (${beforePoints}) score (${afterPoints})`);
+    else if (type === 'score' && team) {
+      const teamName = team === 'team1' ? team1.name : team2.name;
+      if (matchWinner) addLog(isEs ? `Punto ${teamName} (${beforePoints}) Juego, Set y Partido` : `${teamName} point at (${beforePoints}) Game, Set and Match ${teamName}`);
+      else if (afterSets > beforeSets) addLog(isEs ? `Punto ${teamName} (${beforePoints}) Juego y Set` : `${teamName} point at (${beforePoints}) Game and Set ${teamName}`);
+      else if (afterGames > beforeGames) addLog(isEs ? `Punto ${teamName} (${beforePoints}) Juego` : `${teamName} point at (${beforePoints}) Game ${teamName}`);
+      else addLog(isEs ? `Punto ${teamName} (${beforePoints}) marcador (${afterPoints})` : `${teamName} point at (${beforePoints}) score (${afterPoints})`);
+    }
+    lastActionRef.current = null;
+  }, [team1.points, team2.points, team1.games, team2.games, team1.sets, team2.sets, matchWinner, team1.name, team2.name, language]);
 
   useEffect(() => {
     if (!timerStarted || !endTimeRef.current) return;
@@ -395,8 +412,9 @@ export default function HomePage() {
                     </h3>
                     <p className="text-slate-300 md:text-lg italic tracking-tight">{t.flicSwipeInfo}</p>
                     
+                    {/* SWIPABLE GALLERY - touch-none removed for vertical scroll fix */}
                     <div 
-                      className="relative bg-black/40 rounded-2xl border-2 border-slate-700 overflow-hidden shadow-2xl touch-none"
+                      className="relative bg-black/40 rounded-2xl border-2 border-slate-700 overflow-hidden shadow-2xl"
                       onTouchStart={onTouchStart}
                       onTouchEnd={onTouchEnd}
                     >
@@ -521,7 +539,7 @@ export default function HomePage() {
 
       {/* 5: SETTINGS */}
       {settingsOpen && (
-        <div className="absolute inset-0 z-50 bg-black/95 flex items-center justify-center p-2" onClick={() => setSettingsOpen(false)}>
+        <div className="absolute inset-0 z-[200] bg-black/95 flex items-center justify-center p-2" onClick={() => setSettingsOpen(false)}>
           <div className="bg-slate-900 border-2 border-slate-700 p-4 rounded-2xl w-full max-w-xl flex flex-col gap-3 max-h-[90vh] overflow-y-auto text-white" onClick={e => e.stopPropagation()}>
              <h2 className="text-xl font-black uppercase text-center text-slate-500 italic">{t.settings}</h2>
              <div className="flex flex-col gap-1 bg-slate-800 p-3 text-center rounded-xl">
@@ -552,6 +570,69 @@ export default function HomePage() {
              </div>
              <button onClick={toggleServer} className="py-3 bg-slate-800 rounded-xl text-white font-black uppercase active:scale-95 transition-all">{t.swapServer}</button>
              <button onClick={() => setSettingsOpen(false)} className="py-3 bg-white text-black font-black rounded-xl uppercase mt-2 active:scale-95 transition-all">{t.close}</button>
+          </div>
+        </div>
+      )}
+
+      {/* 6: SAVED MATCHES ARCHIVE */}
+      {archiveOpen && (
+        <div className="absolute inset-0 z-[200] bg-black/95 flex flex-col p-4 md:p-10" onClick={() => setArchiveOpen(false)}>
+          <div className="bg-slate-900 border-2 border-indigo-500/50 flex-1 rounded-3xl flex flex-col overflow-hidden max-w-4xl w-full mx-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 md:p-6 border-b border-slate-800 bg-slate-950">
+              <h2 className="text-xl md:text-3xl font-black text-indigo-400 uppercase italic flex items-center gap-3">
+                <History className="text-indigo-500" /> {language === 'es' ? 'Partidos Guardados' : 'Saved Matches'}
+              </h2>
+              <button onClick={() => setArchiveOpen(false)} className="text-slate-400 font-bold uppercase active:scale-95 transition-transform">{t.close}</button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+              {savedMatches.length === 0 ? (
+                <div className="flex-1 flex items-center justify-center text-slate-600 font-bold uppercase">{language === 'es' ? 'No hay partidos' : 'No saved matches'}</div>
+              ) : (
+                savedMatches.map(m => (
+                  <div key={m.id} className="bg-slate-800/50 border border-slate-700 p-4 rounded-xl flex items-center justify-between">
+                    <div className="flex flex-col">
+                      <span className="text-slate-400 text-xs font-bold">{m.date}</span>
+                      <span className="text-white font-black text-lg md:text-xl uppercase">{m.team1Name} vs {m.team2Name}</span>
+                      <span className="text-emerald-400 font-black text-xl">{m.scores}</span>
+                    </div>
+                    <button onClick={() => deleteSavedMatch(m.id)} className="p-3 text-red-500 hover:bg-red-500/20 rounded-xl transition-colors"><Trash2 /></button>
+                  </div>
+                ))
+              )}
+            </div>
+            {savedMatches.length > 0 && (
+              <div className="p-4 border-t border-slate-800 bg-slate-950">
+                <button onClick={clearArchive} className="w-full py-4 rounded-xl border-2 border-red-900 text-red-500 font-black uppercase tracking-widest active:scale-95 transition-transform">
+                  {language === 'es' ? 'Borrar Todo' : 'Clear All'}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 7: POINT LOG (HISTORY) */}
+      {historyOpen && (
+        <div className="absolute inset-0 z-[200] bg-black/95 flex flex-col p-4 md:p-10" onClick={() => setHistoryOpen(false)}>
+          <div className="bg-slate-900 border-2 border-slate-700 flex-1 rounded-3xl flex flex-col overflow-hidden max-w-4xl w-full mx-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 md:p-6 border-b border-slate-800 bg-slate-950">
+              <h2 className="text-xl md:text-3xl font-black text-slate-300 uppercase italic flex items-center gap-3">
+                <MessageSquareText className="text-slate-500" /> {language === 'es' ? 'Registro de Puntos' : 'Point Log'}
+              </h2>
+              <button onClick={() => setHistoryOpen(false)} className="text-slate-400 font-bold uppercase active:scale-95 transition-transform">{t.close}</button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
+              {historyLog.length === 0 ? (
+                <div className="flex-1 flex items-center justify-center text-slate-600 font-bold uppercase">{language === 'es' ? 'No hay eventos' : 'No events logged'}</div>
+              ) : (
+                historyLog.map(log => (
+                  <div key={log.id} className="flex items-start gap-4 p-3 bg-slate-800/30 rounded-lg">
+                    <span className="text-slate-500 font-mono text-sm">{log.time}</span>
+                    <span className="text-slate-300 font-medium">{log.msg}</span>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       )}
