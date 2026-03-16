@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useMatchStore } from "../store/useMatchStore";
-import { Undo2, Settings, Trophy, RotateCcw, Maximize, MessageSquareText, Smartphone, Save, History, Trash2, Volume2, VolumeX } from "lucide-react";
+import { Undo2, Settings, Trophy, RotateCcw, Maximize, MessageSquareText, Smartphone, Save, History, Trash2, Volume2, HelpCircle } from "lucide-react";
 
 interface SavedMatch {
   id: number;
@@ -23,6 +23,8 @@ export default function HomePage() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
+  const [readmeOpen, setReadmeOpen] = useState(false);
+  const [dontShowAgain, setDontShowAgain] = useState(false);
   const [localDismissed, setLocalDismissed] = useState(false);
   const [umpireEnabled, setUmpireEnabled] = useState(false);
   
@@ -67,7 +69,6 @@ export default function HomePage() {
       return;
     }
     
-    // Memorize the state right BEFORE the point is scored
     lastActionRef.current = {
       type: 'score',
       team: team,
@@ -84,7 +85,6 @@ export default function HomePage() {
   };
 
   const handleUndo = () => {
-    // Memorize the state right BEFORE the undo happens
     lastActionRef.current = {
       type: 'undo',
       beforePoints: `${team1.points}-${team2.points}`,
@@ -144,7 +144,22 @@ export default function HomePage() {
     }
   };
 
+  const handleCloseReadme = () => {
+    if (dontShowAgain) {
+      localStorage.setItem('padelReadmeDismissed', 'true');
+    }
+    setReadmeOpen(false);
+  };
+
   // --- 3. EFFECTS ---
+
+  // Check for README on initial load
+  useEffect(() => {
+    const isDismissed = localStorage.getItem('padelReadmeDismissed');
+    if (isDismissed !== 'true') {
+      setReadmeOpen(true);
+    }
+  }, []);
   
   // UMPIRE-STYLE DETAILED LOGGING EFFECT
   useEffect(() => {
@@ -171,7 +186,6 @@ export default function HomePage() {
       }
     }
     
-    // Clear the memory so it doesn't double-log
     lastActionRef.current = null;
   }, [team1.points, team2.points, team1.games, team2.games, team1.sets, team2.sets, matchWinner, team1Name, team2Name]);
 
@@ -194,7 +208,7 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, [timerStarted]);
 
-  // UMPIRE
+  // UMPIRE VOICE
   const prevGames1 = useRef(team1.games);
   const prevGames2 = useRef(team2.games);
   const prevSets1 = useRef(team1.sets);
@@ -425,6 +439,11 @@ export default function HomePage() {
 
         <div className="flex items-center gap-1 md:gap-3 h-full">
           <button onClick={handleReset} className="text-[10px] md:text-lg font-black text-red-900/80 uppercase mr-1 md:mr-4">Reset</button>
+          
+          <button onClick={() => setReadmeOpen(true)} className="p-1 text-emerald-500 active:scale-95">
+            <HelpCircle size={20} />
+          </button>
+
           <button onClick={() => setArchiveOpen(true)} className="p-1 text-indigo-400 active:scale-95"><History size={20} /></button>
           <button onClick={() => setHistoryOpen(true)} className="p-1 text-slate-600 active:scale-95"><MessageSquareText size={20} /></button>
           <button onClick={() => setSettingsOpen(true)} className="p-1 text-slate-600 active:scale-95"><Settings size={20} /></button>
@@ -432,6 +451,82 @@ export default function HomePage() {
       </footer>
 
       {/* MODALS */}
+      {/* README / ONBOARDING MODAL WITH IMAGE */}
+      {readmeOpen && (
+        <div className="absolute inset-0 z-[300] bg-black/95 flex items-center justify-center p-4" onClick={handleCloseReadme}>
+          <div className="bg-slate-900 border-2 md:border-4 border-emerald-500 p-6 md:p-10 rounded-2xl md:rounded-[3rem] w-full max-w-2xl flex flex-col gap-4 md:gap-6 max-h-[90vh] overflow-y-auto shadow-[0_0_50px_rgba(16,185,129,0.2)]" onClick={e => e.stopPropagation()}>
+             <h2 className="text-2xl md:text-4xl font-black uppercase text-center text-emerald-400 tracking-widest border-b-2 border-slate-800 pb-2 md:pb-4 italic">Welcome to Padel Pro</h2>
+             
+             <div className="text-slate-300 text-sm md:text-lg space-y-4 font-medium flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                <p>Welcome to your professional Padel Scoreboard! You can simply tap the screen to score points, but for the ultimate experience, connect your <strong>Flic Smart Buttons</strong>.</p>
+                
+                <h3 className="text-white font-bold uppercase tracking-wider mt-4">How to Bind Flic Buttons:</h3>
+                <ol className="list-decimal pl-5 space-y-2 text-slate-400 mb-4">
+                  <li>Open the <strong>Flic App</strong> on your device.</li>
+                  <li>Tap a button to assign an action.</li>
+                  <li>Search for and select the <strong>"Internet Request"</strong> action.</li>
+                  <li>Set the Method to <strong>GET</strong>.</li>
+                  <li>Copy and paste the exact URL for each button:</li>
+                </ol>
+
+                {/* Screenshot Placeholder */}
+                <div className="w-full bg-black/50 border border-slate-700 rounded-xl overflow-hidden my-4 relative min-h-[150px] flex items-center justify-center">
+                  {/* It looks for a file named flic-setup.jpg in the public folder */}
+                  <img 
+                    src="/flic-setup.jpg" 
+                    alt="Flic App Setup Screenshot" 
+                    className="w-full h-auto object-contain"
+                    onError={(e) => {
+                      // Fallback text if they haven't uploaded the image yet
+                      (e.target as HTMLImageElement).style.display = 'none';
+                      const fallback = document.getElementById('image-fallback');
+                      if (fallback) fallback.style.display = 'block';
+                    }}
+                  />
+                  <div id="image-fallback" className="hidden text-slate-500 text-center p-4">
+                    <p className="font-bold uppercase tracking-widest text-emerald-500">Image Missing</p>
+                    <p className="text-xs mt-1">To show a screenshot here, drop an image named <code className="text-white">flic-setup.jpg</code> into the <code className="text-white">public</code> folder.</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                   <div className="bg-slate-800 p-3 rounded-xl border-l-4 border-emerald-500">
+                     <span className="block text-emerald-400 font-bold mb-1 uppercase text-xs">Team 1 Button</span>
+                     <code className="text-white font-mono break-all text-xs md:text-sm">https://padel-scoreboard-mocha.vercel.app/api/flic?type=team1</code>
+                   </div>
+                   <div className="bg-slate-800 p-3 rounded-xl border-l-4 border-indigo-500">
+                     <span className="block text-indigo-400 font-bold mb-1 uppercase text-xs">Team 2 Button</span>
+                     <code className="text-white font-mono break-all text-xs md:text-sm">https://padel-scoreboard-mocha.vercel.app/api/flic?type=team2</code>
+                   </div>
+                   <div className="bg-slate-800 p-3 rounded-xl border-l-4 border-amber-500">
+                     <span className="block text-amber-400 font-bold mb-1 uppercase text-xs">Undo Button</span>
+                     <code className="text-white font-mono break-all text-xs md:text-sm">https://padel-scoreboard-mocha.vercel.app/api/flic?type=undo</code>
+                   </div>
+                </div>
+                <p className="mt-4 font-bold text-white uppercase italic">Save the action. You are ready to play!</p>
+             </div>
+
+             <div className="flex flex-col gap-3 mt-2 border-t border-slate-800 pt-4">
+               <div className="flex items-center gap-3 justify-center">
+                 <input 
+                    type="checkbox" 
+                    id="dontShow" 
+                    checked={dontShowAgain} 
+                    onChange={e => setDontShowAgain(e.target.checked)} 
+                    className="w-5 h-5 md:w-6 md:h-6 accent-emerald-500 cursor-pointer" 
+                 />
+                 <label htmlFor="dontShow" className="text-slate-400 font-bold uppercase tracking-wider text-xs md:text-sm cursor-pointer select-none">
+                   Don't show this automatically again
+                 </label>
+               </div>
+               <button onClick={handleCloseReadme} className="py-3 md:py-5 bg-emerald-500 text-black font-black rounded-xl md:rounded-2xl uppercase active:scale-95 transition-transform text-lg md:text-2xl shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)]">
+                 Got It, Let's Play
+               </button>
+             </div>
+          </div>
+        </div>
+      )}
+
       {archiveOpen && (
         <div className="absolute inset-0 z-[60] bg-black/95 flex items-center justify-center p-2" onClick={() => setArchiveOpen(false)}>
           <div className="bg-slate-900 border-2 border-slate-700 p-4 rounded-2xl w-full max-w-3xl flex flex-col gap-3 max-h-[90vh]" onClick={e => e.stopPropagation()}>
