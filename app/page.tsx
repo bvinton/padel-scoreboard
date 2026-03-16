@@ -19,7 +19,7 @@ export default function HomePage() {
     matchWinner, matchWinnerDismissed, setScores, scorePoint, undo,
     toggleGoldenPoint, toggleServer, setMatchFormat, resetMatch,
     umpireEnabled, toggleUmpire, setTeamName, 
-    isOutdoorMode, toggleOutdoorMode // <-- Perfectly matched here!
+    isOutdoorMode, toggleOutdoorMode
   } = useMatchStore();
 
   const [appStarted, setAppStarted] = useState(false); 
@@ -44,6 +44,9 @@ export default function HomePage() {
 
   const [historyLog, setHistoryLog] = useState<{id: number, time: string, msg: string}[]>([]);
   const [savedMatches, setSavedMatches] = useState<SavedMatch[]>([]);
+
+  // NEW: Screen Burn-In Protection State
+  const [burnInShift, setBurnInShift] = useState({ x: 0, y: 0 });
 
   const addLog = (msg: string) => {
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -119,6 +122,17 @@ export default function HomePage() {
     if (localStorage.getItem('padelReadmeDismissed') !== 'true') setReadmeOpen(true);
   }, []);
   
+  // NEW: Pixel Shifter Effect for Burn-In Protection
+  useEffect(() => {
+    const shiftInterval = setInterval(() => {
+      setBurnInShift({
+        x: Math.floor(Math.random() * 13) - 6, // Random shift between -6px and +6px
+        y: Math.floor(Math.random() * 13) - 6,
+      });
+    }, 60000); // Triggers every 60 seconds
+    return () => clearInterval(shiftInterval);
+  }, []);
+
   useEffect(() => {
     if (!lastActionRef.current) return;
     const { type, team, beforePoints, beforeGames, beforeSets } = lastActionRef.current;
@@ -221,7 +235,13 @@ export default function HomePage() {
   };
 
   return (
-    <main className={`fixed inset-0 flex flex-col select-none overflow-hidden font-sans transition-colors duration-500 ${isOutdoorMode ? 'bg-white text-black' : 'bg-black text-white'}`}>
+    <main 
+      style={{ 
+        transform: `scale(1.02) translate(${burnInShift.x}px, ${burnInShift.y}px)`,
+        transition: 'transform 5s ease-in-out, background-color 0.5s, color 0.5s' 
+      }}
+      className={`fixed inset-0 flex flex-col select-none overflow-hidden font-sans ${isOutdoorMode ? 'bg-white text-black' : 'bg-black text-white'}`}
+    >
       
       {/* OVERLAY 1: ROTATE DEVICE (Highest Priority z-[600]) */}
       <div className="hidden portrait:flex fixed inset-0 z-[600] bg-slate-950 items-center justify-center flex-col gap-8 p-10 text-center">
@@ -434,7 +454,6 @@ export default function HomePage() {
                 <button onClick={() => setMatchFormat(5)} className={`py-3 rounded-xl border text-lg font-black uppercase ${matchFormat === 5 ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Best of 5</button>
              </div>
              
-             {/* THE CHAMELEON COURT TOGGLE & GOLDEN POINT IN A CLEAN GRID */}
              <div className="grid grid-cols-2 gap-2">
                 <button onClick={toggleOutdoorMode} className={`py-3 rounded-xl border-2 text-lg font-black uppercase transition-all ${isOutdoorMode ? 'bg-white border-white text-black shadow-[0_0_15px_rgba(255,255,255,0.6)]' : 'bg-black border-white text-white shadow-[0_0_15px_rgba(255,255,255,0.3)] [text-shadow:_0_0_10px_rgba(255,255,255,0.8)]'}`}>
                   Court: {isOutdoorMode ? 'Outdoor' : 'Indoor'}
