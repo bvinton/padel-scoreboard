@@ -14,7 +14,6 @@ interface TeamState {
   sets: number;
 }
 
-// --- NEW: Type for our historical set scores ---
 export interface SetScore {
   team1: number;
   team2: number;
@@ -32,9 +31,7 @@ export interface PadelState {
   team1: TeamState;
   team2: TeamState;
 
-  // --- NEW: Array to store the results of finished sets (e.g. [{team1: 6, team2: 4}, {team1: 3, team2: 6}]) ---
   setScores: SetScore[];
-
   history: PadelStateSnapshot[];
 
   scorePoint: (team: TeamKey) => void;
@@ -62,6 +59,7 @@ const createInitialTeamState = (name: string): TeamState => ({
   sets: 0,
 });
 
+// REMOVED 'history: []' from here to satisfy TypeScript
 const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch'> => ({
   useGoldenPoint: true,
   matchFormat: 3,
@@ -71,8 +69,7 @@ const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint
   matchWinnerDismissed: false,
   team1: createInitialTeamState('Team 1'),
   team2: createInitialTeamState('Team 2'),
-  setScores: [], // <-- Initialize empty set scores
-  history: [],
+  setScores: [], 
 });
 
 const cloneSnapshot = (state: PadelState): PadelStateSnapshot => {
@@ -112,13 +109,11 @@ const applyGameWin = (state: PadelState, winner: TeamKey): void => {
   }
 
   if (state.isTiebreak) {
-    // Tiebreak is over
     winnerTeam.sets += 1;
     wonSet = true;
   }
 
   if (wonSet) {
-    // --- NEW: Save the exact game score of this set before wiping it ---
     state.setScores.push({
       team1: state.team1.games,
       team2: state.team2.games
@@ -221,6 +216,7 @@ export const useMatchStore = create<PadelState>()(
 
       return {
         ...initialState,
+        history: [], // <-- INJECTED HERE INSTEAD
         scorePoint: (team: TeamKey) => {
           const currentState = get();
 
@@ -232,8 +228,6 @@ export const useMatchStore = create<PadelState>()(
           const snapshot = cloneSnapshot(currentState);
 
           set((state) => {
-            // We use JSON parse/stringify here to ensure we do a deep clone of the nested team objects
-            // before mutating them, which is safer when working with Zustand's persist middleware.
             const nextState = JSON.parse(JSON.stringify(state)) as PadelState;
             nextState.history = [...state.history, snapshot];
 
@@ -277,6 +271,7 @@ export const useMatchStore = create<PadelState>()(
           const base = createInitialState();
           set({
             ...base,
+            history: [], // <-- Ensure history resets on a new match
             useGoldenPoint,
             matchFormat, 
           });
@@ -284,7 +279,7 @@ export const useMatchStore = create<PadelState>()(
       };
     },
     {
-      name: 'padel-match-storage', // This is the key used in the browser's local storage
+      name: 'padel-match-storage', 
     }
   )
 );
