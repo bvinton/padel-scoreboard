@@ -6,7 +6,7 @@ import {
   Undo2, Settings, Trophy, RotateCcw, Maximize, MessageSquareText, 
   Smartphone, Save, History, Trash2, Volume2, HelpCircle, Copy, 
   Check, Wifi, WifiOff, Play, ChevronRight, ChevronLeft, 
-  CheckCircle2, RadioTower, Globe, MousePointer2
+  CheckCircle2, RadioTower, Globe, MousePointer2, Image as ImageIcon
 } from "lucide-react"; 
 import PusherClient from 'pusher-js';
 
@@ -43,6 +43,7 @@ export default function HomePage() {
   
   // States for Wizard & Burn-In
   const [wizardStep, setWizardStep] = useState(1);
+  const [wizardImageIndex, setWizardImageIndex] = useState(1); // Track which screenshot is visible
   const [testSignals, setTestSignals] = useState({ team1: false, team2: false, undo: false });
   const [burnInShift, setBurnInShift] = useState({ x: 0, y: 0 });
   
@@ -123,7 +124,7 @@ export default function HomePage() {
   const handleCloseReadme = () => { 
     if (dontShowAgain) localStorage.setItem('padelReadmeDismissed', 'true'); 
     setReadmeOpen(false); 
-    setTimeout(() => { setWizardStep(1); setTestSignals({team1: false, team2: false, undo: false}); }, 500);
+    setTimeout(() => { setWizardStep(1); setWizardImageIndex(1); setTestSignals({team1: false, team2: false, undo: false}); }, 500);
   };
   
   const generateNewRoomCode = () => { if (window.confirm("Disconnect Flic buttons?")) { const newRoom = Math.random().toString(36).substring(2, 6).toUpperCase(); localStorage.setItem('padelRoomCode', newRoom); setRoomCode(newRoom); setLastProcessedId(Date.now()); } };
@@ -325,39 +326,47 @@ export default function HomePage() {
                 {wizardStep === 1 && (
                   <div className="space-y-6 animate-in fade-in duration-500">
                     <h3 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
-                      <Globe className="text-emerald-400" /> 1. Prepare Flic App
+                      <Globe className="text-emerald-400" /> 1. Flic App Instructions
                     </h3>
-                    <p className="text-slate-300 md:text-lg leading-relaxed">Open the <strong>Flic App</strong> on your device and follow these settings for each button click:</p>
+                    <p className="text-slate-300 md:text-lg">Follow these visual steps in the Flic app to configure your buttons:</p>
                     
-                    {/* Visual Guide Box */}
-                    <div className="bg-slate-800 border-2 border-slate-700 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
-                      <div className="absolute top-0 right-0 p-2 bg-slate-700/50 rounded-bl-xl text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Flic App Preview</div>
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-4 border-b border-slate-700 pb-3">
-                          <div className="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400 font-bold">1</div>
-                          <div>
-                            <p className="text-xs text-slate-500 font-black uppercase">Action Type</p>
-                            <p className="text-white font-bold">Internet Request</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-4 border-b border-slate-700 pb-3">
-                          <div className="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400 font-bold">2</div>
-                          <div>
-                            <p className="text-xs text-slate-500 font-black uppercase">Request Method</p>
-                            <p className="text-white font-bold italic">GET</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400 font-bold">3</div>
-                          <div>
-                            <p className="text-xs text-slate-500 font-black uppercase">URL</p>
-                            <p className="text-emerald-400 text-xs font-mono">Pasting in next steps...</p>
-                          </div>
+                    {/* Visual Screenshot Slider */}
+                    <div className="relative group bg-black/40 rounded-2xl border-2 border-slate-700 overflow-hidden shadow-2xl">
+                      <div className="aspect-[16/9] flex items-center justify-center relative">
+                        <img 
+                          src={`/hardwaresetup${wizardImageIndex}.jpg`} 
+                          alt={`Setup Step ${wizardImageIndex}`}
+                          className="max-h-full max-w-full object-contain"
+                        />
+                        {/* Overlays for navigation within the image area */}
+                        <button 
+                          onClick={() => setWizardImageIndex(prev => Math.max(1, prev - 1))}
+                          className={`absolute left-4 p-2 bg-black/60 text-white rounded-full transition-opacity ${wizardImageIndex === 1 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                        >
+                          <ChevronLeft size={32} />
+                        </button>
+                        <button 
+                          onClick={() => setWizardImageIndex(prev => Math.min(3, prev + 1))}
+                          className={`absolute right-4 p-2 bg-black/60 text-white rounded-full transition-opacity ${wizardImageIndex === 3 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                        >
+                          <ChevronRight size={32} />
+                        </button>
+                      </div>
+                      
+                      {/* Caption/Indicator Area */}
+                      <div className="bg-slate-800/80 p-4 flex items-center justify-between border-t border-slate-700">
+                        <p className="text-white font-black uppercase text-xs tracking-widest">
+                          {wizardImageIndex === 1 && "Step 1: Select Button & Trigger"}
+                          {wizardImageIndex === 2 && "Step 2: Add Internet Request"}
+                          {wizardImageIndex === 3 && "Step 3: Set Method to GET"}
+                        </p>
+                        <div className="flex gap-2">
+                          {[1,2,3].map(i => (
+                            <div key={i} className={`h-1.5 w-6 rounded-full transition-colors ${wizardImageIndex === i ? 'bg-emerald-400' : 'bg-slate-600'}`} />
+                          ))}
                         </div>
                       </div>
                     </div>
-                    
-                    <p className="text-slate-500 text-sm font-medium italic">Tip: Ensure your tablet and Flic buttons are on the same WiFi for the fastest response.</p>
                   </div>
                 )}
 
@@ -441,7 +450,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* 5: SETTINGS */}
+      {/* 5: SETTINGS (unchanged) */}
       {settingsOpen && (
         <div className="absolute inset-0 z-50 bg-black/95 flex items-center justify-center p-2" onClick={() => setSettingsOpen(false)}>
           <div className="bg-slate-900 border-2 border-slate-700 p-4 rounded-2xl w-full max-w-xl flex flex-col gap-3 max-h-[90vh] overflow-y-auto text-white" onClick={e => e.stopPropagation()}>
@@ -475,7 +484,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* MAIN SCOREBOARD SECTION */}
+      {/* MAIN SCOREBOARD SECTION (unchanged) */}
       <section className="flex-grow flex flex-col p-1 relative overflow-hidden">
         {timerStarted && (
           <div className="absolute inset-1 pointer-events-none z-50 rounded-lg md:rounded-[1.5rem] overflow-hidden">
