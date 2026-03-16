@@ -103,7 +103,8 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
 
       {/* 3: MATCH WINNER MODAL */}
       {matchWinner && !matchWinnerDismissed && !localDismissed && (
-        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl" onClick={() => { if (!isExporting) setLocalDismissed(true); }}>
+        // Adjusting inset here to slightly reduce size. Changed from inset-0 to top-2 bottom-2 left-0 right-0
+        <div className="absolute top-2 bottom-2 left-0 right-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl" onClick={() => { if (!isExporting) setLocalDismissed(true); }}>
           <div 
             ref={cardRef} 
             className="relative flex flex-col items-center bg-slate-900 border-4 md:border-8 border-amber-400 p-8 md:p-16 rounded-3xl md:rounded-[4rem] text-center shadow-[0_0_100px_rgba(251,191,36,0.4)]" 
@@ -120,7 +121,7 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
               {team1.sets} - {team2.sets}
             </div>
 
-            {/* NEW: Detailed Games Per Set (e.g. 6-0, 6-4) */}
+            {/* Detailed Games Per Set */}
             <div className="flex gap-4 mb-8 md:mb-12">
               {setScores.map((set, idx) => (
                 <div key={idx} className="bg-slate-800 px-4 py-1 rounded-lg border border-slate-700">
