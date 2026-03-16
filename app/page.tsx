@@ -18,7 +18,8 @@ export default function HomePage() {
     team1, team2, server, isTiebreak, useGoldenPoint, matchFormat,
     matchWinner, matchWinnerDismissed, setScores, scorePoint, undo,
     toggleGoldenPoint, toggleServer, setMatchFormat, resetMatch,
-    umpireEnabled, toggleUmpire, setTeamName
+    umpireEnabled, toggleUmpire, setTeamName, 
+    isOutdoorMode, toggleOutdoorMode // <-- Our new display settings!
   } = useMatchStore();
 
   const [appStarted, setAppStarted] = useState(false); 
@@ -284,7 +285,9 @@ export default function HomePage() {
             </div>
             
             <div className="flex-1 h-full flex items-center justify-center overflow-hidden">
-              <span className="text-[32vh] md:text-[45vh] font-black leading-none italic scale-x-[1.4] md:scale-x-[1.6] transform-gpu [text-shadow:_0_0_40px_rgb(255_255_255_/_30%),_0_0_10px_rgb(255_255_255_/_60%)]">{formatPoints(t.data.points)}</span>
+              <span className={`text-[32vh] md:text-[45vh] font-black leading-none italic scale-x-[1.4] md:scale-x-[1.6] transform-gpu transition-all duration-300 ${isOutdoorMode ? "text-white tracking-tighter" : "[text-shadow:_0_0_40px_rgb(255_255_255_/_30%),_0_0_10px_rgb(255_255_255_/_60%)]"}`}>
+                {formatPoints(t.data.points)}
+              </span>
             </div>
             
             <div className="w-[28%] md:w-[22%] h-full flex flex-col items-center justify-center border-l border-slate-800/30 bg-black/40">
@@ -385,13 +388,12 @@ export default function HomePage() {
                <Volume2 size={24} /> Umpire: {umpireEnabled ? 'ON' : 'OFF'}
              </button>
              <button onClick={toggleFullscreen} className="py-3 rounded-xl bg-slate-800 border border-slate-600 text-lg font-black uppercase flex items-center justify-center gap-4 transition-all active:scale-95"><Maximize size={24} /> Fullscreen</button>
-             <div className="grid grid-cols-2 gap-2">
-                <button onClick={() => setMatchFormat(3)} className={`py-3 rounded-xl border text-lg font-black uppercase ${matchFormat === 3 ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Best of 3</button>
-                <button onClick={() => setMatchFormat(5)} className={`py-3 rounded-xl border text-lg font-black uppercase ${matchFormat === 5 ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Best of 5</button>
-             </div>
              
-             {/* THE NEW GOLDEN POINT BUTTON */}
-             <button onClick={toggleGoldenPoint} className={`py-3 rounded-xl border text-lg font-black uppercase transition-all ${useGoldenPoint ? 'bg-amber-500 border-white text-black' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Golden Point: {useGoldenPoint ? 'ON' : 'OFF'}</button>
+             {/* THE NEW DISPLAY SETTINGS GRID */}
+             <div className="grid grid-cols-2 gap-2">
+                <button onClick={toggleGoldenPoint} className={`py-3 rounded-xl border text-lg font-black uppercase transition-all ${useGoldenPoint ? 'bg-amber-500 border-white text-black shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Golden Point: {useGoldenPoint ? 'ON' : 'OFF'}</button>
+                <button onClick={toggleOutdoorMode} className={`py-3 rounded-xl border text-lg font-black uppercase transition-all ${isOutdoorMode ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Court: {isOutdoorMode ? 'Outdoor' : 'Indoor'}</button>
+             </div>
              
              <button onClick={toggleServer} className="py-3 bg-slate-800 border border-slate-600 rounded-xl text-lg font-black uppercase transition-all active:scale-95">Swap Server</button>
              <button onClick={() => setSettingsOpen(false)} className="py-3 bg-white text-black font-black rounded-xl uppercase mt-2 transition-all active:scale-95">Close</button>
