@@ -471,13 +471,11 @@ export default function HomePage() {
 
                 {/* Screenshot Placeholder */}
                 <div className="w-full bg-black/50 border border-slate-700 rounded-xl overflow-hidden my-4 relative min-h-[150px] flex items-center justify-center">
-                  {/* It looks for a file named flic-setup.jpg in the public folder */}
                   <img 
-                    src="/flic-setup.jpg" 
+                    src="/flic-setup.png" 
                     alt="Flic App Setup Screenshot" 
                     className="w-full h-auto object-contain"
                     onError={(e) => {
-                      // Fallback text if they haven't uploaded the image yet
                       (e.target as HTMLImageElement).style.display = 'none';
                       const fallback = document.getElementById('image-fallback');
                       if (fallback) fallback.style.display = 'block';
@@ -485,7 +483,7 @@ export default function HomePage() {
                   />
                   <div id="image-fallback" className="hidden text-slate-500 text-center p-4">
                     <p className="font-bold uppercase tracking-widest text-emerald-500">Image Missing</p>
-                    <p className="text-xs mt-1">To show a screenshot here, drop an image named <code className="text-white">flic-setup.jpg</code> into the <code className="text-white">public</code> folder.</p>
+                    <p className="text-xs mt-1">To show a screenshot here, drop an image named <code className="text-white">flic-setup.png</code> into the <code className="text-white">public</code> folder.</p>
                   </div>
                 </div>
 
