@@ -3,12 +3,12 @@
 import { useState, useEffect, useRef } from "react";
 import { useMatchStore } from "../store/useMatchStore";
 import { dict } from "./translations";
-import { 
-  Undo2, Settings, Trophy, RotateCcw, Maximize, MessageSquareText, 
-  Smartphone, Save, History, Trash2, Volume2, HelpCircle, Copy, 
-  Check, Wifi, WifiOff, Play, ChevronRight, ChevronLeft, 
-  CheckCircle2, RadioTower, Globe, Image as ImageIcon, Languages
-} from "lucide-react"; 
+import HardwareWizard from "./components/HardwareWizard";
+import SettingsModal from "./components/SettingsModal";
+import AppOverlays from "./components/AppOverlays";
+import Footer from "./components/Footer";
+import ArchiveModal from "./components/ArchiveModal";
+import PointLogModal from "./components/PointLogModal";
 import PusherClient from 'pusher-js';
 
 interface SavedMatch {
@@ -21,12 +21,9 @@ interface SavedMatch {
 
 export default function HomePage() {
   const {
-    team1, team2, server, isTiebreak, useGoldenPoint, matchFormat,
-    matchWinner, matchWinnerDismissed, setScores, scorePoint, undo,
-    toggleGoldenPoint, toggleServer, setMatchFormat, resetMatch,
-    umpireEnabled, toggleUmpire, setTeamName, 
-    isOutdoorMode, toggleOutdoorMode,
-    language, setLanguage, hasSelectedLanguage 
+    team1, team2, server, isTiebreak, matchWinner, matchWinnerDismissed, 
+    setScores, scorePoint, undo, resetMatch, umpireEnabled,
+    isOutdoorMode, language
   } = useMatchStore();
 
   const t = dict[language] || dict.en; 
@@ -40,19 +37,12 @@ export default function HomePage() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [readmeOpen, setReadmeOpen] = useState(false);
-  const [dontShowAgain, setDontShowAgain] = useState(false);
   const [localDismissed, setLocalDismissed] = useState(false);
   
   const [roomCode, setRoomCode] = useState<string>("");
-  const [copiedLink, setCopiedLink] = useState<string | null>(null);
-  
-  const [wizardStep, setWizardStep] = useState(1);
-  const [wizardImageIndex, setWizardImageIndex] = useState(1); 
   const [testSignals, setTestSignals] = useState({ team1: false, team2: false, undo: false });
   const [burnInShift, setBurnInShift] = useState({ x: 0, y: 0 });
   
-  const touchStart = useRef<{x: number, y: number} | null>(null);
-
   const [timeLeft, setTimeLeft] = useState(0);
   const [timerStarted, setTimerStarted] = useState(false);
   const endTimeRef = useRef<number | null>(null);
@@ -62,29 +52,9 @@ export default function HomePage() {
   const [historyLog, setHistoryLog] = useState<{id: number, time: string, msg: string}[]>([]);
   const [savedMatches, setSavedMatches] = useState<SavedMatch[]>([]);
 
-  // Prevent Hydration Flash
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    touchStart.current = {
-      x: e.targetTouches[0].clientX,
-      y: e.targetTouches[0].clientY
-    };
-  };
-
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStart.current) return;
-    const xDist = touchStart.current.x - e.changedTouches[0].clientX;
-    const yDist = touchStart.current.y - e.changedTouches[0].clientY;
-
-    if (Math.abs(xDist) > Math.abs(yDist) && Math.abs(xDist) > 40) {
-      if (xDist > 0 && wizardImageIndex < 3) setWizardImageIndex(prev => prev + 1);
-      if (xDist < 0 && wizardImageIndex > 1) setWizardImageIndex(prev => prev - 1);
-    }
-    touchStart.current = null;
-  };
 
   const addLog = (msg: string) => {
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -98,7 +68,6 @@ export default function HomePage() {
     const voices = window.speechSynthesis.getVoices();
     
     const targetLang = language === 'es' ? 'es' : 'en';
-    
     const preferredVoice = voices.find(v => 
       (v.name.toLowerCase().includes("male") || v.name.toLowerCase().includes("low") || v.name.toLowerCase().includes("hombre")) && 
       v.lang.startsWith(targetLang)
@@ -111,12 +80,6 @@ export default function HomePage() {
     utterance.rate = 1.05;
     utterance.pitch = 0.85;
     window.speechSynthesis.speak(utterance);
-  };
-
-  const handleCopy = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedLink(id);
-    setTimeout(() => setCopiedLink(null), 2000);
   };
 
   const handleAppStart = async () => {
@@ -140,12 +103,11 @@ export default function HomePage() {
   const handleUndo = () => {
     lastActionRef.current = { type: 'undo', beforePoints: `${team1.points}-${team2.points}`, beforeGames: team1.games + team2.games, beforeSets: team1.sets + team2.sets };
     undo(); endTimeRef.current = null; setTimerStarted(false); setTimeLeft(0); setLocalDismissed(false);
-    prevGames1.current = team1.games; prevGames2.current = team2.games; prevSets1.current = team1.sets; prevSets2.current = team2.sets; prevIsTiebreak.current = isTiebreak;
   };
 
   const handleReset = () => {
     addLog(language === 'es' ? "Partido Reiniciado" : "Match Reset"); setHistoryLog([]); setLocalDismissed(false); endTimeRef.current = null; setTimerStarted(false); setTimeLeft(0);
-    prevGames1.current = 0; prevGames2.current = 0; prevSets1.current = 0; prevSets2.current = 0; prevIsTiebreak.current = false; resetMatch();
+    resetMatch();
   };
 
   const handleSaveMatch = () => {
@@ -157,12 +119,6 @@ export default function HomePage() {
 
   const deleteSavedMatch = (id: number) => { const updated = savedMatches.filter(m => m.id !== id); setSavedMatches(updated); localStorage.setItem('padelArchive', JSON.stringify(updated)); };
   const clearArchive = () => { if (window.confirm(language === 'es' ? "¿Borrar todo el historial?" : "Clear all match history?")) { setSavedMatches([]); localStorage.removeItem('padelArchive'); } };
-  
-  const handleCloseReadme = () => { 
-    if (dontShowAgain) localStorage.setItem('padelReadmeDismissed', 'true'); 
-    setReadmeOpen(false); 
-    setTimeout(() => { setWizardStep(1); setWizardImageIndex(1); setTestSignals({team1: false, team2: false, undo: false}); }, 500);
-  };
   
   const generateNewRoomCode = () => { if (window.confirm(language === 'es' ? "¿Desconectar botones Flic?" : "Disconnect Flic buttons?")) { const newRoom = Math.random().toString(36).substring(2, 6).toUpperCase(); localStorage.setItem('padelRoomCode', newRoom); setRoomCode(newRoom); setLastProcessedId(Date.now()); } };
 
@@ -268,12 +224,6 @@ export default function HomePage() {
   useEffect(() => { winSoundRef.current = new Audio("https://www.myinstants.com/media/sounds/final-fantasy-vii-victory-fanfare-1.mp3"); }, []);
   useEffect(() => { if (matchWinner && !matchWinnerDismissed && !localDismissed && winSoundRef.current) winSoundRef.current.play().catch(() => {}); }, [matchWinner, matchWinnerDismissed, localDismissed]);
 
-  const toggleFullscreen = () => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {}); else document.exitFullscreen(); };
-
-  const lastIdRef = useRef(lastProcessedId);
-  const handlersRef = useRef({ handleScore, handleUndo });
-  useEffect(() => { handlersRef.current = { handleScore, handleUndo }; });
-
   useEffect(() => {
     if (!roomCode) return; 
     fetch(`/api/flic?room=${roomCode}`).then(res => res.json()).then(data => {
@@ -297,14 +247,16 @@ export default function HomePage() {
         if (data.type === 'team2') setTestSignals(prev => ({ ...prev, team2: true }));
         if (data.type === 'undo') setTestSignals(prev => ({ ...prev, undo: true }));
 
-        if (data.type === 'team1') handlersRef.current.handleScore('team1');
-        if (data.type === 'team2') handlersRef.current.handleScore('team2');
-        if (data.type === 'undo') handlersRef.current.handleUndo();
+        if (data.type === 'team1') handleScore('team1');
+        if (data.type === 'team2') handleScore('team2');
+        if (data.type === 'undo') handleUndo();
       }
     });
 
     return () => { channel.unbind_all(); channel.unsubscribe(); pusher.disconnect(); };
   }, [roomCode]);
+
+  const lastIdRef = useRef(lastProcessedId);
 
   const formatPoints = (p: string | number) => typeof p === "number" ? p.toString() : p;
   const getBottomLeftX2 = () => timeLeft >= 16 ? ((timeLeft - 16) / 4) * 50 : 0; const getBottomRightX1 = () => timeLeft >= 16 ? 100 - (((timeLeft - 16) / 4) * 50) : 100;
@@ -316,7 +268,6 @@ export default function HomePage() {
     return "text-amber-500 drop-shadow-[0_0_12px_rgba(245,158,11,1)]"; 
   };
 
-  // Wait until mounted to avoid hydration flash
   if (!isMounted) {
     return <div className="fixed inset-0 bg-slate-950" />;
   }
@@ -330,322 +281,42 @@ export default function HomePage() {
       className={`fixed inset-0 flex flex-col select-none overflow-hidden font-sans ${isOutdoorMode ? 'bg-white text-black' : 'bg-black text-white'}`}
     >
       
-      {/* 0: LANGUAGE SELECTION OVERLAY */}
-      {!hasSelectedLanguage && (
-        <div className="absolute inset-0 z-[1000] bg-slate-950 flex flex-col items-center justify-center gap-10 p-6 text-center">
-          <Globe size={100} className="text-emerald-500 animate-pulse" />
-          <h1 className="text-4xl md:text-6xl font-black text-white uppercase tracking-widest italic drop-shadow-lg">Select Language</h1>
-          <div className="flex flex-col md:flex-row gap-6 w-full max-w-2xl justify-center">
-            <button 
-              onClick={() => setLanguage('en')} 
-              className="flex-1 py-8 bg-slate-800 border-4 border-slate-700 hover:border-emerald-500 hover:bg-slate-800/80 rounded-[2rem] text-3xl font-black text-white uppercase tracking-widest active:scale-95 transition-all shadow-xl"
-            >
-              English
-            </button>
-            <button 
-              onClick={() => setLanguage('es')} 
-              className="flex-1 py-8 bg-slate-800 border-4 border-slate-700 hover:border-emerald-500 hover:bg-slate-800/80 rounded-[2rem] text-3xl font-black text-white uppercase tracking-widest active:scale-95 transition-all shadow-xl"
-            >
-              Español
-            </button>
-          </div>
-        </div>
-      )}
+      {/* EXTRACTED COMPONENTS */}
+      <AppOverlays 
+        appStarted={appStarted} 
+        handleAppStart={handleAppStart} 
+        localDismissed={localDismissed} 
+        setLocalDismissed={setLocalDismissed} 
+        handleReset={handleReset} 
+      />
 
-      {/* 1: ROTATE DEVICE */}
-      {hasSelectedLanguage && (
-        <div className="hidden portrait:flex fixed inset-0 z-[600] bg-slate-950 items-center justify-center flex-col gap-8 p-10 text-center">
-          <div className="relative flex items-center justify-center">
-            <div className="absolute inset-0 bg-emerald-500 blur-3xl opacity-20 animate-pulse rounded-full" />
-            <Smartphone size={100} className="text-emerald-400 relative z-10" />
-            <RotateCcw size={45} className="text-amber-400 absolute -bottom-2 -right-4 z-20" />
-          </div>
-          <div className="flex flex-col gap-2">
-            <h2 className="text-4xl md:text-6xl font-black uppercase tracking-widest text-white italic drop-shadow-lg">{t.rotateDevice}</h2>
-            <p className="text-slate-400 font-bold uppercase tracking-wider text-sm md:text-lg">{t.landscapeRequired}</p>
-          </div>
-        </div>
-      )}
+      <HardwareWizard 
+        isOpen={readmeOpen} 
+        onClose={() => { setReadmeOpen(false); setTestSignals({ team1: false, team2: false, undo: false }); }} 
+        roomCode={roomCode} 
+        testSignals={testSignals} 
+      />
 
-      {/* 2: TAP TO START */}
-      {hasSelectedLanguage && !appStarted && (
-        <div className="absolute inset-0 z-[500] bg-slate-950 flex flex-col items-center justify-center gap-6 cursor-pointer" onClick={handleAppStart}>
-          <div className="relative">
-            <div className="absolute inset-0 bg-emerald-500 blur-3xl opacity-20 animate-pulse rounded-full" />
-            <Play size={100} className="text-emerald-400 relative z-10" />
-          </div>
-          <h1 className="text-4xl md:text-6xl font-black uppercase tracking-widest italic text-center text-white drop-shadow-lg">
-            {t.tapToStart}
-          </h1>
-          <p className="text-slate-400 text-sm md:text-lg font-bold uppercase tracking-wider text-center px-8">
-            {t.keepsScreenAwake}
-          </p>
-        </div>
-      )}
+      <SettingsModal 
+        isOpen={settingsOpen} 
+        onClose={() => setSettingsOpen(false)} 
+        roomCode={roomCode} 
+        generateNewRoomCode={generateNewRoomCode} 
+      />
 
-      {/* 3: MATCH WINNER */}
-      {matchWinner && !matchWinnerDismissed && !localDismissed && (
-        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl" onClick={() => setLocalDismissed(true)}>
-          <div className="relative flex flex-col items-center bg-slate-900 border-4 md:border-8 border-amber-400 p-8 md:p-16 rounded-3xl md:rounded-[4rem] text-center shadow-[0_0_100px_rgba(251,191,36,0.4)]" onClick={e => e.stopPropagation()}>
-            <Trophy className="w-16 h-16 md:w-24 md:h-24 text-amber-400 mb-4 md:mb-8 animate-pulse" />
-            <h2 className="text-5xl md:text-8xl font-black mb-2 md:mb-4 italic uppercase tracking-tighter text-white">
-              {matchWinner === 'team1' ? team1.name : team2.name}
-            </h2>
-            <button onClick={handleReset} className="bg-amber-500 text-black px-10 md:px-20 py-4 md:py-8 rounded-full text-2xl md:text-4xl font-black uppercase active:scale-95 transition-transform flex items-center gap-4">
-              <RotateCcw size={40} /> {t.playAgain}
-            </button>
-          </div>
-        </div>
-      )}
+      <ArchiveModal 
+        isOpen={archiveOpen}
+        onClose={() => setArchiveOpen(false)}
+        savedMatches={savedMatches}
+        deleteSavedMatch={deleteSavedMatch}
+        clearArchive={clearArchive}
+      />
 
-      {/* 4: HARDWARE SETUP WIZARD */}
-      {hasSelectedLanguage && readmeOpen && (
-        <div className="absolute inset-0 z-[300] bg-black/95 flex items-center justify-center p-4" onClick={handleCloseReadme}>
-          <div className="bg-slate-900 border-2 md:border-4 border-emerald-500 p-6 md:p-10 rounded-2xl md:rounded-[3rem] w-full max-w-4xl flex flex-col max-h-[90vh] shadow-[0_0_50px_rgba(16,185,129,0.2)]" onClick={e => e.stopPropagation()}>
-             
-             <div className="flex items-center justify-between border-b-2 border-slate-800 pb-4 mb-6">
-                <div>
-                  <h2 className="text-2xl md:text-4xl font-black uppercase text-emerald-400 tracking-widest italic leading-none">{t.hardwareSetup}</h2>
-                  <p className="text-slate-400 font-bold uppercase tracking-wider text-xs md:text-sm mt-1">{t.courtId}: <span className="text-white font-mono">{roomCode}</span></p>
-                </div>
-                <div className="flex gap-1 md:gap-2">
-                  {[1,2,3,4,5].map(step => (
-                    <div key={step} className={`h-2 w-8 md:w-12 rounded-full transition-colors ${wizardStep === step ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]' : wizardStep > step ? 'bg-emerald-900' : 'bg-slate-800'}`} />
-                  ))}
-                </div>
-             </div>
-
-             <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar min-h-[40vh]">
-                {wizardStep === 1 && (
-                  <div className="space-y-6 animate-in fade-in duration-500">
-                    <h3 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
-                      <Globe className="text-emerald-400" /> {t.flicInstructions}
-                    </h3>
-                    <p className="text-slate-300 md:text-lg italic tracking-tight">{t.flicSwipeInfo}</p>
-                    
-                    <div 
-                      className="relative bg-black/40 rounded-2xl border-2 border-slate-700 overflow-hidden shadow-2xl"
-                      onTouchStart={onTouchStart}
-                      onTouchEnd={onTouchEnd}
-                    >
-                      <div className="aspect-[16/9] flex items-center justify-center relative bg-slate-950">
-                        <img 
-                          src={`/hardwaresetup${wizardImageIndex}.jpg`} 
-                          alt={`Setup Step ${wizardImageIndex}`}
-                          className="max-h-full max-w-full object-contain pointer-events-none select-none"
-                        />
-                        <button 
-                          onClick={() => setWizardImageIndex(prev => Math.max(1, prev - 1))}
-                          className={`absolute left-2 md:left-4 p-2 md:p-4 bg-emerald-500 text-black rounded-full shadow-lg transition-all active:scale-90 ${wizardImageIndex === 1 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-                        >
-                          <ChevronLeft size={36} strokeWidth={3} />
-                        </button>
-                        <button 
-                          onClick={() => setWizardImageIndex(prev => Math.min(3, prev + 1))}
-                          className={`absolute right-2 md:right-4 p-2 md:p-4 bg-emerald-500 text-black rounded-full shadow-lg transition-all active:scale-90 ${wizardImageIndex === 3 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-                        >
-                          <ChevronRight size={36} strokeWidth={3} />
-                        </button>
-                      </div>
-                      
-                      <div className="bg-slate-800/95 p-4 flex items-center justify-between border-t border-slate-700">
-                        <p className="text-white font-black uppercase text-[10px] md:text-xs tracking-widest italic pr-4">
-                          {wizardImageIndex === 1 && t.step1}
-                          {wizardImageIndex === 2 && t.step2}
-                          {wizardImageIndex === 3 && t.step3}
-                        </p>
-                        <div className="flex gap-2 flex-shrink-0">
-                          {[1,2,3].map(i => (
-                            <div key={i} className={`h-2 w-6 rounded-full transition-colors ${wizardImageIndex === i ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,1)]' : 'bg-slate-600'}`} />
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {wizardStep === 2 && (
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3"><span className="w-4 h-12 bg-emerald-500 rounded-full"></span><h3 className="text-2xl md:text-3xl font-black uppercase text-white">{t.team1} {t.button}</h3></div>
-                    <p className="text-slate-300">{t.copyUrlTeam1}</p>
-                    <div className="flex items-center gap-2 bg-black/60 p-3 md:p-4 rounded-xl border border-slate-700">
-                      <code className="text-emerald-400 font-mono break-all text-sm md:text-base flex-1">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=team1</code>
-                      <button onClick={() => handleCopy(`https://padel-scoreboard-mocha.vercel.app/api/flic?room=${roomCode}&type=team1`, 'team1')} className={`p-3 md:p-4 rounded-xl ${copiedLink === 'team1' ? 'bg-emerald-500 text-black' : 'bg-slate-700 text-white hover:bg-slate-600'}`}>
-                        {copiedLink === 'team1' ? <Check size={24} /> : <Copy size={24} />}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {wizardStep === 3 && (
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3"><span className="w-4 h-12 bg-indigo-500 rounded-full"></span><h3 className="text-2xl md:text-3xl font-black uppercase text-white">{t.team2} {t.button}</h3></div>
-                    <p className="text-slate-300">{t.copyUrlTeam2}</p>
-                    <div className="flex items-center gap-2 bg-black/60 p-3 md:p-4 rounded-xl border border-slate-700">
-                      <code className="text-indigo-400 font-mono break-all text-sm md:text-base flex-1">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=team2</code>
-                      <button onClick={() => handleCopy(`https://padel-scoreboard-mocha.vercel.app/api/flic?room=${roomCode}&type=team2`, 'team2')} className={`p-3 md:p-4 rounded-xl ${copiedLink === 'team2' ? 'bg-indigo-500 text-white' : 'bg-slate-700 text-white hover:bg-slate-600'}`}>
-                        {copiedLink === 'team2' ? <Check size={24} /> : <Copy size={24} />}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {wizardStep === 4 && (
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3"><span className="w-4 h-12 bg-amber-500 rounded-full"></span><h3 className="text-2xl md:text-3xl font-black uppercase text-white">{t.undo} {t.button}</h3></div>
-                    <p className="text-slate-300">{t.copyUrlUndo}</p>
-                    <div className="flex items-center gap-2 bg-black/60 p-3 md:p-4 rounded-xl border border-slate-700">
-                      <code className="text-amber-400 font-mono break-all text-sm md:text-base flex-1">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=undo</code>
-                      <button onClick={() => handleCopy(`https://padel-scoreboard-mocha.vercel.app/api/flic?room=${roomCode}&type=undo`, 'undo')} className={`p-3 md:p-4 rounded-xl ${copiedLink === 'undo' ? 'bg-amber-500 text-black' : 'bg-slate-700 text-white hover:bg-slate-600'}`}>
-                        {copiedLink === 'undo' ? <Check size={24} /> : <Copy size={24} />}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {wizardStep === 5 && (
-                  <div className="space-y-8 flex flex-col items-center pt-4">
-                    <RadioTower size={64} className="text-emerald-500 animate-pulse" />
-                    <h3 className="text-2xl md:text-4xl font-black uppercase text-white text-center italic tracking-widest">{t.testConnection}</h3>
-                    <div className="grid grid-cols-3 gap-4 w-full max-w-2xl mt-4">
-                      <div className={`flex flex-col items-center p-6 rounded-2xl border-2 transition-all duration-300 ${testSignals.team1 ? 'bg-emerald-500/20 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)]' : 'bg-slate-800/50 border-slate-700'}`}>
-                        {testSignals.team1 ? <CheckCircle2 size={40} className="text-emerald-500 mb-2" /> : <div className="w-10 h-10 rounded-full bg-slate-700 mb-2 animate-pulse" />}
-                        <span className="font-bold uppercase text-[10px] md:text-xs">{t.team1}</span>
-                      </div>
-                      <div className={`flex flex-col items-center p-6 rounded-2xl border-2 transition-all duration-300 ${testSignals.team2 ? 'bg-indigo-500/20 border-indigo-500 shadow-[0_0_20px_rgba(99,102,241,0.4)]' : 'bg-slate-800/50 border-slate-700'}`}>
-                        {testSignals.team2 ? <CheckCircle2 size={40} className="text-indigo-500 mb-2" /> : <div className="w-10 h-10 rounded-full bg-slate-700 mb-2 animate-pulse" />}
-                        <span className="font-bold uppercase text-[10px] md:text-xs">{t.team2}</span>
-                      </div>
-                      <div className={`flex flex-col items-center p-6 rounded-2xl border-2 transition-all duration-300 ${testSignals.undo ? 'bg-amber-500/20 border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.4)]' : 'bg-slate-800/50 border-slate-700'}`}>
-                        {testSignals.undo ? <CheckCircle2 size={40} className="text-amber-500 mb-2" /> : <div className="w-10 h-10 rounded-full bg-slate-700 mb-2 animate-pulse" />}
-                        <span className="font-bold uppercase text-[10px] md:text-xs">{t.undo}</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-             </div>
-
-             <div className="flex items-center justify-between border-t-2 border-slate-800 pt-6 mt-4">
-                <div className="flex items-center gap-2">
-                  {wizardStep === 1 && (
-                    <>
-                      <input type="checkbox" id="dontShow" checked={dontShowAgain} onChange={e => setDontShowAgain(e.target.checked)} className="w-5 h-5 accent-emerald-500" />
-                      <label htmlFor="dontShow" className="text-slate-400 font-bold uppercase text-xs cursor-pointer select-none">{t.dontShowAgain}</label>
-                    </>
-                  )}
-                </div>
-                <div className="flex gap-4">
-                  {wizardStep > 1 && <button onClick={() => setWizardStep(p => p - 1)} className="px-6 py-3 bg-slate-800 text-white rounded-xl uppercase font-bold hover:bg-slate-700 active:scale-95 transition-all"><ChevronLeft /></button>}
-                  {wizardStep < 5 ? (
-                    <button onClick={() => setWizardStep(p => p + 1)} className="px-8 py-3 bg-emerald-500 text-black rounded-xl uppercase font-black flex items-center gap-2 active:scale-95 transition-all">{t.next} <ChevronRight /></button>
-                  ) : (
-                    <button onClick={handleCloseReadme} className="px-10 py-3 bg-emerald-500 text-black rounded-xl uppercase font-black active:scale-95 transition-all shadow-[0_0_30px_rgba(16,185,129,0.4)]">{t.startMatch}</button>
-                  )}
-                </div>
-             </div>
-          </div>
-        </div>
-      )}
-
-      {/* 5: SETTINGS */}
-      {settingsOpen && (
-        <div className="absolute inset-0 z-[200] bg-black/95 flex items-center justify-center p-2" onClick={() => setSettingsOpen(false)}>
-          <div className="bg-slate-900 border-2 border-slate-700 p-4 rounded-2xl w-full max-w-xl flex flex-col gap-3 max-h-[90vh] overflow-y-auto text-white" onClick={e => e.stopPropagation()}>
-             <h2 className="text-xl font-black uppercase text-center text-slate-500 italic">{t.settings}</h2>
-             <div className="flex flex-col gap-1 bg-slate-800 p-3 text-center rounded-xl">
-               <span className="text-slate-400 text-xs font-bold uppercase">{t.activeRoomCode}</span>
-               <div className="flex items-center justify-center gap-4">
-                 <span className="text-emerald-400 text-3xl font-black font-mono">{roomCode}</span>
-                 <button onClick={generateNewRoomCode} className="text-slate-400 text-xs uppercase underline">{t.regenerate}</button>
-               </div>
-             </div>
-             <div className="grid grid-cols-2 gap-2">
-               <input value={team1.name} onChange={e => setTeamName('team1', e.target.value)} placeholder={t.team1} className="bg-slate-800 rounded-xl p-3 text-white font-black uppercase text-center outline-none" />
-               <input value={team2.name} onChange={e => setTeamName('team2', e.target.value)} placeholder={t.team2} className="bg-slate-800 rounded-xl p-3 text-white font-black uppercase text-center outline-none" />
-             </div>
-             <button onClick={toggleUmpire} className={`py-4 rounded-xl border-2 font-black uppercase flex items-center justify-center gap-4 ${umpireEnabled ? 'bg-indigo-600 border-white text-white shadow-[0_0_15px_rgba(79,70,229,0.5)]' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
-               <Volume2 size={24} /> {t.umpire}: {umpireEnabled ? t.on : t.off}
-             </button>
-             <div className="grid grid-cols-2 gap-2">
-                <button onClick={toggleFullscreen} className="py-3 rounded-xl bg-slate-800 text-white font-black uppercase flex items-center justify-center gap-4 active:scale-95 transition-all"><Maximize size={24} /> {t.fullscreen}</button>
-                <button onClick={() => setLanguage(language === 'en' ? 'es' : 'en')} className="py-3 rounded-xl bg-slate-800 text-emerald-400 font-black uppercase flex items-center justify-center gap-4 border border-emerald-500/30 active:scale-95 transition-all"><Languages size={24} /> {t.language}: {language === 'en' ? 'EN' : 'ES'}</button>
-             </div>
-             <div className="grid grid-cols-2 gap-2">
-                <button onClick={() => setMatchFormat(3)} className={`py-3 rounded-xl border font-black uppercase transition-all ${matchFormat === 3 ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-500'}`}>{t.bestOf3}</button>
-                <button onClick={() => setMatchFormat(5)} className={`py-3 rounded-xl border font-black uppercase transition-all ${matchFormat === 5 ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-500'}`}>{t.bestOf5}</button>
-             </div>
-             <div className="grid grid-cols-2 gap-2">
-                <button onClick={toggleOutdoorMode} className={`py-3 rounded-xl border-2 font-black uppercase transition-all ${isOutdoorMode ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.6)]' : 'bg-black border-white text-white shadow-[0_0_15px_rgba(255,255,255,0.3)]'}`}>{t.court}: {isOutdoorMode ? t.outdoor : t.indoor}</button>
-                <button onClick={toggleGoldenPoint} className={`py-3 rounded-xl border font-black uppercase transition-all ${useGoldenPoint ? 'bg-amber-500 text-black shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 'bg-slate-800 text-slate-500'}`}>{t.goldenPoint}: {useGoldenPoint ? t.on : t.off}</button>
-             </div>
-             <button onClick={toggleServer} className="py-3 bg-slate-800 rounded-xl text-white font-black uppercase active:scale-95 transition-all">{t.swapServer}</button>
-             <button onClick={() => setSettingsOpen(false)} className="py-3 bg-white text-black font-black rounded-xl uppercase mt-2 active:scale-95 transition-all">{t.close}</button>
-          </div>
-        </div>
-      )}
-
-      {/* 6: SAVED MATCHES ARCHIVE */}
-      {archiveOpen && (
-        <div className="absolute inset-0 z-[200] bg-black/95 flex flex-col p-4 md:p-10" onClick={() => setArchiveOpen(false)}>
-          <div className="bg-slate-900 border-2 border-indigo-500/50 flex-1 rounded-3xl flex flex-col overflow-hidden max-w-4xl w-full mx-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-4 md:p-6 border-b border-slate-800 bg-slate-950">
-              <h2 className="text-xl md:text-3xl font-black text-indigo-400 uppercase italic flex items-center gap-3">
-                <History className="text-indigo-500" /> {language === 'es' ? 'Partidos Guardados' : 'Saved Matches'}
-              </h2>
-              <button onClick={() => setArchiveOpen(false)} className="text-slate-400 font-bold uppercase active:scale-95 transition-transform">{t.close}</button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
-              {savedMatches.length === 0 ? (
-                <div className="flex-1 flex items-center justify-center text-slate-600 font-bold uppercase">{language === 'es' ? 'No hay partidos' : 'No saved matches'}</div>
-              ) : (
-                savedMatches.map(m => (
-                  <div key={m.id} className="bg-slate-800/50 border border-slate-700 p-4 rounded-xl flex items-center justify-between">
-                    <div className="flex flex-col">
-                      <span className="text-slate-400 text-xs font-bold">{m.date}</span>
-                      <span className="text-white font-black text-lg md:text-xl uppercase">{m.team1Name} vs {m.team2Name}</span>
-                      <span className="text-emerald-400 font-black text-xl">{m.scores}</span>
-                    </div>
-                    <button onClick={() => deleteSavedMatch(m.id)} className="p-3 text-red-500 hover:bg-red-500/20 rounded-xl transition-colors"><Trash2 /></button>
-                  </div>
-                ))
-              )}
-            </div>
-            {savedMatches.length > 0 && (
-              <div className="p-4 border-t border-slate-800 bg-slate-950">
-                <button onClick={clearArchive} className="w-full py-4 rounded-xl border-2 border-red-900 text-red-500 font-black uppercase tracking-widest active:scale-95 transition-transform">
-                  {language === 'es' ? 'Borrar Todo' : 'Clear All'}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* 7: POINT LOG (HISTORY) */}
-      {historyOpen && (
-        <div className="absolute inset-0 z-[200] bg-black/95 flex flex-col p-4 md:p-10" onClick={() => setHistoryOpen(false)}>
-          <div className="bg-slate-900 border-2 border-slate-700 flex-1 rounded-3xl flex flex-col overflow-hidden max-w-4xl w-full mx-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-4 md:p-6 border-b border-slate-800 bg-slate-950">
-              <h2 className="text-xl md:text-3xl font-black text-slate-300 uppercase italic flex items-center gap-3">
-                <MessageSquareText className="text-slate-500" /> {language === 'es' ? 'Registro de Puntos' : 'Point Log'}
-              </h2>
-              <button onClick={() => setHistoryOpen(false)} className="text-slate-400 font-bold uppercase active:scale-95 transition-transform">{t.close}</button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
-              {historyLog.length === 0 ? (
-                <div className="flex-1 flex items-center justify-center text-slate-600 font-bold uppercase">{language === 'es' ? 'No hay eventos' : 'No events logged'}</div>
-              ) : (
-                historyLog.map(log => (
-                  <div key={log.id} className="flex items-start gap-4 p-3 bg-slate-800/30 rounded-lg">
-                    <span className="text-slate-500 font-mono text-sm">{log.time}</span>
-                    <span className="text-slate-300 font-medium">{log.msg}</span>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <PointLogModal 
+        isOpen={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        historyLog={historyLog}
+      />
 
       {/* MAIN SCOREBOARD SECTION */}
       <section className="flex-grow flex flex-col p-1 relative overflow-hidden">
@@ -705,31 +376,16 @@ export default function HomePage() {
         })}
       </section>
 
-      <footer className={`flex-none h-[40px] flex items-center justify-between px-2 md:px-10 border-t z-50 transition-colors ${isOutdoorMode ? 'bg-gray-200 border-gray-300' : 'bg-slate-950/95 border-slate-900'}`}>
-        <div className="flex items-center gap-1 md:gap-4 h-full">
-          <button onClick={handleUndo} className={`flex items-center gap-1 px-2 md:px-4 py-0.5 rounded h-[30px] active:scale-95 transition-all ${isOutdoorMode ? 'bg-white border' : 'bg-slate-900/50'}`}>
-            <Undo2 className="w-3.5 h-3.5 md:w-5 md:h-5 text-slate-500" />
-            <span className="text-[10px] md:text-lg font-black uppercase hidden md:inline text-slate-500">{t.undo}</span>
-          </button>
-          <button onClick={handleSaveMatch} className={`flex items-center gap-1 px-2 md:px-4 py-0.5 rounded h-[30px] active:scale-95 transition-all ${isOutdoorMode ? 'bg-indigo-100 border' : 'bg-indigo-900/40'}`}>
-            <Save className="w-3.5 h-3.5 md:w-5 md:h-5 text-indigo-400" />
-            <span className="text-[10px] md:text-lg font-black uppercase hidden md:inline text-indigo-400">{t.save}</span>
-          </button>
-        </div>
-        <div className={`px-3 py-0.5 rounded-full font-black uppercase text-[8px] md:text-sm ${isTiebreak ? 'text-amber-400 animate-pulse' : 'text-slate-600'}`}>
-          {isTiebreak ? t.tiebreak : t.match}
-        </div>
-        <div className="flex items-center gap-1 md:gap-3 h-full">
-          <button onClick={handleReset} className="text-[10px] md:text-lg font-black uppercase mr-1 md:mr-2 text-red-900/80 hover:text-red-500 active:scale-95 transition-all">{t.reset}</button>
-          <div className="p-1 md:p-1.5 rounded-full border mr-1 md:mr-2 border-slate-800 bg-black/40 shadow-inner">
-            {isOnline ? <Wifi size={16} className="text-emerald-500" /> : <WifiOff size={16} className="text-red-500 animate-pulse" />}
-          </div>
-          <button onClick={() => setReadmeOpen(true)} className="text-emerald-500 p-1 active:scale-95 transition-all"><HelpCircle size={20} /></button>
-          <button onClick={() => setArchiveOpen(true)} className="text-indigo-400 p-1 active:scale-95 transition-all"><History size={20} /></button>
-          <button onClick={() => setHistoryOpen(true)} className="text-slate-600 p-1 active:scale-95 transition-all"><MessageSquareText size={20} /></button>
-          <button onClick={() => setSettingsOpen(true)} className="text-slate-600 p-1 active:scale-95 transition-all"><Settings size={20} /></button>
-        </div>
-      </footer>
+      <Footer 
+        handleUndo={handleUndo}
+        handleSaveMatch={handleSaveMatch}
+        handleReset={handleReset}
+        isOnline={isOnline}
+        setReadmeOpen={setReadmeOpen}
+        setArchiveOpen={setArchiveOpen}
+        setHistoryOpen={setHistoryOpen}
+        setSettingsOpen={setSettingsOpen}
+      />
     </main>
   );
 }
