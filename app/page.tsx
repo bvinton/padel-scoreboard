@@ -6,7 +6,7 @@ import {
   Undo2, Settings, Trophy, RotateCcw, Maximize, MessageSquareText, 
   Smartphone, Save, History, Trash2, Volume2, HelpCircle, Copy, 
   Check, Wifi, WifiOff, Play, ChevronRight, ChevronLeft, 
-  CheckCircle2, RadioTower 
+  CheckCircle2, RadioTower, Globe, MousePointer2
 } from "lucide-react"; 
 import PusherClient from 'pusher-js';
 
@@ -293,9 +293,7 @@ export default function HomePage() {
       {matchWinner && !matchWinnerDismissed && !localDismissed && (
         <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl" onClick={() => setLocalDismissed(true)}>
           <div className="relative flex flex-col items-center bg-slate-900 border-4 md:border-8 border-amber-400 p-8 md:p-16 rounded-3xl md:rounded-[4rem] text-center shadow-[0_0_100px_rgba(251,191,36,0.4)]" onClick={e => e.stopPropagation()}>
-            <span className="absolute -top-8 -left-8 text-6xl animate-bounce">🎇</span>
-            <span className="absolute -top-8 -right-8 text-6xl animate-bounce delay-150">🎆</span>
-             <Trophy className="w-16 h-16 md:w-24 md:h-24 text-amber-400 mb-4 md:mb-8 animate-pulse" />
+            <Trophy className="w-16 h-16 md:w-24 md:h-24 text-amber-400 mb-4 md:mb-8 animate-pulse" />
             <h2 className="text-5xl md:text-8xl font-black mb-2 md:mb-4 italic uppercase tracking-tighter text-white">
               {matchWinner === 'team1' ? team1.name : team2.name}
             </h2>
@@ -325,12 +323,41 @@ export default function HomePage() {
 
              <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar min-h-[40vh]">
                 {wizardStep === 1 && (
-                  <div className="space-y-6">
-                    <h3 className="text-xl md:text-2xl font-bold text-white">Connect Your Flic Buttons</h3>
-                    <p className="text-slate-300 md:text-lg">Paste three Webhooks into your Flic App to control the scoreboard.</p>
-                    <div className="bg-slate-800 border border-slate-700 h-48 rounded-xl flex items-center justify-center text-slate-500 italic text-sm text-center px-4">
-                      [Flic App Configuration Help]
+                  <div className="space-y-6 animate-in fade-in duration-500">
+                    <h3 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
+                      <Globe className="text-emerald-400" /> 1. Prepare Flic App
+                    </h3>
+                    <p className="text-slate-300 md:text-lg leading-relaxed">Open the <strong>Flic App</strong> on your device and follow these settings for each button click:</p>
+                    
+                    {/* Visual Guide Box */}
+                    <div className="bg-slate-800 border-2 border-slate-700 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 p-2 bg-slate-700/50 rounded-bl-xl text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Flic App Preview</div>
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-4 border-b border-slate-700 pb-3">
+                          <div className="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400 font-bold">1</div>
+                          <div>
+                            <p className="text-xs text-slate-500 font-black uppercase">Action Type</p>
+                            <p className="text-white font-bold">Internet Request</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4 border-b border-slate-700 pb-3">
+                          <div className="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400 font-bold">2</div>
+                          <div>
+                            <p className="text-xs text-slate-500 font-black uppercase">Request Method</p>
+                            <p className="text-white font-bold italic">GET</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400 font-bold">3</div>
+                          <div>
+                            <p className="text-xs text-slate-500 font-black uppercase">URL</p>
+                            <p className="text-emerald-400 text-xs font-mono">Pasting in next steps...</p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
+                    
+                    <p className="text-slate-500 text-sm font-medium italic">Tip: Ensure your tablet and Flic buttons are on the same WiFi for the fastest response.</p>
                   </div>
                 )}
 
@@ -375,15 +402,15 @@ export default function HomePage() {
                     <RadioTower size={64} className="text-emerald-500 animate-pulse" />
                     <h3 className="text-2xl md:text-4xl font-black uppercase text-white text-center">Test Your Connection</h3>
                     <div className="grid grid-cols-3 gap-4 w-full max-w-2xl mt-4">
-                      <div className={`flex flex-col items-center p-6 rounded-2xl border-2 ${testSignals.team1 ? 'bg-emerald-500/20 border-emerald-500' : 'bg-slate-800/50 border-slate-700'}`}>
+                      <div className={`flex flex-col items-center p-6 rounded-2xl border-2 ${testSignals.team1 ? 'bg-emerald-500/20 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'bg-slate-800/50 border-slate-700'}`}>
                         {testSignals.team1 ? <CheckCircle2 size={40} className="text-emerald-500 mb-2" /> : <div className="w-10 h-10 rounded-full bg-slate-700 mb-2" />}
                         <span className="font-bold uppercase text-xs">Team 1</span>
                       </div>
-                      <div className={`flex flex-col items-center p-6 rounded-2xl border-2 ${testSignals.team2 ? 'bg-indigo-500/20 border-indigo-500' : 'bg-slate-800/50 border-slate-700'}`}>
+                      <div className={`flex flex-col items-center p-6 rounded-2xl border-2 ${testSignals.team2 ? 'bg-indigo-500/20 border-indigo-500 shadow-[0_0_20px_rgba(99,102,241,0.3)]' : 'bg-slate-800/50 border-slate-700'}`}>
                         {testSignals.team2 ? <CheckCircle2 size={40} className="text-indigo-500 mb-2" /> : <div className="w-10 h-10 rounded-full bg-slate-700 mb-2" />}
                         <span className="font-bold uppercase text-xs">Team 2</span>
                       </div>
-                      <div className={`flex flex-col items-center p-6 rounded-2xl border-2 ${testSignals.undo ? 'bg-amber-500/20 border-amber-500' : 'bg-slate-800/50 border-slate-700'}`}>
+                      <div className={`flex flex-col items-center p-6 rounded-2xl border-2 ${testSignals.undo ? 'bg-amber-500/20 border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.3)]' : 'bg-slate-800/50 border-slate-700'}`}>
                         {testSignals.undo ? <CheckCircle2 size={40} className="text-amber-500 mb-2" /> : <div className="w-10 h-10 rounded-full bg-slate-700 mb-2" />}
                         <span className="font-bold uppercase text-xs">Undo</span>
                       </div>
@@ -396,17 +423,17 @@ export default function HomePage() {
                 <div className="flex items-center gap-2">
                   {wizardStep === 1 && (
                     <>
-                      <input type="checkbox" id="dontShow" checked={dontShowAgain} onChange={e => setDontShowAgain(e.target.checked)} className="w-5 h-5" />
-                      <label htmlFor="dontShow" className="text-slate-400 font-bold uppercase text-xs">Don't show again</label>
+                      <input type="checkbox" id="dontShow" checked={dontShowAgain} onChange={e => setDontShowAgain(e.target.checked)} className="w-5 h-5 accent-emerald-500" />
+                      <label htmlFor="dontShow" className="text-slate-400 font-bold uppercase text-xs cursor-pointer">Don't show again</label>
                     </>
                   )}
                 </div>
                 <div className="flex gap-4">
-                  {wizardStep > 1 && <button onClick={() => setWizardStep(p => p - 1)} className="px-6 py-3 bg-slate-800 text-white rounded-xl uppercase font-bold"><ChevronLeft /></button>}
+                  {wizardStep > 1 && <button onClick={() => setWizardStep(p => p - 1)} className="px-6 py-3 bg-slate-800 text-white rounded-xl uppercase font-bold hover:bg-slate-700 active:scale-95 transition-all"><ChevronLeft /></button>}
                   {wizardStep < 5 ? (
-                    <button onClick={() => setWizardStep(p => p + 1)} className="px-8 py-3 bg-emerald-500 text-black rounded-xl uppercase font-black flex items-center gap-2">Next <ChevronRight /></button>
+                    <button onClick={() => setWizardStep(p => p + 1)} className="px-8 py-3 bg-emerald-500 text-black rounded-xl uppercase font-black flex items-center gap-2 active:scale-95 transition-all">Next <ChevronRight /></button>
                   ) : (
-                    <button onClick={handleCloseReadme} className="px-10 py-3 bg-emerald-500 text-black rounded-xl uppercase font-black">Start Match</button>
+                    <button onClick={handleCloseReadme} className="px-10 py-3 bg-emerald-500 text-black rounded-xl uppercase font-black active:scale-95 transition-all shadow-[0_0_30px_rgba(16,185,129,0.4)]">Start Match</button>
                   )}
                 </div>
              </div>
@@ -485,7 +512,7 @@ export default function HomePage() {
               </div>
               {isServing && (
                 <div className="absolute top-1 md:top-3 right-3 md:right-8 z-20">
-                  <span className={`px-2 md:px-5 py-0.5 rounded-full font-black text-[8px] md:text-sm animate-pulse uppercase ${isOutdoorMode ? 'bg-emerald-600 text-white' : 'bg-emerald-500 text-black'}`}>SERVING</span>
+                  <span className={`px-2 md:px-5 py-0.5 rounded-full font-black text-[8px] md:text-sm animate-pulse uppercase ${isOutdoorMode ? 'bg-emerald-600 text-white shadow-md' : 'bg-emerald-500 text-black'}`}>SERVING</span>
                 </div>
               )}
               <div className={`w-[28%] md:w-[22%] h-full flex flex-col items-center justify-center border-r ${sideColTheme}`}>
