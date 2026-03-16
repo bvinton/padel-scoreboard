@@ -21,6 +21,7 @@ export interface PadelState {
   useGoldenPoint: boolean;
   matchFormat: 3 | 5; 
   umpireEnabled: boolean;
+  isOutdoorMode: boolean; // <-- NEW: Memory for your display setting
 
   server: Server;
   isTiebreak: boolean;
@@ -39,13 +40,14 @@ export interface PadelState {
   toggleServer: () => void;
   setMatchFormat: (format: 3 | 5) => void; 
   toggleUmpire: () => void;
+  toggleOutdoorMode: () => void; // <-- NEW: Action to switch modes
   setTeamName: (team: TeamKey, name: string) => void;
   resetMatch: () => void;
 }
 
 export type PadelStateSnapshot = Omit<
   PadelState,
-  'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setTeamName'
+  'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setTeamName' | 'toggleOutdoorMode'
 >;
 
 const STANDARD_POINTS: StandardPoint[] = ['0', '15', '30', '40', 'Ad'];
@@ -59,10 +61,11 @@ const createInitialTeamState = (name: string): TeamState => ({
   sets: 0,
 });
 
-const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setTeamName'> => ({
+const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setTeamName' | 'toggleOutdoorMode'> => ({
   useGoldenPoint: true,
   matchFormat: 3,
   umpireEnabled: false,
+  isOutdoorMode: false, // <-- Default to Indoor (Glow)
   server: 'team1',
   isTiebreak: false,
   matchWinner: null,
@@ -73,7 +76,7 @@ const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint
 });
 
 const cloneSnapshot = (state: PadelState): PadelStateSnapshot => {
-  const { history, scorePoint, undo, toggleGoldenPoint, toggleServer, setMatchFormat, resetMatch, toggleUmpire, setTeamName, ...rest } = state;
+  const { history, scorePoint, undo, toggleGoldenPoint, toggleServer, setMatchFormat, resetMatch, toggleUmpire, setTeamName, toggleOutdoorMode, ...rest } = state;
   return JSON.parse(JSON.stringify(rest)) as PadelStateSnapshot;
 };
 
@@ -201,6 +204,7 @@ export const useMatchStore = create<PadelState>()(
         toggleServer: () => set((state) => ({ server: state.server === 'team1' ? 'team2' : 'team1' })),
         setMatchFormat: (format: 3 | 5) => set({ matchFormat: format }),
         toggleUmpire: () => set((state) => ({ umpireEnabled: !state.umpireEnabled })),
+        toggleOutdoorMode: () => set((state) => ({ isOutdoorMode: !state.isOutdoorMode })), // <-- NEW
         setTeamName: (team: TeamKey, name: string) => set((state) => ({ [team]: { ...state[team], name } })),
         undo: () => {
           const { history } = get();
@@ -213,7 +217,7 @@ export const useMatchStore = create<PadelState>()(
         },
         toggleGoldenPoint: () => set((state) => ({ useGoldenPoint: !state.useGoldenPoint })),
         resetMatch: () => {
-          const { useGoldenPoint, matchFormat, umpireEnabled, team1, team2 } = get();
+          const { useGoldenPoint, matchFormat, umpireEnabled, isOutdoorMode, team1, team2 } = get();
           const base = createInitialState();
           set({
             ...base,
@@ -221,6 +225,7 @@ export const useMatchStore = create<PadelState>()(
             useGoldenPoint,
             matchFormat, 
             umpireEnabled,
+            isOutdoorMode, // <-- Keeps display state after reset
             team1: { ...base.team1, name: team1.name },
             team2: { ...base.team2, name: team2.name },
           });
