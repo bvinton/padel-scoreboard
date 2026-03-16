@@ -31,6 +31,7 @@ export default function HomePage() {
 
   const t = dict[language] || dict.en; 
 
+  const [isMounted, setIsMounted] = useState(false);
   const [appStarted, setAppStarted] = useState(false); 
   const [isOnline, setIsOnline] = useState(false);     
   
@@ -60,6 +61,11 @@ export default function HomePage() {
 
   const [historyLog, setHistoryLog] = useState<{id: number, time: string, msg: string}[]>([]);
   const [savedMatches, setSavedMatches] = useState<SavedMatch[]>([]);
+
+  // Prevent Hydration Flash
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const onTouchStart = (e: React.TouchEvent) => {
     touchStart.current = {
@@ -310,6 +316,11 @@ export default function HomePage() {
     return "text-amber-500 drop-shadow-[0_0_12px_rgba(245,158,11,1)]"; 
   };
 
+  // Wait until mounted to avoid hydration flash
+  if (!isMounted) {
+    return <div className="fixed inset-0 bg-slate-950" />;
+  }
+
   return (
     <main 
       style={{ 
@@ -412,7 +423,6 @@ export default function HomePage() {
                     </h3>
                     <p className="text-slate-300 md:text-lg italic tracking-tight">{t.flicSwipeInfo}</p>
                     
-                    {/* SWIPABLE GALLERY - touch-none removed for vertical scroll fix */}
                     <div 
                       className="relative bg-black/40 rounded-2xl border-2 border-slate-700 overflow-hidden shadow-2xl"
                       onTouchStart={onTouchStart}
