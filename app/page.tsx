@@ -28,7 +28,7 @@ export default function HomePage() {
   const [localDismissed, setLocalDismissed] = useState(false);
   const [umpireEnabled, setUmpireEnabled] = useState(false);
   
-  // NEW: Room Code State
+  // Room Code State
   const [roomCode, setRoomCode] = useState<string>("");
   
   const [timeLeft, setTimeLeft] = useState(0);
@@ -158,13 +158,12 @@ export default function HomePage() {
       const newRoom = Math.random().toString(36).substring(2, 6).toUpperCase();
       localStorage.setItem('padelRoomCode', newRoom);
       setRoomCode(newRoom);
-      setLastProcessedId(Date.now()); // Reset polling tracker for new room
+      setLastProcessedId(Date.now());
     }
   };
 
   // --- 3. EFFECTS ---
 
-  // Generate or Load Room Code & Check Readme
   useEffect(() => {
     let savedRoom = localStorage.getItem('padelRoomCode');
     if (!savedRoom) {
@@ -208,14 +207,17 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!timerStarted || !endTimeRef.current) return;
+
     const interval = setInterval(() => {
       const remaining = Math.max(0, (endTimeRef.current! - Date.now()) / 1000);
       setTimeLeft(remaining);
+
       if (remaining <= 0) {
         clearInterval(interval);
         setTimeout(() => setTimerStarted(false), 2000);
       }
     }, 50);
+
     return () => clearInterval(interval);
   }, [timerStarted]);
 
@@ -304,9 +306,8 @@ export default function HomePage() {
     else document.exitFullscreen();
   };
 
-  // ROOM CODE POLLING
   useEffect(() => {
-    if (!roomCode) return; // Don't poll until we have a room code
+    if (!roomCode) return; 
     
     const pollFlic = async () => {
       try {
@@ -461,7 +462,7 @@ export default function HomePage() {
       </footer>
 
       {/* MODALS */}
-      {/* README / ONBOARDING MODAL WITH DYNAMIC ROOM CODES */}
+      {/* README / ONBOARDING MODAL (CLEAN TEXT ONLY) */}
       {readmeOpen && (
         <div className="absolute inset-0 z-[300] bg-black/95 flex items-center justify-center p-4" onClick={handleCloseReadme}>
           <div className="bg-slate-900 border-2 md:border-4 border-emerald-500 p-6 md:p-10 rounded-2xl md:rounded-[3rem] w-full max-w-2xl flex flex-col gap-4 md:gap-6 max-h-[90vh] overflow-y-auto shadow-[0_0_50px_rgba(16,185,129,0.2)]" onClick={e => e.stopPropagation()}>
@@ -471,46 +472,29 @@ export default function HomePage() {
                 <p>Welcome to your professional Padel Scoreboard! You can simply tap the screen to score points, but for the ultimate experience, connect your <strong>Flic Smart Buttons</strong>.</p>
                 
                 <h3 className="text-white font-bold uppercase tracking-wider mt-4">How to Bind Flic Buttons:</h3>
-                <ol className="list-decimal pl-5 space-y-2 text-slate-400 mb-4">
+                <ol className="list-decimal pl-5 space-y-2 text-slate-400 mb-6">
                   <li>Open the <strong>Flic App</strong> on your device.</li>
                   <li>Tap a button to assign an action.</li>
                   <li>Search for and select the <strong>"Internet Request"</strong> action.</li>
                   <li>Set the Method to <strong>GET</strong>.</li>
-                  <li>Copy and paste the exact URL for each button:</li>
+                  <li>Copy and paste the exact URL below for each button:</li>
                 </ol>
 
-                <div className="w-full bg-black/50 border border-slate-700 rounded-xl overflow-hidden my-4 relative min-h-[150px] flex items-center justify-center">
-                  <img 
-                    src="/flic-setup.png" 
-                    alt="Flic App Setup Screenshot" 
-                    className="w-full h-auto object-contain"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                      const fallback = document.getElementById('image-fallback');
-                      if (fallback) fallback.style.display = 'block';
-                    }}
-                  />
-                  <div id="image-fallback" className="hidden text-slate-500 text-center p-4">
-                    <p className="font-bold uppercase tracking-widest text-emerald-500">Image Missing</p>
-                    <p className="text-xs mt-1">To show a screenshot here, drop an image named <code className="text-white">flic-setup.png</code> into the <code className="text-white">public</code> folder.</p>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                   <div className="bg-slate-800 p-3 rounded-xl border-l-4 border-emerald-500">
-                     <span className="block text-emerald-400 font-bold mb-1 uppercase text-xs">Team 1 Button</span>
-                     <code className="text-white font-mono break-all text-xs md:text-sm">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=team1</code>
+                <div className="space-y-4">
+                   <div className="bg-slate-800 p-4 rounded-xl border-l-4 border-emerald-500 shadow-md">
+                     <span className="block text-emerald-400 font-bold mb-1 uppercase text-sm">Team 1 Button</span>
+                     <code className="text-white font-mono break-all text-sm md:text-base">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=team1</code>
                    </div>
-                   <div className="bg-slate-800 p-3 rounded-xl border-l-4 border-indigo-500">
-                     <span className="block text-indigo-400 font-bold mb-1 uppercase text-xs">Team 2 Button</span>
-                     <code className="text-white font-mono break-all text-xs md:text-sm">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=team2</code>
+                   <div className="bg-slate-800 p-4 rounded-xl border-l-4 border-indigo-500 shadow-md">
+                     <span className="block text-indigo-400 font-bold mb-1 uppercase text-sm">Team 2 Button</span>
+                     <code className="text-white font-mono break-all text-sm md:text-base">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=team2</code>
                    </div>
-                   <div className="bg-slate-800 p-3 rounded-xl border-l-4 border-amber-500">
-                     <span className="block text-amber-400 font-bold mb-1 uppercase text-xs">Undo Button</span>
-                     <code className="text-white font-mono break-all text-xs md:text-sm">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=undo</code>
+                   <div className="bg-slate-800 p-4 rounded-xl border-l-4 border-amber-500 shadow-md">
+                     <span className="block text-amber-400 font-bold mb-1 uppercase text-sm">Undo Button</span>
+                     <code className="text-white font-mono break-all text-sm md:text-base">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=undo</code>
                    </div>
                 </div>
-                <p className="mt-4 font-bold text-white uppercase italic">Save the action. You are ready to play!</p>
+                <p className="mt-6 font-bold text-emerald-400 uppercase italic text-center">Save the action. You are ready to play!</p>
              </div>
 
              <div className="flex flex-col gap-3 mt-2 border-t border-slate-800 pt-4">
@@ -581,10 +565,9 @@ export default function HomePage() {
 
       {settingsOpen && (
         <div className="absolute inset-0 z-50 bg-black/95 flex items-center justify-center p-2" onClick={() => setSettingsOpen(false)}>
-          <div className="bg-slate-900 border-2 border-slate-700 p-4 rounded-2xl w-full max-w-xl flex flex-col gap-3 max-h-[90vh overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="bg-slate-900 border-2 border-slate-700 p-4 rounded-2xl w-full max-w-xl flex flex-col gap-3 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
              <h2 className="text-xl font-black uppercase text-center text-slate-500 italic">Settings</h2>
              
-             {/* NEW: ROOM CODE DISPLAY */}
              <div className="flex flex-col gap-1 bg-slate-800 border border-slate-700 rounded-xl p-3 text-center">
                <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Active Room Code</span>
                <div className="flex items-center justify-center gap-4">
