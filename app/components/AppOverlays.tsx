@@ -103,29 +103,26 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
 
       {/* 3: MATCH WINNER MODAL */}
       {matchWinner && !matchWinnerDismissed && !localDismissed && (
-        // Adjusting inset here to slightly reduce size. Changed from inset-0 to top-2 bottom-2 left-0 right-0
-        <div className="absolute top-2 bottom-2 left-0 right-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl" onClick={() => { if (!isExporting) setLocalDismissed(true); }}>
+        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/90 p-4" onClick={() => { if (!isExporting) setLocalDismissed(true); }}>
           <div 
             ref={cardRef} 
-            className="relative flex flex-col items-center bg-slate-900 border-4 md:border-8 border-amber-400 p-8 md:p-16 rounded-3xl md:rounded-[4rem] text-center shadow-[0_0_100px_rgba(251,191,36,0.4)]" 
+            className="relative flex flex-col items-center bg-slate-900 border-4 md:border-8 border-amber-400 p-6 md:p-12 rounded-[2rem] md:rounded-[3rem] text-center shadow-[0_0_100px_rgba(251,191,36,0.3)] max-h-[95vh] overflow-y-auto" 
             onClick={e => e.stopPropagation()}
           >
-            <Trophy className="w-16 h-16 md:w-24 md:h-24 text-amber-400 mb-4 md:mb-6 animate-pulse" />
+            <Trophy className="w-12 h-12 md:w-20 md:h-20 text-amber-400 mb-3 animate-pulse" />
             
-            <h2 className="text-5xl md:text-8xl font-black mb-2 italic uppercase tracking-tighter text-white">
+            <h2 className="text-4xl md:text-7xl font-black mb-1 italic uppercase tracking-tighter text-white">
               {matchWinner === 'team1' ? team1.name : team2.name}
             </h2>
             
-            {/* Main Sets Score */}
-            <div className="text-2xl md:text-4xl text-white font-black uppercase tracking-widest mb-2">
+            <div className="text-xl md:text-3xl text-white font-black uppercase tracking-widest mb-2">
               {team1.sets} - {team2.sets}
             </div>
 
-            {/* Detailed Games Per Set */}
-            <div className="flex gap-4 mb-8 md:mb-12">
+            <div className="flex gap-2 md:gap-4 mb-6 md:mb-10">
               {setScores.map((set, idx) => (
-                <div key={idx} className="bg-slate-800 px-4 py-1 rounded-lg border border-slate-700">
-                  <span className="text-xl md:text-3xl font-black text-emerald-400">
+                <div key={idx} className="bg-slate-800 px-3 py-1 rounded-lg border border-slate-700">
+                  <span className="text-lg md:text-2xl font-black text-emerald-400">
                     {set.team1}-{set.team2}
                   </span>
                 </div>
@@ -133,12 +130,12 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
             </div>
 
             {!isExporting && (
-              <div className="flex flex-col md:flex-row gap-4 w-full">
-                <button onClick={handleReset} className="flex-1 bg-amber-500 text-black px-8 py-4 rounded-full text-xl md:text-2xl font-black uppercase active:scale-95 transition-transform flex items-center justify-center gap-3">
-                  <RotateCcw size={28} /> {t.playAgain}
+              <div className="flex flex-col md:flex-row gap-3 w-full">
+                <button onClick={handleReset} className="flex-1 bg-amber-500 text-black px-6 py-4 rounded-full text-lg md:text-xl font-black uppercase active:scale-95 transition-transform flex items-center justify-center gap-2">
+                  <RotateCcw size={24} /> {t.playAgain}
                 </button>
-                <button onClick={handleShare} className="flex-1 bg-indigo-500 text-white px-8 py-4 rounded-full text-xl md:text-2xl font-black uppercase active:scale-95 transition-transform flex items-center justify-center gap-3">
-                  <Share2 size={28} /> {language === 'es' ? 'Compartir' : 'Share'}
+                <button onClick={handleShare} className="flex-1 bg-indigo-500 text-white px-6 py-4 rounded-full text-lg md:text-xl font-black uppercase active:scale-95 transition-transform flex items-center justify-center gap-2">
+                  <Share2 size={24} /> {language === 'es' ? 'Compartir' : 'Share'}
                 </button>
               </div>
             )}
