@@ -26,6 +26,7 @@ export const dict = {
       on: "ON",
       off: "OFF",
       fullscreen: "Fullscreen",
+      format: "Match Format", // NEW
       bestOf3: "Best of 3",
       bestOf5: "Best of 5",
       court: "Court",
@@ -81,6 +82,7 @@ export const dict = {
       on: "SÍ",
       off: "NO",
       fullscreen: "Pantalla Completa",
+      format: "Formato de Partido", // NEW
       bestOf3: "Mejor de 3",
       bestOf5: "Mejor de 5",
       court: "Pista",
