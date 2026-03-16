@@ -43,10 +43,14 @@ export default function HomePage() {
   
   // States for Wizard & Burn-In
   const [wizardStep, setWizardStep] = useState(1);
-  const [wizardImageIndex, setWizardImageIndex] = useState(1); // Track which screenshot is visible
+  const [wizardImageIndex, setWizardImageIndex] = useState(1); 
   const [testSignals, setTestSignals] = useState({ team1: false, team2: false, undo: false });
   const [burnInShift, setBurnInShift] = useState({ x: 0, y: 0 });
   
+  // Swipe Logic Refs
+  const touchStart = useRef<number | null>(null);
+  const touchEnd = useRef<number | null>(null);
+
   const [timeLeft, setTimeLeft] = useState(0);
   const [timerStarted, setTimerStarted] = useState(false);
   const endTimeRef = useRef<number | null>(null);
@@ -55,6 +59,19 @@ export default function HomePage() {
 
   const [historyLog, setHistoryLog] = useState<{id: number, time: string, msg: string}[]>([]);
   const [savedMatches, setSavedMatches] = useState<SavedMatch[]>([]);
+
+  const handleSwipe = () => {
+    if (!touchStart.current || !touchEnd.current) return;
+    const distance = touchStart.current - touchEnd.current;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && wizardImageIndex < 3) setWizardImageIndex(prev => prev + 1);
+    if (isRightSwipe && wizardImageIndex > 1) setWizardImageIndex(prev => prev - 1);
+    
+    touchStart.current = null;
+    touchEnd.current = null;
+  };
 
   const addLog = (msg: string) => {
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -200,7 +217,7 @@ export default function HomePage() {
   useEffect(() => { const saved = localStorage.getItem('padelArchive'); if (saved) { try { setSavedMatches(JSON.parse(saved)); } catch (e) {} } }, []);
 
   const winSoundRef = useRef<HTMLAudioElement | null>(null);
-  useEffect(() => { winSoundRef.current = new Audio("https://www.myinstants.com/media/sounds/final-fantasy-vii-victory-fanfare-1.mp3"); }, []);
+  useEffect(() => { winSoundRef.current = new Audio("https://www.myinstants.com/sounds/final-fantasy-vii-victory-fanfare-1.mp3"); }, []);
   useEffect(() => { if (matchWinner && !matchWinnerDismissed && !localDismissed && winSoundRef.current) winSoundRef.current.play().catch(() => {}); }, [matchWinner, matchWinnerDismissed, localDismissed]);
 
   const toggleFullscreen = () => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {}); else document.exitFullscreen(); };
@@ -317,7 +334,7 @@ export default function HomePage() {
                 </div>
                 <div className="flex gap-1 md:gap-2">
                   {[1,2,3,4,5].map(step => (
-                    <div key={step} className={`h-2 w-8 md:w-12 rounded-full transition-colors ${wizardStep === step ? 'bg-emerald-500' : wizardStep > step ? 'bg-emerald-900' : 'bg-slate-800'}`} />
+                    <div key={step} className={`h-2 w-8 md:w-12 rounded-full transition-colors ${wizardStep === step ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]' : wizardStep > step ? 'bg-emerald-900' : 'bg-slate-800'}`} />
                   ))}
                 </div>
              </div>
@@ -328,41 +345,44 @@ export default function HomePage() {
                     <h3 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
                       <Globe className="text-emerald-400" /> 1. Flic App Instructions
                     </h3>
-                    <p className="text-slate-300 md:text-lg">Follow these visual steps in the Flic app to configure your buttons:</p>
+                    <p className="text-slate-300 md:text-lg italic">Swipe left/right on the image to see the 3 setup steps:</p>
                     
-                    {/* Visual Screenshot Slider */}
-                    <div className="relative group bg-black/40 rounded-2xl border-2 border-slate-700 overflow-hidden shadow-2xl">
-                      <div className="aspect-[16/9] flex items-center justify-center relative">
+                    {/* SWIPABLE GALLERY */}
+                    <div 
+                      className="relative bg-black/40 rounded-2xl border-2 border-slate-700 overflow-hidden shadow-2xl touch-none"
+                      onTouchStart={e => touchStart.current = e.targetTouches[0].clientX}
+                      onTouchMove={e => touchEnd.current = e.targetTouches[0].clientX}
+                      onTouchEnd={handleSwipe}
+                    >
+                      <div className="aspect-[16/9] flex items-center justify-center relative bg-slate-950">
                         <img 
                           src={`/hardwaresetup${wizardImageIndex}.jpg`} 
                           alt={`Setup Step ${wizardImageIndex}`}
-                          className="max-h-full max-w-full object-contain"
+                          className="max-h-full max-w-full object-contain pointer-events-none select-none"
                         />
-                        {/* Overlays for navigation within the image area */}
                         <button 
                           onClick={() => setWizardImageIndex(prev => Math.max(1, prev - 1))}
-                          className={`absolute left-4 p-2 bg-black/60 text-white rounded-full transition-opacity ${wizardImageIndex === 1 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                          className={`absolute left-4 p-2 bg-black/60 text-white rounded-full transition-opacity ${wizardImageIndex === 1 ? 'opacity-0 pointer-events-none' : 'opacity-100 hover:bg-emerald-500 hover:text-black'}`}
                         >
                           <ChevronLeft size={32} />
                         </button>
                         <button 
                           onClick={() => setWizardImageIndex(prev => Math.min(3, prev + 1))}
-                          className={`absolute right-4 p-2 bg-black/60 text-white rounded-full transition-opacity ${wizardImageIndex === 3 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                          className={`absolute right-4 p-2 bg-black/60 text-white rounded-full transition-opacity ${wizardImageIndex === 3 ? 'opacity-0 pointer-events-none' : 'opacity-100 hover:bg-emerald-500 hover:text-black'}`}
                         >
                           <ChevronRight size={32} />
                         </button>
                       </div>
                       
-                      {/* Caption/Indicator Area */}
-                      <div className="bg-slate-800/80 p-4 flex items-center justify-between border-t border-slate-700">
-                        <p className="text-white font-black uppercase text-xs tracking-widest">
-                          {wizardImageIndex === 1 && "Step 1: Select Button & Trigger"}
-                          {wizardImageIndex === 2 && "Step 2: Add Internet Request"}
-                          {wizardImageIndex === 3 && "Step 3: Set Method to GET"}
+                      <div className="bg-slate-800/90 p-4 flex items-center justify-between border-t border-slate-700">
+                        <p className="text-white font-black uppercase text-[10px] md:text-xs tracking-widest italic">
+                          {wizardImageIndex === 1 && "Step 1: Assign 'Click' to 'Internet Request'"}
+                          {wizardImageIndex === 2 && "Step 2: Ensure Method is set to 'GET'"}
+                          {wizardImageIndex === 3 && "Step 3: Paste URLs from next screens"}
                         </p>
                         <div className="flex gap-2">
                           {[1,2,3].map(i => (
-                            <div key={i} className={`h-1.5 w-6 rounded-full transition-colors ${wizardImageIndex === i ? 'bg-emerald-400' : 'bg-slate-600'}`} />
+                            <div key={i} className={`h-1.5 w-6 rounded-full transition-colors ${wizardImageIndex === i ? 'bg-emerald-400 shadow-[0_0_5px_rgba(52,211,153,1)]' : 'bg-slate-600'}`} />
                           ))}
                         </div>
                       </div>
@@ -375,7 +395,7 @@ export default function HomePage() {
                     <div className="flex items-center gap-3"><span className="w-4 h-12 bg-emerald-500 rounded-full"></span><h3 className="text-2xl md:text-3xl font-black uppercase text-white">Team 1 Button</h3></div>
                     <div className="flex items-center gap-2 bg-black/60 p-3 md:p-4 rounded-xl border border-slate-700">
                       <code className="text-emerald-400 font-mono break-all text-sm md:text-base flex-1">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=team1</code>
-                      <button onClick={() => handleCopy(`https://padel-scoreboard-mocha.vercel.app/api/flic?room=${roomCode}&type=team1`, 'team1')} className={`p-3 md:p-4 rounded-xl ${copiedLink === 'team1' ? 'bg-emerald-500 text-black' : 'bg-slate-700 text-white'}`}>
+                      <button onClick={() => handleCopy(`https://padel-scoreboard-mocha.vercel.app/api/flic?room=${roomCode}&type=team1`, 'team1')} className={`p-3 md:p-4 rounded-xl ${copiedLink === 'team1' ? 'bg-emerald-500 text-black' : 'bg-slate-700 text-white hover:bg-slate-600'}`}>
                         {copiedLink === 'team1' ? <Check size={24} /> : <Copy size={24} />}
                       </button>
                     </div>
@@ -387,7 +407,7 @@ export default function HomePage() {
                     <div className="flex items-center gap-3"><span className="w-4 h-12 bg-indigo-500 rounded-full"></span><h3 className="text-2xl md:text-3xl font-black uppercase text-white">Team 2 Button</h3></div>
                     <div className="flex items-center gap-2 bg-black/60 p-3 md:p-4 rounded-xl border border-slate-700">
                       <code className="text-indigo-400 font-mono break-all text-sm md:text-base flex-1">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=team2</code>
-                      <button onClick={() => handleCopy(`https://padel-scoreboard-mocha.vercel.app/api/flic?room=${roomCode}&type=team2`, 'team2')} className={`p-3 md:p-4 rounded-xl ${copiedLink === 'team2' ? 'bg-indigo-500 text-white' : 'bg-slate-700 text-white'}`}>
+                      <button onClick={() => handleCopy(`https://padel-scoreboard-mocha.vercel.app/api/flic?room=${roomCode}&type=team2`, 'team2')} className={`p-3 md:p-4 rounded-xl ${copiedLink === 'team2' ? 'bg-indigo-500 text-white' : 'bg-slate-700 text-white hover:bg-slate-600'}`}>
                         {copiedLink === 'team2' ? <Check size={24} /> : <Copy size={24} />}
                       </button>
                     </div>
@@ -399,7 +419,7 @@ export default function HomePage() {
                     <div className="flex items-center gap-3"><span className="w-4 h-12 bg-amber-500 rounded-full"></span><h3 className="text-2xl md:text-3xl font-black uppercase text-white">Undo Button</h3></div>
                     <div className="flex items-center gap-2 bg-black/60 p-3 md:p-4 rounded-xl border border-slate-700">
                       <code className="text-amber-400 font-mono break-all text-sm md:text-base flex-1">https://padel-scoreboard-mocha.vercel.app/api/flic?room={roomCode}&type=undo</code>
-                      <button onClick={() => handleCopy(`https://padel-scoreboard-mocha.vercel.app/api/flic?room=${roomCode}&type=undo`, 'undo')} className={`p-3 md:p-4 rounded-xl ${copiedLink === 'undo' ? 'bg-amber-500 text-black' : 'bg-slate-700 text-white'}`}>
+                      <button onClick={() => handleCopy(`https://padel-scoreboard-mocha.vercel.app/api/flic?room=${roomCode}&type=undo`, 'undo')} className={`p-3 md:p-4 rounded-xl ${copiedLink === 'undo' ? 'bg-amber-500 text-black' : 'bg-slate-700 text-white hover:bg-slate-600'}`}>
                         {copiedLink === 'undo' ? <Check size={24} /> : <Copy size={24} />}
                       </button>
                     </div>
@@ -409,19 +429,19 @@ export default function HomePage() {
                 {wizardStep === 5 && (
                   <div className="space-y-8 flex flex-col items-center pt-4">
                     <RadioTower size={64} className="text-emerald-500 animate-pulse" />
-                    <h3 className="text-2xl md:text-4xl font-black uppercase text-white text-center">Test Your Connection</h3>
+                    <h3 className="text-2xl md:text-4xl font-black uppercase text-white text-center italic tracking-widest">Test Your Connection</h3>
                     <div className="grid grid-cols-3 gap-4 w-full max-w-2xl mt-4">
-                      <div className={`flex flex-col items-center p-6 rounded-2xl border-2 ${testSignals.team1 ? 'bg-emerald-500/20 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'bg-slate-800/50 border-slate-700'}`}>
-                        {testSignals.team1 ? <CheckCircle2 size={40} className="text-emerald-500 mb-2" /> : <div className="w-10 h-10 rounded-full bg-slate-700 mb-2" />}
-                        <span className="font-bold uppercase text-xs">Team 1</span>
+                      <div className={`flex flex-col items-center p-6 rounded-2xl border-2 transition-all duration-300 ${testSignals.team1 ? 'bg-emerald-500/20 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)]' : 'bg-slate-800/50 border-slate-700'}`}>
+                        {testSignals.team1 ? <CheckCircle2 size={40} className="text-emerald-500 mb-2" /> : <div className="w-10 h-10 rounded-full bg-slate-700 mb-2 animate-pulse" />}
+                        <span className="font-bold uppercase text-[10px] md:text-xs">Team 1</span>
                       </div>
-                      <div className={`flex flex-col items-center p-6 rounded-2xl border-2 ${testSignals.team2 ? 'bg-indigo-500/20 border-indigo-500 shadow-[0_0_20px_rgba(99,102,241,0.3)]' : 'bg-slate-800/50 border-slate-700'}`}>
-                        {testSignals.team2 ? <CheckCircle2 size={40} className="text-indigo-500 mb-2" /> : <div className="w-10 h-10 rounded-full bg-slate-700 mb-2" />}
-                        <span className="font-bold uppercase text-xs">Team 2</span>
+                      <div className={`flex flex-col items-center p-6 rounded-2xl border-2 transition-all duration-300 ${testSignals.team2 ? 'bg-indigo-500/20 border-indigo-500 shadow-[0_0_20px_rgba(99,102,241,0.4)]' : 'bg-slate-800/50 border-slate-700'}`}>
+                        {testSignals.team2 ? <CheckCircle2 size={40} className="text-indigo-500 mb-2" /> : <div className="w-10 h-10 rounded-full bg-slate-700 mb-2 animate-pulse" />}
+                        <span className="font-bold uppercase text-[10px] md:text-xs">Team 2</span>
                       </div>
-                      <div className={`flex flex-col items-center p-6 rounded-2xl border-2 ${testSignals.undo ? 'bg-amber-500/20 border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.3)]' : 'bg-slate-800/50 border-slate-700'}`}>
-                        {testSignals.undo ? <CheckCircle2 size={40} className="text-amber-500 mb-2" /> : <div className="w-10 h-10 rounded-full bg-slate-700 mb-2" />}
-                        <span className="font-bold uppercase text-xs">Undo</span>
+                      <div className={`flex flex-col items-center p-6 rounded-2xl border-2 transition-all duration-300 ${testSignals.undo ? 'bg-amber-500/20 border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.4)]' : 'bg-slate-800/50 border-slate-700'}`}>
+                        {testSignals.undo ? <CheckCircle2 size={40} className="text-amber-500 mb-2" /> : <div className="w-10 h-10 rounded-full bg-slate-700 mb-2 animate-pulse" />}
+                        <span className="font-bold uppercase text-[10px] md:text-xs">Undo</span>
                       </div>
                     </div>
                   </div>
@@ -433,7 +453,7 @@ export default function HomePage() {
                   {wizardStep === 1 && (
                     <>
                       <input type="checkbox" id="dontShow" checked={dontShowAgain} onChange={e => setDontShowAgain(e.target.checked)} className="w-5 h-5 accent-emerald-500" />
-                      <label htmlFor="dontShow" className="text-slate-400 font-bold uppercase text-xs cursor-pointer">Don't show again</label>
+                      <label htmlFor="dontShow" className="text-slate-400 font-bold uppercase text-xs cursor-pointer select-none">Don't show again</label>
                     </>
                   )}
                 </div>
@@ -450,7 +470,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* 5: SETTINGS (unchanged) */}
+      {/* 5: SETTINGS */}
       {settingsOpen && (
         <div className="absolute inset-0 z-50 bg-black/95 flex items-center justify-center p-2" onClick={() => setSettingsOpen(false)}>
           <div className="bg-slate-900 border-2 border-slate-700 p-4 rounded-2xl w-full max-w-xl flex flex-col gap-3 max-h-[90vh] overflow-y-auto text-white" onClick={e => e.stopPropagation()}>
@@ -466,25 +486,25 @@ export default function HomePage() {
                <input value={team1.name} onChange={e => setTeamName('team1', e.target.value)} placeholder="TEAM 1" className="bg-slate-800 rounded-xl p-3 text-white font-black uppercase text-center outline-none" />
                <input value={team2.name} onChange={e => setTeamName('team2', e.target.value)} placeholder="TEAM 2" className="bg-slate-800 rounded-xl p-3 text-white font-black uppercase text-center outline-none" />
              </div>
-             <button onClick={toggleUmpire} className={`py-4 rounded-xl border-2 font-black uppercase flex items-center justify-center gap-4 ${umpireEnabled ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
+             <button onClick={toggleUmpire} className={`py-4 rounded-xl border-2 font-black uppercase flex items-center justify-center gap-4 ${umpireEnabled ? 'bg-indigo-600 border-white text-white shadow-[0_0_15px_rgba(79,70,229,0.5)]' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
                <Volume2 size={24} /> Umpire: {umpireEnabled ? 'ON' : 'OFF'}
              </button>
-             <button onClick={toggleFullscreen} className="py-3 rounded-xl bg-slate-800 text-white font-black uppercase flex items-center justify-center gap-4"><Maximize size={24} /> Fullscreen</button>
+             <button onClick={toggleFullscreen} className="py-3 rounded-xl bg-slate-800 text-white font-black uppercase flex items-center justify-center gap-4 active:scale-95 transition-all"><Maximize size={24} /> Fullscreen</button>
              <div className="grid grid-cols-2 gap-2">
-                <button onClick={() => setMatchFormat(3)} className={`py-3 rounded-xl border font-black uppercase ${matchFormat === 3 ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-500'}`}>Best of 3</button>
-                <button onClick={() => setMatchFormat(5)} className={`py-3 rounded-xl border font-black uppercase ${matchFormat === 5 ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-500'}`}>Best of 5</button>
+                <button onClick={() => setMatchFormat(3)} className={`py-3 rounded-xl border font-black uppercase transition-all ${matchFormat === 3 ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-500'}`}>Best of 3</button>
+                <button onClick={() => setMatchFormat(5)} className={`py-3 rounded-xl border font-black uppercase transition-all ${matchFormat === 5 ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-500'}`}>Best of 5</button>
              </div>
              <div className="grid grid-cols-2 gap-2">
-                <button onClick={toggleOutdoorMode} className={`py-3 rounded-xl border-2 font-black uppercase ${isOutdoorMode ? 'bg-white text-black' : 'bg-black text-white border-white'}`}>Court: {isOutdoorMode ? 'Outdoor' : 'Indoor'}</button>
-                <button onClick={toggleGoldenPoint} className={`py-3 rounded-xl border font-black uppercase ${useGoldenPoint ? 'bg-amber-500 text-black' : 'bg-slate-800 text-slate-500'}`}>Golden Point: {useGoldenPoint ? 'ON' : 'OFF'}</button>
+                <button onClick={toggleOutdoorMode} className={`py-3 rounded-xl border-2 font-black uppercase transition-all ${isOutdoorMode ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.6)]' : 'bg-black border-white text-white shadow-[0_0_15px_rgba(255,255,255,0.3)]'}`}>Court: {isOutdoorMode ? 'Outdoor' : 'Indoor'}</button>
+                <button onClick={toggleGoldenPoint} className={`py-3 rounded-xl border font-black uppercase transition-all ${useGoldenPoint ? 'bg-amber-500 text-black shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 'bg-slate-800 text-slate-500'}`}>Golden Point: {useGoldenPoint ? 'ON' : 'OFF'}</button>
              </div>
-             <button onClick={toggleServer} className="py-3 bg-slate-800 rounded-xl text-white font-black uppercase">Swap Server</button>
-             <button onClick={() => setSettingsOpen(false)} className="py-3 bg-white text-black font-black rounded-xl uppercase mt-2">Close</button>
+             <button onClick={toggleServer} className="py-3 bg-slate-800 rounded-xl text-white font-black uppercase active:scale-95 transition-all">Swap Server</button>
+             <button onClick={() => setSettingsOpen(false)} className="py-3 bg-white text-black font-black rounded-xl uppercase mt-2 active:scale-95 transition-all">Close</button>
           </div>
         </div>
       )}
 
-      {/* MAIN SCOREBOARD SECTION (unchanged) */}
+      {/* MAIN SCOREBOARD SECTION */}
       <section className="flex-grow flex flex-col p-1 relative overflow-hidden">
         {timerStarted && (
           <div className="absolute inset-1 pointer-events-none z-50 rounded-lg md:rounded-[1.5rem] overflow-hidden">
@@ -521,7 +541,7 @@ export default function HomePage() {
               </div>
               {isServing && (
                 <div className="absolute top-1 md:top-3 right-3 md:right-8 z-20">
-                  <span className={`px-2 md:px-5 py-0.5 rounded-full font-black text-[8px] md:text-sm animate-pulse uppercase ${isOutdoorMode ? 'bg-emerald-600 text-white shadow-md' : 'bg-emerald-500 text-black'}`}>SERVING</span>
+                  <span className={`px-2 md:px-5 py-0.5 rounded-full font-black text-[8px] md:text-sm animate-pulse uppercase ${isOutdoorMode ? 'bg-emerald-600 text-white shadow-md' : 'bg-emerald-500 text-black shadow-[0_0_10px_rgba(16,185,129,0.5)]'}`}>SERVING</span>
                 </div>
               )}
               <div className={`w-[28%] md:w-[22%] h-full flex flex-col items-center justify-center border-r ${sideColTheme}`}>
@@ -542,13 +562,13 @@ export default function HomePage() {
         })}
       </section>
 
-      <footer className={`flex-none h-[40px] flex items-center justify-between px-2 md:px-10 border-t z-50 ${isOutdoorMode ? 'bg-gray-200 border-gray-300' : 'bg-slate-950/95 border-slate-900'}`}>
+      <footer className={`flex-none h-[40px] flex items-center justify-between px-2 md:px-10 border-t z-50 transition-colors ${isOutdoorMode ? 'bg-gray-200 border-gray-300' : 'bg-slate-950/95 border-slate-900'}`}>
         <div className="flex items-center gap-1 md:gap-4 h-full">
-          <button onClick={handleUndo} className={`flex items-center gap-1 px-2 md:px-4 py-0.5 rounded h-[30px] ${isOutdoorMode ? 'bg-white border' : 'bg-slate-900/50'}`}>
+          <button onClick={handleUndo} className={`flex items-center gap-1 px-2 md:px-4 py-0.5 rounded h-[30px] active:scale-95 transition-all ${isOutdoorMode ? 'bg-white border' : 'bg-slate-900/50'}`}>
             <Undo2 className="w-3.5 h-3.5 md:w-5 md:h-5 text-slate-500" />
             <span className="text-[10px] md:text-lg font-black uppercase hidden md:inline text-slate-500">Undo</span>
           </button>
-          <button onClick={handleSaveMatch} className={`flex items-center gap-1 px-2 md:px-4 py-0.5 rounded h-[30px] ${isOutdoorMode ? 'bg-indigo-100 border' : 'bg-indigo-900/40'}`}>
+          <button onClick={handleSaveMatch} className={`flex items-center gap-1 px-2 md:px-4 py-0.5 rounded h-[30px] active:scale-95 transition-all ${isOutdoorMode ? 'bg-indigo-100 border' : 'bg-indigo-900/40'}`}>
             <Save className="w-3.5 h-3.5 md:w-5 md:h-5 text-indigo-400" />
             <span className="text-[10px] md:text-lg font-black uppercase hidden md:inline text-indigo-400">Save</span>
           </button>
@@ -557,14 +577,14 @@ export default function HomePage() {
           {isTiebreak ? 'TIEBREAK' : 'MATCH'}
         </div>
         <div className="flex items-center gap-1 md:gap-3 h-full">
-          <button onClick={handleReset} className="text-[10px] md:text-lg font-black uppercase mr-1 md:mr-2 text-red-900/80">Reset</button>
-          <div className="p-1 md:p-1.5 rounded-full border mr-1 md:mr-2 border-slate-800 bg-black/40">
+          <button onClick={handleReset} className="text-[10px] md:text-lg font-black uppercase mr-1 md:mr-2 text-red-900/80 hover:text-red-500 active:scale-95 transition-all">Reset</button>
+          <div className="p-1 md:p-1.5 rounded-full border mr-1 md:mr-2 border-slate-800 bg-black/40 shadow-inner">
             {isOnline ? <Wifi size={16} className="text-emerald-500" /> : <WifiOff size={16} className="text-red-500 animate-pulse" />}
           </div>
-          <button onClick={() => setReadmeOpen(true)} className="text-emerald-500 p-1"><HelpCircle size={20} /></button>
-          <button onClick={() => setArchiveOpen(true)} className="text-indigo-400 p-1"><History size={20} /></button>
-          <button onClick={() => setHistoryOpen(true)} className="text-slate-600 p-1"><MessageSquareText size={20} /></button>
-          <button onClick={() => setSettingsOpen(true)} className="text-slate-600 p-1"><Settings size={20} /></button>
+          <button onClick={() => setReadmeOpen(true)} className="text-emerald-500 p-1 active:scale-95 transition-all"><HelpCircle size={20} /></button>
+          <button onClick={() => setArchiveOpen(true)} className="text-indigo-400 p-1 active:scale-95 transition-all"><History size={20} /></button>
+          <button onClick={() => setHistoryOpen(true)} className="text-slate-600 p-1 active:scale-95 transition-all"><MessageSquareText size={20} /></button>
+          <button onClick={() => setSettingsOpen(true)} className="text-slate-600 p-1 active:scale-95 transition-all"><Settings size={20} /></button>
         </div>
       </footer>
     </main>
