@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useMatchStore } from "../store/useMatchStore";
 import { Undo2, Settings, Trophy, RotateCcw, Maximize, MessageSquareText, Smartphone, Save, History, Trash2, Volume2, HelpCircle, Copy, Check } from "lucide-react";
+import PusherClient from 'pusher-js'; // <-- NEW: WebSocket Client
 
 interface SavedMatch {
   id: number;
@@ -28,7 +29,6 @@ export default function HomePage() {
   const [localDismissed, setLocalDismissed] = useState(false);
   const [umpireEnabled, setUmpireEnabled] = useState(false);
   
-  // Room Code & Copy State
   const [roomCode, setRoomCode] = useState<string>("");
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
   
@@ -180,14 +180,11 @@ export default function HomePage() {
     setRoomCode(savedRoom);
 
     const isDismissed = localStorage.getItem('padelReadmeDismissed');
-    if (isDismissed !== 'true') {
-      setReadmeOpen(true);
-    }
+    if (isDismissed !== 'true') setReadmeOpen(true);
   }, []);
   
   useEffect(() => {
     if (!lastActionRef.current) return;
-    
     const { type, team, beforePoints, beforeGames, beforeSets } = lastActionRef.current;
     const afterPoints = `${team1.points}-${team2.points}`;
     const afterGames = team1.games + team2.games;
@@ -197,34 +194,24 @@ export default function HomePage() {
       addLog(`Undo used at (${beforePoints}) score (${afterPoints})`);
     } else if (type === 'score' && team) {
       const teamName = team === 'team1' ? team1Name : team2Name;
-      
-      if (matchWinner) {
-        addLog(`${teamName} point at (${beforePoints}) Game, Set and Match ${teamName}`);
-      } else if (afterSets > beforeSets) {
-        addLog(`${teamName} point at (${beforePoints}) Game and Set ${teamName}`);
-      } else if (afterGames > beforeGames) {
-        addLog(`${teamName} point at (${beforePoints}) Game ${teamName}`);
-      } else {
-        addLog(`${teamName} point at (${beforePoints}) score (${afterPoints})`);
-      }
+      if (matchWinner) addLog(`${teamName} point at (${beforePoints}) Game, Set and Match ${teamName}`);
+      else if (afterSets > beforeSets) addLog(`${teamName} point at (${beforePoints}) Game and Set ${teamName}`);
+      else if (afterGames > beforeGames) addLog(`${teamName} point at (${beforePoints}) Game ${teamName}`);
+      else addLog(`${teamName} point at (${beforePoints}) score (${afterPoints})`);
     }
-    
     lastActionRef.current = null;
   }, [team1.points, team2.points, team1.games, team2.games, team1.sets, team2.sets, matchWinner, team1Name, team2Name]);
 
   useEffect(() => {
     if (!timerStarted || !endTimeRef.current) return;
-
     const interval = setInterval(() => {
       const remaining = Math.max(0, (endTimeRef.current! - Date.now()) / 1000);
       setTimeLeft(remaining);
-
       if (remaining <= 0) {
         clearInterval(interval);
         setTimeout(() => setTimerStarted(false), 2000);
       }
     }, 50);
-
     return () => clearInterval(interval);
   }, [timerStarted]);
 
@@ -248,26 +235,15 @@ export default function HomePage() {
     }
     if (team1.sets > prevSets1.current) {
         speakScore(`Game and Set, ${team1Name}`);
-        prevSets1.current = team1.sets;
-        prevGames1.current = 0; prevGames2.current = 0;
-        return;
+        prevSets1.current = team1.sets; prevGames1.current = 0; prevGames2.current = 0; return;
     }
     if (team2.sets > prevSets2.current) {
         speakScore(`Game and Set, ${team2Name}`);
-        prevSets2.current = team2.sets;
-        prevGames1.current = 0; prevGames2.current = 0;
-        return;
+        prevSets2.current = team2.sets; prevGames1.current = 0; prevGames2.current = 0; return;
     }
-    if (team1.games > prevGames1.current) {
-        speakScore(`Game, ${team1Name}`);
-        prevGames1.current = team1.games;
-        return;
-    }
-    if (team2.games > prevGames2.current) {
-        speakScore(`Game, ${team2Name}`);
-        prevGames2.current = team2.games;
-        return;
-    }
+    if (team1.games > prevGames1.current) { speakScore(`Game, ${team1Name}`); prevGames1.current = team1.games; return; }
+    if (team2.games > prevGames2.current) { speakScore(`Game, ${team2Name}`); prevGames2.current = team2.games; return; }
+    
     const p1 = team1.points; const p2 = team2.points;
     if (p1 === '0' && p2 === '0') return;
     if (p1 === 'Ad' || p2 === 'Ad') speakScore("Advantage");
@@ -288,49 +264,73 @@ export default function HomePage() {
 
   useEffect(() => {
     let wakeLock: any = null;
-    const requestWakeLock = async () => {
-      try { if ('wakeLock' in navigator) wakeLock = await (navigator as any).wakeLock.request('screen'); } catch (err) {}
-    };
+    const requestWakeLock = async () => { try { if ('wakeLock' in navigator) wakeLock = await (navigator as any).wakeLock.request('screen'); } catch (err) {} };
     requestWakeLock();
     const handleVisibilityChange = () => { if (wakeLock !== null && document.visibilityState === 'visible') requestWakeLock(); };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     const lockInterval = setInterval(requestWakeLock, 30000);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      clearInterval(lockInterval);
-      if (wakeLock) wakeLock.release().catch(() => {});
-    };
+    return () => { document.removeEventListener('visibilitychange', handleVisibilityChange); clearInterval(lockInterval); if (wakeLock) wakeLock.release().catch(() => {}); };
   }, []);
 
   const winSoundRef = useRef<HTMLAudioElement | null>(null);
   useEffect(() => { winSoundRef.current = new Audio("https://www.myinstants.com/media/sounds/final-fantasy-vii-victory-fanfare-1.mp3"); }, []);
-  useEffect(() => {
-    if (matchWinner && !matchWinnerDismissed && !localDismissed && winSoundRef.current) { winSoundRef.current.play().catch(() => {}); }
-  }, [matchWinner, matchWinnerDismissed, localDismissed]);
+  useEffect(() => { if (matchWinner && !matchWinnerDismissed && !localDismissed && winSoundRef.current) winSoundRef.current.play().catch(() => {}); }, [matchWinner, matchWinnerDismissed, localDismissed]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
     else document.exitFullscreen();
   };
 
+  // --- THE NEW WEBSOCKET REAL-TIME ENGINE ---
+  
+  // We use refs to guarantee the WebSocket always triggers the latest score functions
+  const lastIdRef = useRef(lastProcessedId);
+  const handlersRef = useRef({ handleScore, handleUndo });
+  useEffect(() => { handlersRef.current = { handleScore, handleUndo }; });
+
   useEffect(() => {
     if (!roomCode) return; 
     
-    const pollFlic = async () => {
-      try {
-        const res = await fetch(`/api/flic?room=${roomCode}`);
-        const data = await res.json();
-        if (data.id > lastProcessedId) {
-          setLastProcessedId(data.id);
-          if (data.type === 'team1') handleScore('team1');
-          if (data.type === 'team2') handleScore('team2');
-          if (data.type === 'undo') handleUndo();
-        }
-      } catch (e) {}
+    // 1. On load, do a single fetch to grab the current state
+    fetch(`/api/flic?room=${roomCode}`)
+      .then(res => res.json())
+      .then(data => {
+         if (data.id) {
+           lastIdRef.current = data.id;
+           setLastProcessedId(data.id);
+         }
+      }).catch(() => {});
+
+    // 2. Open the silent WebSockets connection
+    // Ensure you have NEXT_PUBLIC_PUSHER_KEY and NEXT_PUBLIC_PUSHER_CLUSTER in Vercel
+    const pusherKey = process.env.NEXT_PUBLIC_PUSHER_KEY || '';
+    const pusherCluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER || '';
+    
+    if (!pusherKey) return; // Prevent crashing if keys aren't added yet
+
+    const pusher = new PusherClient(pusherKey, { cluster: pusherCluster });
+    const channel = pusher.subscribe(`room-${roomCode}`);
+
+    channel.bind('button-pressed', (data: { id: number, type: string }) => {
+      // If we receive a new timestamp ID, update the score!
+      if (data.id > lastIdRef.current) {
+        lastIdRef.current = data.id;
+        setLastProcessedId(data.id);
+        
+        if (data.type === 'team1') handlersRef.current.handleScore('team1');
+        if (data.type === 'team2') handlersRef.current.handleScore('team2');
+        if (data.type === 'undo') handlersRef.current.handleUndo();
+      }
+    });
+
+    return () => {
+      channel.unbind_all();
+      channel.unsubscribe();
+      pusher.disconnect();
     };
-    const interval = setInterval(pollFlic, 500);
-    return () => clearInterval(interval);
-  }, [lastProcessedId, team1Name, team2Name, matchWinner, localDismissed, roomCode]);
+  }, [roomCode]);
+
+  // --- UI RENDERING ---
 
   const formatPoints = (p: string | number) => typeof p === "number" ? p.toString() : p;
 
@@ -469,7 +469,6 @@ export default function HomePage() {
       </footer>
 
       {/* MODALS */}
-      {/* README / ONBOARDING MODAL WITH ONE-TAP COPY */}
       {readmeOpen && (
         <div className="absolute inset-0 z-[300] bg-black/95 flex items-center justify-center p-4" onClick={handleCloseReadme}>
           <div className="bg-slate-900 border-2 md:border-4 border-emerald-500 p-6 md:p-10 rounded-2xl md:rounded-[3rem] w-full max-w-2xl flex flex-col gap-4 md:gap-6 max-h-[90vh] overflow-y-auto shadow-[0_0_50px_rgba(16,185,129,0.2)]" onClick={e => e.stopPropagation()}>
