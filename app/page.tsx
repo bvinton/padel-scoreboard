@@ -19,7 +19,7 @@ export default function HomePage() {
     matchWinner, matchWinnerDismissed, setScores, scorePoint, undo,
     toggleGoldenPoint, toggleServer, setMatchFormat, resetMatch,
     umpireEnabled, toggleUmpire, setTeamName, 
-    isOutdoorMode, toggleOutdoorMode // <-- Our new display settings!
+    isOutdoorMode, toggleOutdoorMode 
   } = useMatchStore();
 
   const [appStarted, setAppStarted] = useState(false); 
@@ -213,10 +213,16 @@ export default function HomePage() {
   const getBottomLeftX2 = () => timeLeft >= 16 ? ((timeLeft - 16) / 4) * 50 : 0; const getBottomRightX1 = () => timeLeft >= 16 ? 100 - (((timeLeft - 16) / 4) * 50) : 100;
   const getSideY2 = () => timeLeft >= 16 ? 100 : timeLeft >= 4 ? ((timeLeft - 4) / 12) * 100 : 0; const getTopLeftX1 = () => timeLeft >= 4 ? 0 : 50 - ((timeLeft / 4) * 50);
   const getTopRightX2 = () => timeLeft >= 4 ? 100 : 50 + ((timeLeft / 4) * 50);
-  const getTimerStrokeColor = () => { if (timeLeft > 10) return "text-emerald-500 drop-shadow-[0_0_12px_rgba(16,185,129,1)]"; return "text-amber-500 drop-shadow-[0_0_12px_rgba(245,158,11,1)]"; };
+  
+  // Clean timer logic that removes dropshadows in outdoor mode
+  const getTimerStrokeColor = () => { 
+    if (isOutdoorMode) return timeLeft > 10 ? "text-emerald-500" : "text-amber-500";
+    if (timeLeft > 10) return "text-emerald-500 drop-shadow-[0_0_12px_rgba(16,185,129,1)]"; 
+    return "text-amber-500 drop-shadow-[0_0_12px_rgba(245,158,11,1)]"; 
+  };
 
   return (
-    <main className="fixed inset-0 flex flex-col bg-black text-white select-none overflow-hidden font-sans">
+    <main className={`fixed inset-0 flex flex-col select-none overflow-hidden font-sans transition-colors duration-500 ${isOutdoorMode ? 'bg-white text-black' : 'bg-black text-white'}`}>
       
       {!appStarted && (
         <div className="absolute inset-0 z-[500] bg-slate-950 flex flex-col items-center justify-center gap-6 cursor-pointer" onClick={handleAppStart}>
@@ -244,7 +250,7 @@ export default function HomePage() {
             <span className="absolute -top-8 -left-8 text-6xl animate-bounce">🎇</span>
             <span className="absolute -top-8 -right-8 text-6xl animate-bounce delay-150">🎆</span>
              <Trophy className="w-16 h-16 md:w-24 md:h-24 text-amber-400 mb-4 md:mb-8 animate-pulse" />
-            <h2 className="text-5xl md:text-8xl font-black mb-2 md:mb-4 italic uppercase tracking-tighter">
+            <h2 className="text-5xl md:text-8xl font-black mb-2 md:mb-4 italic uppercase tracking-tighter text-white">
               {matchWinner === 'team1' ? team1.name : team2.name}
             </h2>
             <button onClick={handleReset} className="bg-amber-500 text-black px-10 md:px-20 py-4 md:py-8 rounded-full text-2xl md:text-4xl font-black uppercase active:scale-95 transition-transform flex items-center gap-4">
@@ -268,66 +274,90 @@ export default function HomePage() {
                 <line x1={`${getBottomRightX1()}%`} y1="100%" x2="100%" y2="100%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerStrokeColor()}`} />
               </svg>
             )}
-            {timeLeft <= 0 && <div className="absolute inset-0 border-[6px] border-red-600 shadow-[inset_0_0_40px_rgba(220,38,38,0.8)] animate-pulse" />}
+            {timeLeft <= 0 && <div className={`absolute inset-0 border-[6px] border-red-600 animate-pulse ${isOutdoorMode ? '' : 'shadow-[inset_0_0_40px_rgba(220,38,38,0.8)]'}`} />}
           </div>
         )}
 
-        {[ { id: "team1", data: team1 }, { id: "team2", data: team2 } ].map((t) => (
-          <button key={t.id} onClick={() => handleScore(t.id as any)} className={`flex-1 min-h-0 border-b flex flex-row items-center relative transition-all ${server === t.id ? "border-emerald-500/50 bg-emerald-500/20 shadow-[inset_0_0_40px_rgba(16,185,129,0.25)] z-10" : "border-slate-800 bg-slate-900/20"}`}>
-            <div className="absolute top-1 md:top-3 left-3 md:left-8 z-20">
-              <span className={`text-[10px] md:text-2xl font-black italic uppercase transition-all duration-300 ${server === t.id ? "text-emerald-400 opacity-100 drop-shadow-[0_0_10px_rgba(16,185,129,0.8)]" : "text-slate-400 opacity-60"}`}>{t.data.name}</span>
-            </div>
-            {server === t.id && <div className="absolute top-1 md:top-3 right-3 md:right-8 z-20"><span className="bg-emerald-500 text-black px-2 md:px-5 py-0.5 rounded-full font-black text-[8px] md:text-sm animate-pulse uppercase">SERVING</span></div>}
+        {[ { id: "team1", data: team1 }, { id: "team2", data: team2 } ].map((t) => {
+          const isServing = server === t.id;
+          
+          // Theme logic extracted for cleanliness
+          const btnTheme = isOutdoorMode 
+            ? (isServing ? "border-emerald-500 bg-emerald-50 z-10 shadow-sm" : "border-gray-300 bg-white")
+            : (isServing ? "border-emerald-500/50 bg-emerald-500/20 shadow-[inset_0_0_40px_rgba(16,185,129,0.25)] z-10" : "border-slate-800 bg-slate-900/20");
             
-            <div className="w-[28%] md:w-[22%] h-full flex flex-col items-center justify-center border-r border-slate-800/30 bg-black/40">
-              <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase tracking-widest italic">Sets</span>
-              <span className="text-[20vh] md:text-[23vh] font-black leading-none drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">{t.data.sets}</span>
-            </div>
-            
-            <div className="flex-1 h-full flex items-center justify-center overflow-hidden">
-              <span className={`text-[32vh] md:text-[45vh] font-black leading-none italic scale-x-[1.4] md:scale-x-[1.6] transform-gpu transition-all duration-300 ${isOutdoorMode ? "text-white tracking-tighter" : "[text-shadow:_0_0_40px_rgb(255_255_255_/_30%),_0_0_10px_rgb(255_255_255_/_60%)]"}`}>
-                {formatPoints(t.data.points)}
-              </span>
-            </div>
-            
-            <div className="w-[28%] md:w-[22%] h-full flex flex-col items-center justify-center border-l border-slate-800/30 bg-black/40">
-              <span className="text-[10px] md:text-xl font-black text-slate-400 uppercase tracking-widest italic">Games</span>
-              <span className="text-[20vh] md:text-[23vh] font-black leading-none drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">{t.data.games}</span>
-            </div>
-          </button>
-        ))}
+          const sideColTheme = isOutdoorMode ? "border-gray-200 bg-gray-100" : "border-slate-800/30 bg-black/40";
+          const labelTheme = isOutdoorMode ? "text-gray-500" : "text-slate-400";
+          const smallNumTheme = isOutdoorMode ? "text-black" : "text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]";
+          
+          const nameTheme = isOutdoorMode 
+            ? (isServing ? "text-emerald-700 font-extrabold" : "text-gray-500 font-bold")
+            : (isServing ? "text-emerald-400 opacity-100 drop-shadow-[0_0_10px_rgba(16,185,129,0.8)]" : "text-slate-400 opacity-60");
+
+          return (
+            <button key={t.id} onClick={() => handleScore(t.id as any)} className={`flex-1 min-h-0 border-b flex flex-row items-center relative transition-all ${btnTheme}`}>
+              
+              <div className="absolute top-1 md:top-3 left-3 md:left-8 z-20">
+                <span className={`text-[10px] md:text-2xl italic uppercase transition-all duration-300 ${nameTheme}`}>{t.data.name}</span>
+              </div>
+              
+              {isServing && (
+                <div className="absolute top-1 md:top-3 right-3 md:right-8 z-20">
+                  <span className={`px-2 md:px-5 py-0.5 rounded-full font-black text-[8px] md:text-sm animate-pulse uppercase ${isOutdoorMode ? 'bg-emerald-600 text-white shadow-md' : 'bg-emerald-500 text-black'}`}>SERVING</span>
+                </div>
+              )}
+              
+              <div className={`w-[28%] md:w-[22%] h-full flex flex-col items-center justify-center border-r ${sideColTheme}`}>
+                <span className={`text-[10px] md:text-xl font-black uppercase tracking-widest italic ${labelTheme}`}>Sets</span>
+                <span className={`text-[20vh] md:text-[23vh] font-black leading-none ${smallNumTheme}`}>{t.data.sets}</span>
+              </div>
+              
+              <div className="flex-1 h-full flex items-center justify-center overflow-hidden">
+                <span className={`text-[32vh] md:text-[45vh] font-black leading-none italic scale-x-[1.4] md:scale-x-[1.6] transform-gpu transition-all duration-300 ${isOutdoorMode ? "text-black tracking-tighter" : "text-white [text-shadow:_0_0_40px_rgb(255_255_255_/_30%),_0_0_10px_rgb(255_255_255_/_60%)]"}`}>
+                  {formatPoints(t.data.points)}
+                </span>
+              </div>
+              
+              <div className={`w-[28%] md:w-[22%] h-full flex flex-col items-center justify-center border-l ${sideColTheme}`}>
+                <span className={`text-[10px] md:text-xl font-black uppercase tracking-widest italic ${labelTheme}`}>Games</span>
+                <span className={`text-[20vh] md:text-[23vh] font-black leading-none ${smallNumTheme}`}>{t.data.games}</span>
+              </div>
+            </button>
+          )
+        })}
       </section>
 
-      <footer className="flex-none h-[40px] flex items-center justify-between px-2 md:px-10 border-t border-slate-900 bg-slate-950/95 z-50">
+      <footer className={`flex-none h-[40px] flex items-center justify-between px-2 md:px-10 border-t z-50 transition-colors duration-500 ${isOutdoorMode ? 'bg-gray-200 border-gray-300' : 'bg-slate-950/95 border-slate-900'}`}>
         <div className="flex items-center gap-1 md:gap-4 h-full">
-          <button onClick={handleUndo} className="flex items-center gap-1 bg-slate-900/50 px-2 md:px-4 py-0.5 rounded h-[30px] active:scale-95 transition-all">
-            <Undo2 className="w-3.5 h-3.5 md:w-5 md:h-5 text-slate-500" />
-            <span className="text-[10px] md:text-lg font-black text-slate-500 uppercase hidden md:inline">Undo</span>
+          <button onClick={handleUndo} className={`flex items-center gap-1 px-2 md:px-4 py-0.5 rounded h-[30px] active:scale-95 transition-all ${isOutdoorMode ? 'bg-white border border-gray-300 shadow-sm' : 'bg-slate-900/50'}`}>
+            <Undo2 className={`w-3.5 h-3.5 md:w-5 md:h-5 ${isOutdoorMode ? 'text-gray-600' : 'text-slate-500'}`} />
+            <span className={`text-[10px] md:text-lg font-black uppercase hidden md:inline ${isOutdoorMode ? 'text-gray-600' : 'text-slate-500'}`}>Undo</span>
           </button>
-          <button onClick={handleSaveMatch} className="flex items-center gap-1 bg-indigo-900/40 px-2 md:px-4 py-0.5 rounded h-[30px] active:scale-95 transition-all">
-            <Save className="w-3.5 h-3.5 md:w-5 md:h-5 text-indigo-400" />
-            <span className="text-[10px] md:text-lg font-black text-indigo-400 uppercase hidden md:inline">Save</span>
+          <button onClick={handleSaveMatch} className={`flex items-center gap-1 px-2 md:px-4 py-0.5 rounded h-[30px] active:scale-95 transition-all ${isOutdoorMode ? 'bg-indigo-100 border border-indigo-200 shadow-sm' : 'bg-indigo-900/40'}`}>
+            <Save className={`w-3.5 h-3.5 md:w-5 md:h-5 ${isOutdoorMode ? 'text-indigo-600' : 'text-indigo-400'}`} />
+            <span className={`text-[10px] md:text-lg font-black uppercase hidden md:inline ${isOutdoorMode ? 'text-indigo-600' : 'text-indigo-400'}`}>Save</span>
           </button>
         </div>
         
-        <div className={`px-3 py-0.5 rounded-full border-slate-800 font-black uppercase text-[8px] md:text-sm ${isTiebreak ? 'text-amber-400 animate-pulse' : 'text-slate-600'}`}>
+        <div className={`px-3 py-0.5 rounded-full font-black uppercase text-[8px] md:text-sm transition-colors ${isTiebreak ? (isOutdoorMode ? 'bg-amber-100 text-amber-700 animate-pulse' : 'text-amber-400 animate-pulse') : (isOutdoorMode ? 'text-gray-400' : 'text-slate-600')}`}>
           {isTiebreak ? 'TIEBREAK' : 'MATCH'}
         </div>
 
         <div className="flex items-center gap-1 md:gap-3 h-full">
-          <button onClick={handleReset} className="text-[10px] md:text-lg font-black text-red-900/80 uppercase mr-1 md:mr-2">Reset</button>
+          <button onClick={handleReset} className={`text-[10px] md:text-lg font-black uppercase mr-1 md:mr-2 ${isOutdoorMode ? 'text-red-600' : 'text-red-900/80'}`}>Reset</button>
           
-          <div className="flex items-center justify-center bg-black/40 p-1 md:p-1.5 rounded-full border border-slate-800 mr-1 md:mr-2" title={isOnline ? "Connected to Server" : "Offline / Reconnecting"}>
-            {isOnline ? <Wifi size={16} className="text-emerald-500 drop-shadow-[0_0_5px_rgba(16,185,129,0.8)]" /> : <WifiOff size={16} className="text-red-500 animate-pulse drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]" />}
+          <div className={`flex items-center justify-center p-1 md:p-1.5 rounded-full border mr-1 md:mr-2 ${isOutdoorMode ? 'bg-white border-gray-300 shadow-sm' : 'bg-black/40 border-slate-800'}`} title={isOnline ? "Connected to Server" : "Offline / Reconnecting"}>
+            {isOnline ? <Wifi size={16} className={`text-emerald-500 ${isOutdoorMode ? '' : 'drop-shadow-[0_0_5px_rgba(16,185,129,0.8)]'}`} /> : <WifiOff size={16} className={`text-red-500 animate-pulse ${isOutdoorMode ? '' : 'drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]'}`} />}
           </div>
           
-          <button onClick={() => setReadmeOpen(true)} className="p-1 text-emerald-500 active:scale-95"><HelpCircle size={20} /></button>
-          <button onClick={() => setArchiveOpen(true)} className="p-1 text-indigo-400 active:scale-95"><History size={20} /></button>
-          <button onClick={() => setHistoryOpen(true)} className="p-1 text-slate-600 active:scale-95"><MessageSquareText size={20} /></button>
-          <button onClick={() => setSettingsOpen(true)} className="p-1 text-slate-600 active:scale-95"><Settings size={20} /></button>
+          <button onClick={() => setReadmeOpen(true)} className={`p-1 active:scale-95 ${isOutdoorMode ? 'text-emerald-600' : 'text-emerald-500'}`}><HelpCircle size={20} /></button>
+          <button onClick={() => setArchiveOpen(true)} className={`p-1 active:scale-95 ${isOutdoorMode ? 'text-indigo-600' : 'text-indigo-400'}`}><History size={20} /></button>
+          <button onClick={() => setHistoryOpen(true)} className={`p-1 active:scale-95 ${isOutdoorMode ? 'text-gray-500' : 'text-slate-600'}`}><MessageSquareText size={20} /></button>
+          <button onClick={() => setSettingsOpen(true)} className={`p-1 active:scale-95 ${isOutdoorMode ? 'text-gray-500' : 'text-slate-600'}`}><Settings size={20} /></button>
         </div>
       </footer>
 
+      {/* KEEPING MODALS DARK FOR HIGH CONTRAST AGAINST OUTDOOR MODE */}
       {readmeOpen && (
         <div className="absolute inset-0 z-[300] bg-black/95 flex items-center justify-center p-4" onClick={handleCloseReadme}>
           <div className="bg-slate-900 border-2 md:border-4 border-emerald-500 p-6 md:p-10 rounded-2xl md:rounded-[3rem] w-full max-w-2xl flex flex-col gap-4 md:gap-6 max-h-[90vh] overflow-y-auto shadow-[0_0_50px_rgba(16,185,129,0.2)]" onClick={e => e.stopPropagation()}>
@@ -371,7 +401,7 @@ export default function HomePage() {
 
       {settingsOpen && (
         <div className="absolute inset-0 z-50 bg-black/95 flex items-center justify-center p-2" onClick={() => setSettingsOpen(false)}>
-          <div className="bg-slate-900 border-2 border-slate-700 p-4 rounded-2xl w-full max-w-xl flex flex-col gap-3 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="bg-slate-900 border-2 border-slate-700 p-4 rounded-2xl w-full max-w-xl flex flex-col gap-3 max-h-[90vh] overflow-y-auto text-white" onClick={e => e.stopPropagation()}>
              <h2 className="text-xl font-black uppercase text-center text-slate-500 italic">Settings</h2>
              <div className="flex flex-col gap-1 bg-slate-800 border border-slate-700 rounded-xl p-3 text-center">
                <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Active Room Code</span>
@@ -384,15 +414,14 @@ export default function HomePage() {
                <input value={team1.name} onChange={e => setTeamName('team1', e.target.value)} placeholder="TEAM 1" className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-white text-lg font-black uppercase text-center outline-none" maxLength={15} />
                <input value={team2.name} onChange={e => setTeamName('team2', e.target.value)} placeholder="TEAM 2" className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-white text-lg font-black uppercase text-center outline-none" maxLength={15} />
              </div>
-             <button onClick={toggleUmpire} className={`py-4 rounded-xl border-2 text-lg font-black uppercase flex items-center justify-center gap-4 ${umpireEnabled ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
+             <button onClick={toggleUmpire} className={`py-4 rounded-xl border-2 text-lg font-black uppercase flex items-center justify-center gap-4 transition-all ${umpireEnabled ? 'bg-indigo-600 border-white text-white shadow-[0_0_15px_rgba(79,70,229,0.5)]' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
                <Volume2 size={24} /> Umpire: {umpireEnabled ? 'ON' : 'OFF'}
              </button>
              <button onClick={toggleFullscreen} className="py-3 rounded-xl bg-slate-800 border border-slate-600 text-lg font-black uppercase flex items-center justify-center gap-4 transition-all active:scale-95"><Maximize size={24} /> Fullscreen</button>
              
-             {/* THE NEW DISPLAY SETTINGS GRID */}
              <div className="grid grid-cols-2 gap-2">
                 <button onClick={toggleGoldenPoint} className={`py-3 rounded-xl border text-lg font-black uppercase transition-all ${useGoldenPoint ? 'bg-amber-500 border-white text-black shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Golden Point: {useGoldenPoint ? 'ON' : 'OFF'}</button>
-                <button onClick={toggleOutdoorMode} className={`py-3 rounded-xl border text-lg font-black uppercase transition-all ${isOutdoorMode ? 'bg-indigo-600 border-white text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Court: {isOutdoorMode ? 'Outdoor' : 'Indoor'}</button>
+                <button onClick={toggleOutdoorMode} className={`py-3 rounded-xl border text-lg font-black uppercase transition-all ${isOutdoorMode ? 'bg-white border-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)]' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>Court: {isOutdoorMode ? 'Outdoor' : 'Indoor'}</button>
              </div>
              
              <button onClick={toggleServer} className="py-3 bg-slate-800 border border-slate-600 rounded-xl text-lg font-black uppercase transition-all active:scale-95">Swap Server</button>
