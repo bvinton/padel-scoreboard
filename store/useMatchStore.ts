@@ -21,7 +21,7 @@ export interface PadelState {
   useGoldenPoint: boolean;
   matchFormat: 3 | 5; 
   umpireEnabled: boolean;
-  isOutdoorMode: boolean; // <-- NEW: Memory for your display setting
+  isOutdoorMode: boolean; 
 
   server: Server;
   isTiebreak: boolean;
@@ -40,7 +40,7 @@ export interface PadelState {
   toggleServer: () => void;
   setMatchFormat: (format: 3 | 5) => void; 
   toggleUmpire: () => void;
-  toggleOutdoorMode: () => void; // <-- NEW: Action to switch modes
+  toggleOutdoorMode: () => void; 
   setTeamName: (team: TeamKey, name: string) => void;
   resetMatch: () => void;
 }
@@ -65,7 +65,7 @@ const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint
   useGoldenPoint: true,
   matchFormat: 3,
   umpireEnabled: false,
-  isOutdoorMode: false, // <-- Default to Indoor (Glow)
+  isOutdoorMode: false, 
   server: 'team1',
   isTiebreak: false,
   matchWinner: null,
@@ -204,7 +204,7 @@ export const useMatchStore = create<PadelState>()(
         toggleServer: () => set((state) => ({ server: state.server === 'team1' ? 'team2' : 'team1' })),
         setMatchFormat: (format: 3 | 5) => set({ matchFormat: format }),
         toggleUmpire: () => set((state) => ({ umpireEnabled: !state.umpireEnabled })),
-        toggleOutdoorMode: () => set((state) => ({ isOutdoorMode: !state.isOutdoorMode })), // <-- NEW
+        toggleOutdoorMode: () => set((state) => ({ isOutdoorMode: !state.isOutdoorMode })), 
         setTeamName: (team: TeamKey, name: string) => set((state) => ({ [team]: { ...state[team], name } })),
         undo: () => {
           const { history } = get();
@@ -225,7 +225,7 @@ export const useMatchStore = create<PadelState>()(
             useGoldenPoint,
             matchFormat, 
             umpireEnabled,
-            isOutdoorMode, // <-- Keeps display state after reset
+            isOutdoorMode, 
             team1: { ...base.team1, name: team1.name },
             team2: { ...base.team2, name: team2.name },
           });
