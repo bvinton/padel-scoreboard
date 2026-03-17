@@ -45,7 +45,6 @@ export default function HomePage() {
   
   const [roomCode, setRoomCode] = useState<string>("");
   const [testSignals, setTestSignals] = useState({ team1: false, team2: false, undo: false });
-  const [burnInShift, setBurnInShift] = useState({ x: 0, y: 0 });
   
   const [timeLeft, setTimeLeft] = useState(0);
   const [timerStarted, setTimerStarted] = useState(false);
@@ -56,7 +55,6 @@ export default function HomePage() {
   const [historyLog, setHistoryLog] = useState<{id: number, time: string, msg: string}[]>([]);
   const [savedMatches, setSavedMatches] = useState<SavedMatch[]>([]);
 
-  // Execute Background Audio Logic
   useUmpireAudio(appStarted, localDismissed);
 
   useEffect(() => {
@@ -120,13 +118,6 @@ export default function HomePage() {
     setRoomCode(savedRoom);
     if (localStorage.getItem('padelReadmeDismissed') !== 'true') setReadmeOpen(true);
   }, []);
-  
-  useEffect(() => {
-    const shiftInterval = setInterval(() => {
-      setBurnInShift({ x: Math.floor(Math.random() * 13) - 6, y: Math.floor(Math.random() * 13) - 6 });
-    }, 60000); 
-    return () => clearInterval(shiftInterval);
-  }, []);
 
   useEffect(() => {
     if (!lastActionRef.current) return;
@@ -163,10 +154,6 @@ export default function HomePage() {
 
   return (
     <main 
-      style={{ 
-        transform: `scale(1.02) translate(${burnInShift.x}px, ${burnInShift.y}px)`,
-        transition: 'transform 5s ease-in-out, background-color 0.5s, color 0.5s' 
-      }}
       className={`fixed inset-0 flex flex-col select-none overflow-hidden font-sans ${isOutdoorMode ? 'bg-white text-black' : 'bg-black text-white'}`}
     >
       <KeyboardListener handleScore={handleScore} handleUndo={handleUndo} setTestSignals={setTestSignals} />
