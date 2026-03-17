@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useProfileStore } from '../store/useProfileStore';
+// FIX: Added the extra ../ to properly reach the store folder from inside app/components
+import { useProfileStore } from '../../store/useProfileStore';
 import { X, Trash2, UserPlus } from 'lucide-react';
 
 interface PlayerRosterModalProps {
