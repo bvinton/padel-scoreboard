@@ -52,9 +52,18 @@ export default function SettingsModal({ isOpen, onClose, roomCode, generateNewRo
            </div>
          </div>
 
-         <div className="grid grid-cols-2 gap-2">
-           <input value={team1.name} onChange={e => setTeamName('team1', e.target.value)} placeholder={t.team1} className="bg-slate-800 rounded-xl p-3 text-white font-black uppercase text-center outline-none" />
-           <input value={team2.name} onChange={e => setTeamName('team2', e.target.value)} placeholder={t.team2} className="bg-slate-800 rounded-xl p-3 text-white font-black uppercase text-center outline-none" />
+         {/* NEW: Team Names with Reset Button */}
+         <div className="flex flex-col gap-2">
+           <div className="grid grid-cols-2 gap-2">
+             <input value={team1.name} onChange={e => setTeamName('team1', e.target.value)} placeholder={t.team1} className="bg-slate-800 rounded-xl p-3 text-white font-black uppercase text-center outline-none" />
+             <input value={team2.name} onChange={e => setTeamName('team2', e.target.value)} placeholder={t.team2} className="bg-slate-800 rounded-xl p-3 text-white font-black uppercase text-center outline-none" />
+           </div>
+           <button 
+             onClick={() => { setTeamName('team1', 'Team 1'); setTeamName('team2', 'Team 2'); }} 
+             className="text-slate-500 text-xs font-bold uppercase tracking-wider hover:text-white transition-colors mx-auto -mt-1"
+           >
+             {t.resetNames}
+           </button>
          </div>
 
          {/* ADVANCED POLISHED DROPDOWN MENU */}
@@ -110,7 +119,6 @@ export default function SettingsModal({ isOpen, onClose, roomCode, generateNewRo
          
          <button onClick={onClose} className="py-3 bg-white text-black font-black rounded-xl uppercase mt-2 active:scale-95 transition-all">{t.close}</button>
 
-         {/* NEW: App Version Indicator */}
          <div className="text-center mt-2">
            <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Padel Pro v1.0 • Offline Ready</span>
          </div>

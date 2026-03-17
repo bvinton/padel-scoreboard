@@ -38,6 +38,7 @@ export const dict = {
     swapServer: "Swap Server",
     close: "Close",
     language: "Language",
+    resetNames: "Reset Names", // NEW
 
     // Wizard
     hardwareSetup: "Offline Bluetooth Setup",
@@ -47,6 +48,7 @@ export const dict = {
     step1: "1. Open the Flic App, select a button, and add a 'Keyboard' action.",
     step2: "2. Assign Team 1 to 'A', Team 2 to 'D', and Undo to 'U'. Tap 'Save & Disconnect'.",
     step3: "3. Open your tablet's Bluetooth settings and pair the buttons directly.",
+    alternativeSetup: "Alternative: Any Bluetooth presentation remote or keyboard sending '1', '2', or '3' will also work perfectly.", // NEW
     button: "Button",
     testConnection: "Test Your Connection",
     dontShowAgain: "Don't show again",
@@ -93,6 +95,7 @@ export const dict = {
     swapServer: "Cambiar Saque",
     close: "Cerrar",
     language: "Idioma",
+    resetNames: "Restablecer Nombres", // NEW
 
     // Wizard
     hardwareSetup: "Configuración Bluetooth",
@@ -102,6 +105,7 @@ export const dict = {
     step1: "1. Abre la app Flic, elige un botón y añade la acción 'Teclado'.",
     step2: "2. Asigna Equipo 1 a 'A', Equipo 2 a 'D' y Deshacer a 'U'. Toca 'Save & Disconnect'.",
     step3: "3. Abre los ajustes Bluetooth de tu tablet y empareja los botones.",
+    alternativeSetup: "Alternativa: Cualquier mando de presentación o teclado Bluetooth que envíe '1', '2' o '3' también funcionará perfectamente.", // NEW
     button: "Botón",
     testConnection: "Prueba tu Conexión",
     dontShowAgain: "No mostrar de nuevo",

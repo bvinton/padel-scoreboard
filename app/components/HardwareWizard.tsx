@@ -39,13 +39,18 @@ export default function HardwareWizard({ isOpen, onClose, testSignals }: Hardwar
 
             <div className="space-y-4">
               <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
-                <p className="font-bold">{t.step1}</p>
+                <p className="font-bold text-sm md:text-base">{t.step1}</p>
               </div>
               <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
-                <p className="font-bold">{t.step2}</p>
+                <p className="font-bold text-sm md:text-base">{t.step2}</p>
               </div>
               <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
-                <p className="font-bold">{t.step3}</p>
+                <p className="font-bold text-sm md:text-base">{t.step3}</p>
+              </div>
+              
+              {/* NEW: Alternative keyboard note */}
+              <div className="bg-indigo-500/20 p-4 rounded-xl border border-indigo-500/50">
+                <p className="font-bold text-sm md:text-base text-indigo-300">{t.alternativeSetup}</p>
               </div>
             </div>
           </div>
@@ -78,12 +83,13 @@ export default function HardwareWizard({ isOpen, onClose, testSignals }: Hardwar
 
         {/* Footer */}
         <div className="mt-8 pt-6 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
-          <label className="flex items-center gap-3 cursor-pointer group">
+          {/* FIX: Changed label to a button with an onClick handler */}
+          <button onClick={() => setDontShowAgain(!dontShowAgain)} className="flex items-center gap-3 cursor-pointer group outline-none">
             <div className={`w-6 h-6 rounded flex items-center justify-center border-2 transition-colors ${dontShowAgain ? 'bg-emerald-500 border-emerald-500' : 'bg-slate-800 border-slate-600 group-hover:border-slate-500'}`}>
               {dontShowAgain && <CheckCircle2 size={16} className="text-white" />}
             </div>
             <span className="text-slate-400 font-bold uppercase tracking-wider">{t.dontShowAgain}</span>
-          </label>
+          </button>
 
           <button onClick={onClose} className="w-full md:w-auto px-10 py-4 bg-emerald-500 text-black font-black uppercase text-xl rounded-full active:scale-95 transition-transform shadow-[0_0_20px_rgba(16,185,129,0.3)]">
             {t.startMatch}
