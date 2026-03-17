@@ -25,11 +25,10 @@ export default function ServeTimer({ timerStarted, timeLeft, isOutdoorMode }: Se
   };
 
   return (
-    // FIX 1: Added inset-[6px] to pull the timer away from the physical device bezel
-    <div className="absolute inset-[6px] pointer-events-none z-[100]">
+    // FIX: Increased the inset to 20px (mobile/tablet) and 24px (desktop) to fully escape the 1.02 app zoom
+    <div className="absolute inset-[20px] md:inset-[24px] pointer-events-none z-[100]">
       {timeLeft > 0 && (
         <svg className="absolute inset-0 w-full h-full overflow-visible">
-          {/* FIX 2: Reduced strokeWidth to 4 for a sharp, thin core line */}
           <line x1={`${getTopLeftX1()}%`} y1="0%" x2="50%" y2="0%" stroke="currentColor" strokeWidth="4" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
           <line x1="50%" y1="0%" x2={`${getTopRightX2()}%`} y2="0%" stroke="currentColor" strokeWidth="4" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
           <line x1="0%" y1="0%" x2="0%" y2={`${getSideY2()}%`} stroke="currentColor" strokeWidth="4" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
@@ -38,7 +37,6 @@ export default function ServeTimer({ timerStarted, timeLeft, isOutdoorMode }: Se
           <line x1={`${getBottomRightX1()}%`} y1="100%" x2="100%" y2="100%" stroke="currentColor" strokeWidth="4" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
         </svg>
       )}
-      {/* Adjusted the pulse border to match the thin line aesthetic */}
       {timeLeft <= 0 && <div className={`absolute inset-0 border-[4px] border-red-600 animate-pulse ${isOutdoorMode ? 'shadow-[inset_0_0_40px_rgba(220,38,38,0.5)]' : 'shadow-[inset_0_0_40px_rgba(220,38,38,0.8)]'}`} />}
     </div>
   );
