@@ -26,12 +26,18 @@ export default function ServeTimer({ timerStarted, timeLeft, isOutdoorMode }: Se
 
   return (
     /**
-     * FIX: Using Viewport Width (vw) for the sides.
-     * top/bottom: 8px (Stayed at your preferred perfect height)
-     * left/right: 1.2vw (Automatically scales to the visible edge of the glass)
+     * FIX: Using clamp to cap the horizontal margin.
+     * top/bottom: 8px (Perfect height)
+     * left/right: clamp(8px, 1.2vw, 14px) 
+     * This means: never less than 8px, try for 1.2vw, but never more than 14px.
      */
     <div 
-      style={{ top: '8px', bottom: '8px', left: '1.2vw', right: '1.2vw' }} 
+      style={{ 
+        top: '8px', 
+        bottom: '8px', 
+        left: 'clamp(8px, 1.2vw, 14px)', 
+        right: 'clamp(8px, 1.2vw, 14px)' 
+      }} 
       className="absolute pointer-events-none z-[9999]"
     >
       {timeLeft > 0 && (
