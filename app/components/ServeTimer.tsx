@@ -25,11 +25,15 @@ export default function ServeTimer({ timerStarted, timeLeft, isOutdoorMode }: Se
   };
 
   return (
-    /* FIX: Variable Inset. 
-       top/bottom = 8px (since you said they are perfect)
-       left/right = 40px (to escape the 2% zoom on wide monitors)
-    */
-    <div className="absolute top-[8px] bottom-[8px] left-[40px] right-[40px] pointer-events-none z-[9999]">
+    /**
+     * FIX: Using Viewport Width (vw) for the sides.
+     * top/bottom: 8px (Stayed at your preferred perfect height)
+     * left/right: 1.2vw (Automatically scales to the visible edge of the glass)
+     */
+    <div 
+      style={{ top: '8px', bottom: '8px', left: '1.2vw', right: '1.2vw' }} 
+      className="absolute pointer-events-none z-[9999]"
+    >
       {timeLeft > 0 && (
         <svg className="absolute inset-0 w-full h-full overflow-visible">
           <line x1={`${getTopLeftX1()}%`} y1="0%" x2="50%" y2="0%" stroke="currentColor" strokeWidth="4" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
