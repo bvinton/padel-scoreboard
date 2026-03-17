@@ -9,7 +9,8 @@ import AppOverlays from "./components/AppOverlays";
 import Footer from "./components/Footer";
 import ArchiveModal from "./components/ArchiveModal";
 import PointLogModal from "./components/PointLogModal";
-import PusherClient from 'pusher-js';
+import KeyboardListener from "./components/KeyboardListener";
+import WebhookListener from "./components/WebhookListener";
 
 interface SavedMatch {
   id: number;
@@ -32,7 +33,6 @@ export default function HomePage() {
   const [appStarted, setAppStarted] = useState(false); 
   const [isOnline, setIsOnline] = useState(false);     
   
-  const [lastProcessedId, setLastProcessedId] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
@@ -120,7 +120,13 @@ export default function HomePage() {
   const deleteSavedMatch = (id: number) => { const updated = savedMatches.filter(m => m.id !== id); setSavedMatches(updated); localStorage.setItem('padelArchive', JSON.stringify(updated)); };
   const clearArchive = () => { if (window.confirm(language === 'es' ? "¿Borrar todo el historial?" : "Clear all match history?")) { setSavedMatches([]); localStorage.removeItem('padelArchive'); } };
   
-  const generateNewRoomCode = () => { if (window.confirm(language === 'es' ? "¿Desconectar botones Flic?" : "Disconnect Flic buttons?")) { const newRoom = Math.random().toString(36).substring(2, 6).toUpperCase(); localStorage.setItem('padelRoomCode', newRoom); setRoomCode(newRoom); setLastProcessedId(Date.now()); } };
+  const generateNewRoomCode = () => { 
+    if (window.confirm(language === 'es' ? "¿Desconectar botones Flic?" : "Disconnect Flic buttons?")) { 
+      const newRoom = Math.random().toString(36).substring(2, 6).toUpperCase(); 
+      localStorage.setItem('padelRoomCode', newRoom); 
+      setRoomCode(newRoom); 
+    } 
+  };
 
   useEffect(() => {
     let savedRoom = localStorage.getItem('padelRoomCode');
@@ -220,44 +226,6 @@ export default function HomePage() {
 
   useEffect(() => { const saved = localStorage.getItem('padelArchive'); if (saved) { try { setSavedMatches(JSON.parse(saved)); } catch (e) {} } }, []);
 
-  const winSoundRef = useRef<HTMLAudioElement | null>(null);
-  useEffect(() => { winSoundRef.current = new Audio("https://www.myinstants.com/media/sounds/final-fantasy-vii-victory-fanfare-1.mp3"); }, []);
-  useEffect(() => { if (matchWinner && !matchWinnerDismissed && !localDismissed && winSoundRef.current) winSoundRef.current.play().catch(() => {}); }, [matchWinner, matchWinnerDismissed, localDismissed]);
-
-  useEffect(() => {
-    if (!roomCode) return; 
-    fetch(`/api/flic?room=${roomCode}`).then(res => res.json()).then(data => {
-         if (data.id) { lastIdRef.current = data.id; setLastProcessedId(data.id); }
-    }).catch(() => {});
-
-    const pusherKey = process.env.NEXT_PUBLIC_PUSHER_KEY || '';
-    const pusherCluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER || '';
-    if (!pusherKey) return; 
-
-    const pusher = new PusherClient(pusherKey, { cluster: pusherCluster });
-    pusher.connection.bind('state_change', function(states: { current: string }) { setIsOnline(states.current === 'connected'); });
-    const channel = pusher.subscribe(`room-${roomCode}`);
-
-    channel.bind('button-pressed', (data: { id: number, type: string }) => {
-      if (data.id > lastIdRef.current) {
-        lastIdRef.current = data.id;
-        setLastProcessedId(data.id);
-        
-        if (data.type === 'team1') setTestSignals(prev => ({ ...prev, team1: true }));
-        if (data.type === 'team2') setTestSignals(prev => ({ ...prev, team2: true }));
-        if (data.type === 'undo') setTestSignals(prev => ({ ...prev, undo: true }));
-
-        if (data.type === 'team1') handleScore('team1');
-        if (data.type === 'team2') handleScore('team2');
-        if (data.type === 'undo') handleUndo();
-      }
-    });
-
-    return () => { channel.unbind_all(); channel.unsubscribe(); pusher.disconnect(); };
-  }, [roomCode]);
-
-  const lastIdRef = useRef(lastProcessedId);
-
   const formatPoints = (p: string | number) => typeof p === "number" ? p.toString() : p;
   const getBottomLeftX2 = () => timeLeft >= 16 ? ((timeLeft - 16) / 4) * 50 : 0; const getBottomRightX1 = () => timeLeft >= 16 ? 100 - (((timeLeft - 16) / 4) * 50) : 100;
   const getSideY2 = () => timeLeft >= 16 ? 100 : timeLeft >= 4 ? ((timeLeft - 4) / 12) * 100 : 0; const getTopLeftX1 = () => timeLeft >= 4 ? 0 : 50 - ((timeLeft / 4) * 50);
@@ -280,7 +248,18 @@ export default function HomePage() {
       }}
       className={`fixed inset-0 flex flex-col select-none overflow-hidden font-sans ${isOutdoorMode ? 'bg-white text-black' : 'bg-black text-white'}`}
     >
+      {/* INVISIBLE HARDWARE LISTENERS */}
+      {/* You can leave both active, or comment one out like: {/* <WebhookListener ... /> */} 
+      <KeyboardListener handleScore={handleScore} handleUndo={handleUndo} />
       
+      <WebhookListener 
+        roomCode={roomCode} 
+        handleScore={handleScore} 
+        handleUndo={handleUndo} 
+        setTestSignals={setTestSignals} 
+        setIsOnline={setIsOnline} 
+      />
+
       {/* EXTRACTED COMPONENTS */}
       <AppOverlays 
         appStarted={appStarted} 
