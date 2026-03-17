@@ -17,30 +17,29 @@ export default function ServeTimer({ timerStarted, timeLeft, isOutdoorMode }: Se
   
   const getTimerClass = () => { 
     if (isOutdoorMode) {
-      // Crisp, solid colors for outdoor mode to prevent sun wash-out
-      return timeLeft > 10 ? "text-green-500" : "text-orange-500";
+      if (timeLeft > 10) return "text-emerald-600 drop-shadow-[0_0_15px_rgba(5,150,105,1)]"; 
+      return "text-red-600 drop-shadow-[0_0_15px_rgba(220,38,38,1)]"; 
     }
-    // Restored the stronger neon glow and vibrant colors for indoor mode
     if (timeLeft > 10) return "text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,1)]"; 
     return "text-orange-500 drop-shadow-[0_0_15px_rgba(249,115,22,1)]"; 
   };
 
   return (
-    // Bumped z-index to 100 to guarantee it renders on top of the opaque outdoor panels
-    <div className="absolute inset-0 pointer-events-none z-[100]">
+    // FIX 1: Added inset-[6px] to pull the timer away from the physical device bezel
+    <div className="absolute inset-[6px] pointer-events-none z-[100]">
       {timeLeft > 0 && (
         <svg className="absolute inset-0 w-full h-full overflow-visible">
-          {/* Reverted strokeWidth back to 12 for that substantial, earlier-iteration feel */}
-          <line x1={`${getTopLeftX1()}%`} y1="0%" x2="50%" y2="0%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
-          <line x1="50%" y1="0%" x2={`${getTopRightX2()}%`} y2="0%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
-          <line x1="0%" y1="0%" x2="0%" y2={`${getSideY2()}%`} stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
-          <line x1="100%" y1="0%" x2="100%" y2={`${getSideY2()}%`} stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
-          <line x1="0%" y1="100%" x2={`${getBottomLeftX2()}%`} y2="100%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
-          <line x1={`${getBottomRightX1()}%`} y1="100%" x2="100%" y2="100%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
+          {/* FIX 2: Reduced strokeWidth to 4 for a sharp, thin core line */}
+          <line x1={`${getTopLeftX1()}%`} y1="0%" x2="50%" y2="0%" stroke="currentColor" strokeWidth="4" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
+          <line x1="50%" y1="0%" x2={`${getTopRightX2()}%`} y2="0%" stroke="currentColor" strokeWidth="4" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
+          <line x1="0%" y1="0%" x2="0%" y2={`${getSideY2()}%`} stroke="currentColor" strokeWidth="4" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
+          <line x1="100%" y1="0%" x2="100%" y2={`${getSideY2()}%`} stroke="currentColor" strokeWidth="4" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
+          <line x1="0%" y1="100%" x2={`${getBottomLeftX2()}%`} y2="100%" stroke="currentColor" strokeWidth="4" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
+          <line x1={`${getBottomRightX1()}%`} y1="100%" x2="100%" y2="100%" stroke="currentColor" strokeWidth="4" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
         </svg>
       )}
-      {/* Matched the red pulse border to the new 12px thickness */}
-      {timeLeft <= 0 && <div className={`absolute inset-0 border-[12px] border-red-600 animate-pulse ${isOutdoorMode ? '' : 'shadow-[inset_0_0_40px_rgba(220,38,38,0.8)]'}`} />}
+      {/* Adjusted the pulse border to match the thin line aesthetic */}
+      {timeLeft <= 0 && <div className={`absolute inset-0 border-[4px] border-red-600 animate-pulse ${isOutdoorMode ? 'shadow-[inset_0_0_40px_rgba(220,38,38,0.5)]' : 'shadow-[inset_0_0_40px_rgba(220,38,38,0.8)]'}`} />}
     </div>
   );
 }
