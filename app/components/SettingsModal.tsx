@@ -109,6 +109,11 @@ export default function SettingsModal({ isOpen, onClose, roomCode, generateNewRo
          <button onClick={toggleServer} className="py-3 bg-slate-800 rounded-xl text-white font-black uppercase active:scale-95 transition-all">{t.swapServer}</button>
          
          <button onClick={onClose} className="py-3 bg-white text-black font-black rounded-xl uppercase mt-2 active:scale-95 transition-all">{t.close}</button>
+
+         {/* NEW: App Version Indicator */}
+         <div className="text-center mt-2">
+           <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Padel Pro v1.0 • Offline Ready</span>
+         </div>
       </div>
     </div>
   );
