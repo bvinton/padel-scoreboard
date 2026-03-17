@@ -297,7 +297,6 @@ export default function HomePage() {
 
       <section className="flex-grow flex flex-col p-1 relative overflow-hidden">
         {timerStarted && (
-          {/* FIX: Changed container to inset-2 md:inset-4 to give it breathing room, and overflow-visible on SVG */}
           <div className="absolute inset-2 md:inset-4 pointer-events-none z-50 rounded-lg md:rounded-[1.5rem]">
             {timeLeft > 0 && (
               <svg className="absolute inset-0 w-full h-full overflow-visible">
@@ -309,7 +308,6 @@ export default function HomePage() {
                 <line x1={`${getBottomRightX1()}%`} y1="100%" x2="100%" y2="100%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerStrokeColor()}`} />
               </svg>
             )}
-            {/* MATCHED FIX: Ensure the red timeout border matches the rounded corners of the pulled-in container */}
             {timeLeft <= 0 && <div className={`absolute inset-0 border-[6px] border-red-600 rounded-lg md:rounded-[1.5rem] animate-pulse ${isOutdoorMode ? '' : 'shadow-[inset_0_0_40px_rgba(220,38,38,0.8)]'}`} />}
           </div>
         )}
@@ -341,7 +339,8 @@ export default function HomePage() {
                 <span className={`text-[20vh] md:text-[25vh] font-black leading-none ${smallNumTheme}`}>{tTeam.data.sets}</span>
               </div>
               <div className="flex-1 h-full flex items-center justify-center overflow-hidden">
-                <span className={`text-[35vh] md:text-[50vh] font-black leading-none italic scale-x-[1.4] md:scale-x-[1.6] transform-gpu ${isOutdoorMode ? "text-black" : "text-white [text-shadow:_0_0_40px_rgba(255,255,255,0.3)]"}`}>
+                {/* FIX: Scaled back font size from 35vh/50vh -> 33vh/46vh and scale-x from 1.4/1.6 -> 1.3/1.5 to prevent edge bleeding */}
+                <span className={`text-[33vh] md:text-[46vh] font-black leading-none italic scale-x-[1.3] md:scale-x-[1.5] transform-gpu ${isOutdoorMode ? "text-black" : "text-white [text-shadow:_0_0_40px_rgba(255,255,255,0.3)]"}`}>
                   {formatPoints(tTeam.data.points)}
                 </span>
               </div>
