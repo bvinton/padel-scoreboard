@@ -297,9 +297,10 @@ export default function HomePage() {
 
       <section className="flex-grow flex flex-col p-1 relative overflow-hidden">
         {timerStarted && (
-          <div className="absolute inset-1 pointer-events-none z-50 rounded-lg md:rounded-[1.5rem] overflow-hidden">
+          {/* FIX: Changed container to inset-2 md:inset-4 to give it breathing room, and overflow-visible on SVG */}
+          <div className="absolute inset-2 md:inset-4 pointer-events-none z-50 rounded-lg md:rounded-[1.5rem]">
             {timeLeft > 0 && (
-              <svg className="absolute inset-0 w-full h-full">
+              <svg className="absolute inset-0 w-full h-full overflow-visible">
                 <line x1={`${getTopLeftX1()}%`} y1="0%" x2="50%" y2="0%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerStrokeColor()}`} />
                 <line x1="50%" y1="0%" x2={`${getTopRightX2()}%`} y2="0%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerStrokeColor()}`} />
                 <line x1="0%" y1="0%" x2="0%" y2={`${getSideY2()}%`} stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerStrokeColor()}`} />
@@ -308,7 +309,8 @@ export default function HomePage() {
                 <line x1={`${getBottomRightX1()}%`} y1="100%" x2="100%" y2="100%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerStrokeColor()}`} />
               </svg>
             )}
-            {timeLeft <= 0 && <div className={`absolute inset-0 border-[6px] border-red-600 animate-pulse ${isOutdoorMode ? '' : 'shadow-[inset_0_0_40px_rgba(220,38,38,0.8)]'}`} />}
+            {/* MATCHED FIX: Ensure the red timeout border matches the rounded corners of the pulled-in container */}
+            {timeLeft <= 0 && <div className={`absolute inset-0 border-[6px] border-red-600 rounded-lg md:rounded-[1.5rem] animate-pulse ${isOutdoorMode ? '' : 'shadow-[inset_0_0_40px_rgba(220,38,38,0.8)]'}`} />}
           </div>
         )}
 
@@ -351,7 +353,6 @@ export default function HomePage() {
           )
         })}
 
-        {/* NEW: The faint 3-dots trigger button floating in the bottom right corner */}
         <button 
           onClick={(e) => { e.stopPropagation(); setOptionsOpen(true); }}
           className={`absolute bottom-4 right-4 z-40 p-3 rounded-full transition-all backdrop-blur-sm shadow-lg ${isOutdoorMode ? 'bg-white/70 text-black/50 hover:bg-white hover:text-black border border-gray-200' : 'bg-slate-800/40 text-white/30 hover:bg-slate-800 hover:text-white border border-slate-700/50'}`}
@@ -360,7 +361,6 @@ export default function HomePage() {
         </button>
       </section>
 
-      {/* Conditionally render the new sliding footer */}
       {optionsOpen && (
         <Footer 
           handleUndo={handleUndo}

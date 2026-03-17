@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useMatchStore } from "../../store/useMatchStore";
 import { dict } from "../translations";
 import { Bluetooth, Activity, CheckCircle2 } from "lucide-react";
@@ -13,12 +13,24 @@ export default function HardwareWizard({ isOpen, onClose, testSignals }: Hardwar
   const { language, team1, team2 } = useMatchStore();
   const t = dict[language] || dict.en;
 
-  const [dontShowAgain, setDontShowAgain] = useState(false);
+  // FIX: Initialize the state by checking the storage first, so we don't accidentally wipe it!
+  const [dontShowAgain, setDontShowAgain] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('padelReadmeDismissed') === 'true';
+    }
+    return false;
+  });
 
-  useEffect(() => {
-    if (dontShowAgain) localStorage.setItem('padelReadmeDismissed', 'true');
-    else localStorage.removeItem('padelReadmeDismissed');
-  }, [dontShowAgain]);
+  // FIX: Only write to storage when the user actually clicks the button
+  const toggleDontShow = () => {
+    const newValue = !dontShowAgain;
+    setDontShowAgain(newValue);
+    if (newValue) {
+      localStorage.setItem('padelReadmeDismissed', 'true');
+    } else {
+      localStorage.removeItem('padelReadmeDismissed');
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -48,7 +60,6 @@ export default function HardwareWizard({ isOpen, onClose, testSignals }: Hardwar
                 <p className="font-bold text-sm md:text-base">{t.step3}</p>
               </div>
               
-              {/* NEW: Alternative keyboard note */}
               <div className="bg-indigo-500/20 p-4 rounded-xl border border-indigo-500/50">
                 <p className="font-bold text-sm md:text-base text-indigo-300">{t.alternativeSetup}</p>
               </div>
@@ -83,8 +94,7 @@ export default function HardwareWizard({ isOpen, onClose, testSignals }: Hardwar
 
         {/* Footer */}
         <div className="mt-8 pt-6 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
-          {/* FIX: Changed label to a button with an onClick handler */}
-          <button onClick={() => setDontShowAgain(!dontShowAgain)} className="flex items-center gap-3 cursor-pointer group outline-none">
+          <button onClick={toggleDontShow} className="flex items-center gap-3 cursor-pointer group outline-none">
             <div className={`w-6 h-6 rounded flex items-center justify-center border-2 transition-colors ${dontShowAgain ? 'bg-emerald-500 border-emerald-500' : 'bg-slate-800 border-slate-600 group-hover:border-slate-500'}`}>
               {dontShowAgain && <CheckCircle2 size={16} className="text-white" />}
             </div>
