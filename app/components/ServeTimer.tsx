@@ -17,16 +17,16 @@ export default function ServeTimer({ timerStarted, timeLeft, isOutdoorMode }: Se
   
   const getTimerClass = () => { 
     if (isOutdoorMode) {
-      if (timeLeft > 10) return "text-emerald-600 drop-shadow-[0_0_15px_rgba(5,150,105,1)]"; 
-      return "text-red-600 drop-shadow-[0_0_15px_rgba(220,38,38,1)]"; 
+      if (timeLeft > 10) return "text-emerald-600 drop-shadow-[0_0_10px_rgba(5,150,105,0.8)]"; 
+      return "text-red-600 drop-shadow-[0_0_10px_rgba(220,38,38,0.8)]"; 
     }
     if (timeLeft > 10) return "text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,1)]"; 
     return "text-orange-500 drop-shadow-[0_0_15px_rgba(249,115,22,1)]"; 
   };
 
   return (
-    // FIX: Increased the inset to 20px (mobile/tablet) and 24px (desktop) to fully escape the 1.02 app zoom
-    <div className="absolute inset-[20px] md:inset-[24px] pointer-events-none z-[100]">
+    // FIX: Pulled the inset back to 8px. This should sit right on the visible edge.
+    <div className="absolute inset-[8px] pointer-events-none z-[9999]">
       {timeLeft > 0 && (
         <svg className="absolute inset-0 w-full h-full overflow-visible">
           <line x1={`${getTopLeftX1()}%`} y1="0%" x2="50%" y2="0%" stroke="currentColor" strokeWidth="4" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
