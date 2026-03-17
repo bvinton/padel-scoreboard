@@ -25,12 +25,6 @@ export default function ServeTimer({ timerStarted, timeLeft, isOutdoorMode }: Se
   };
 
   return (
-    /**
-     * FIX: Using clamp to cap the horizontal margin.
-     * top/bottom: 8px (Perfect height)
-     * left/right: clamp(8px, 1.2vw, 14px) 
-     * This means: never less than 8px, try for 1.2vw, but never more than 14px.
-     */
     <div 
       style={{ 
         top: '8px', 
@@ -42,14 +36,16 @@ export default function ServeTimer({ timerStarted, timeLeft, isOutdoorMode }: Se
     >
       {timeLeft > 0 && (
         <svg className="absolute inset-0 w-full h-full overflow-visible">
-          <line x1={`${getTopLeftX1()}%`} y1="0%" x2="50%" y2="0%" stroke="currentColor" strokeWidth="4" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
-          <line x1="50%" y1="0%" x2={`${getTopRightX2()}%`} y2="0%" stroke="currentColor" strokeWidth="4" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
-          <line x1="0%" y1="0%" x2="0%" y2={`${getSideY2()}%`} stroke="currentColor" strokeWidth="4" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
-          <line x1="100%" y1="0%" x2="100%" y2={`${getSideY2()}%`} stroke="currentColor" strokeWidth="4" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
-          <line x1="0%" y1="100%" x2={`${getBottomLeftX2()}%`} y2="100%" stroke="currentColor" strokeWidth="4" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
-          <line x1={`${getBottomRightX1()}%`} y1="100%" x2="100%" y2="100%" stroke="currentColor" strokeWidth="4" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
+          {/* FIX: Dynamic strokeWidth using clamp for perfect thickness on all screens */}
+          <line x1={`${getTopLeftX1()}%`} y1="0%" x2="50%" y2="0%" stroke="currentColor" strokeWidth="clamp(3px, 0.4vw, 6px)" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
+          <line x1="50%" y1="0%" x2={`${getTopRightX2()}%`} y2="0%" stroke="currentColor" strokeWidth="clamp(3px, 0.4vw, 6px)" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
+          <line x1="0%" y1="0%" x2="0%" y2={`${getSideY2()}%`} stroke="currentColor" strokeWidth="clamp(3px, 0.4vw, 6px)" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
+          <line x1="100%" y1="0%" x2="100%" y2={`${getSideY2()}%`} stroke="currentColor" strokeWidth="clamp(3px, 0.4vw, 6px)" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
+          <line x1="0%" y1="100%" x2={`${getBottomLeftX2()}%`} y2="100%" stroke="currentColor" strokeWidth="clamp(3px, 0.4vw, 6px)" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
+          <line x1={`${getBottomRightX1()}%`} y1="100%" x2="100%" y2="100%" stroke="currentColor" strokeWidth="clamp(3px, 0.4vw, 6px)" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
         </svg>
       )}
+      {/* Matched the red pulse border to the dynamic thickness floor */}
       {timeLeft <= 0 && <div className={`absolute inset-0 border-[4px] border-red-600 animate-pulse ${isOutdoorMode ? 'shadow-[inset_0_0_40px_rgba(220,38,38,0.5)]' : 'shadow-[inset_0_0_40px_rgba(220,38,38,0.8)]'}`} />}
     </div>
   );
