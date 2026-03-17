@@ -11,6 +11,7 @@ import ArchiveModal from "./components/ArchiveModal";
 import PointLogModal from "./components/PointLogModal";
 import KeyboardListener from "./components/KeyboardListener";
 import WebhookListener from "./components/WebhookListener";
+import { MoreVertical } from "lucide-react";
 
 interface SavedMatch {
   id: number;
@@ -33,6 +34,7 @@ export default function HomePage() {
   const [appStarted, setAppStarted] = useState(false); 
   const [isOnline, setIsOnline] = useState(false);     
   
+  const [optionsOpen, setOptionsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
@@ -266,7 +268,6 @@ export default function HomePage() {
         handleReset={handleReset} 
       />
 
-      {/* Removing the roomCode prop as it's no longer needed for Bluetooth setup */}
       <HardwareWizard 
         isOpen={readmeOpen} 
         onClose={() => { setReadmeOpen(false); setTestSignals({ team1: false, team2: false, undo: false }); }} 
@@ -335,32 +336,43 @@ export default function HomePage() {
               )}
               <div className={`w-[28%] md:w-[22%] h-full flex flex-col items-center justify-center border-r ${sideColTheme}`}>
                 <span className={`text-[10px] md:text-xl font-black uppercase italic ${labelTheme}`}>{t.sets}</span>
-                <span className={`text-[20vh] md:text-[23vh] font-black leading-none ${smallNumTheme}`}>{tTeam.data.sets}</span>
+                <span className={`text-[20vh] md:text-[25vh] font-black leading-none ${smallNumTheme}`}>{tTeam.data.sets}</span>
               </div>
               <div className="flex-1 h-full flex items-center justify-center overflow-hidden">
-                <span className={`text-[32vh] md:text-[45vh] font-black leading-none italic scale-x-[1.4] md:scale-x-[1.6] transform-gpu ${isOutdoorMode ? "text-black" : "text-white [text-shadow:_0_0_40px_rgba(255,255,255,0.3)]"}`}>
+                <span className={`text-[35vh] md:text-[50vh] font-black leading-none italic scale-x-[1.4] md:scale-x-[1.6] transform-gpu ${isOutdoorMode ? "text-black" : "text-white [text-shadow:_0_0_40px_rgba(255,255,255,0.3)]"}`}>
                   {formatPoints(tTeam.data.points)}
                 </span>
               </div>
               <div className={`w-[28%] md:w-[22%] h-full flex flex-col items-center justify-center border-l ${sideColTheme}`}>
                 <span className={`text-[10px] md:text-xl font-black uppercase italic ${labelTheme}`}>{t.games}</span>
-                <span className={`text-[20vh] md:text-[23vh] font-black leading-none ${smallNumTheme}`}>{tTeam.data.games}</span>
+                <span className={`text-[20vh] md:text-[25vh] font-black leading-none ${smallNumTheme}`}>{tTeam.data.games}</span>
               </div>
             </button>
           )
         })}
+
+        {/* NEW: The faint 3-dots trigger button floating in the bottom right corner */}
+        <button 
+          onClick={(e) => { e.stopPropagation(); setOptionsOpen(true); }}
+          className={`absolute bottom-4 right-4 z-40 p-3 rounded-full transition-all backdrop-blur-sm shadow-lg ${isOutdoorMode ? 'bg-white/70 text-black/50 hover:bg-white hover:text-black border border-gray-200' : 'bg-slate-800/40 text-white/30 hover:bg-slate-800 hover:text-white border border-slate-700/50'}`}
+        >
+          <MoreVertical size={28} />
+        </button>
       </section>
 
-      {/* Removed the isOnline prop from the Footer */}
-      <Footer 
-        handleUndo={handleUndo}
-        handleSaveMatch={handleSaveMatch}
-        handleReset={handleReset}
-        setReadmeOpen={setReadmeOpen}
-        setArchiveOpen={setArchiveOpen}
-        setHistoryOpen={setHistoryOpen}
-        setSettingsOpen={setSettingsOpen}
-      />
+      {/* Conditionally render the new sliding footer */}
+      {optionsOpen && (
+        <Footer 
+          handleUndo={handleUndo}
+          handleSaveMatch={handleSaveMatch}
+          handleReset={handleReset}
+          setReadmeOpen={setReadmeOpen}
+          setArchiveOpen={setArchiveOpen}
+          setHistoryOpen={setHistoryOpen}
+          setSettingsOpen={setSettingsOpen}
+          onClose={() => setOptionsOpen(false)}
+        />
+      )}
     </main>
   );
 }
