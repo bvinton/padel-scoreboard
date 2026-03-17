@@ -44,7 +44,8 @@ export default function PlayerPanel({ teamId, teamData, isServing, isOutdoorMode
         <span className={`text-[20vh] md:text-[25vh] font-black leading-none ${smallNumTheme}`}>{teamData.sets}</span>
       </div>
       <div className="flex-1 h-full flex items-center justify-center overflow-hidden">
-        <span className={`text-[35vh] md:text-[50vh] font-black leading-none italic scale-x-[1.48] md:scale-x-[1.68] transform-gpu ${isOutdoorMode ? "text-black" : "text-white [text-shadow:_0_0_40px_rgba(255,255,255,0.3)]"}`}>
+        {/* Adjusted scale-x to bring the left and right edges inward without altering the height */}
+        <span className={`text-[35vh] md:text-[50vh] font-black leading-none italic scale-x-[1.35] md:scale-x-[1.50] transform-gpu ${isOutdoorMode ? "text-black" : "text-white [text-shadow:_0_0_40px_rgba(255,255,255,0.3)]"}`}>
           {formatPoints(teamData.points)}
         </span>
       </div>
