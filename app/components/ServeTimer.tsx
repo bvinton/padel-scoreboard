@@ -25,8 +25,11 @@ export default function ServeTimer({ timerStarted, timeLeft, isOutdoorMode }: Se
   };
 
   return (
-    // FIX: Pulled the inset back to 8px. This should sit right on the visible edge.
-    <div className="absolute inset-[8px] pointer-events-none z-[9999]">
+    /* FIX: Variable Inset. 
+       top/bottom = 8px (since you said they are perfect)
+       left/right = 40px (to escape the 2% zoom on wide monitors)
+    */
+    <div className="absolute top-[8px] bottom-[8px] left-[40px] right-[40px] pointer-events-none z-[9999]">
       {timeLeft > 0 && (
         <svg className="absolute inset-0 w-full h-full overflow-visible">
           <line x1={`${getTopLeftX1()}%`} y1="0%" x2="50%" y2="0%" stroke="currentColor" strokeWidth="4" className={`transition-all duration-75 ease-linear ${getTimerClass()}`} />
