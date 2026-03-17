@@ -1,6 +1,6 @@
 import { dict } from "../translations";
 import { useMatchStore } from "../../store/useMatchStore";
-import { RotateCcw, Undo2, Settings, History, Archive, HelpCircle, X } from "lucide-react";
+import { RotateCcw, Undo2, Settings, History, Archive, HelpCircle, X, Users } from "lucide-react";
 
 interface FooterProps {
   handleUndo: () => void;
@@ -10,12 +10,13 @@ interface FooterProps {
   setArchiveOpen: (v: boolean) => void;
   setHistoryOpen: (v: boolean) => void;
   setSettingsOpen: (v: boolean) => void;
+  setRosterOpen: (v: boolean) => void; // NEW: Added the prop here
   onClose: () => void;
 }
 
 export default function Footer({
   handleUndo, handleSaveMatch, handleReset,
-  setReadmeOpen, setArchiveOpen, setHistoryOpen, setSettingsOpen, onClose
+  setReadmeOpen, setArchiveOpen, setHistoryOpen, setSettingsOpen, setRosterOpen, onClose
 }: FooterProps) {
   const { language, isOutdoorMode } = useMatchStore();
   const t = dict[language] || dict.en;
@@ -26,6 +27,12 @@ export default function Footer({
   return (
     <div className={`absolute bottom-0 left-0 right-0 p-2 flex flex-wrap items-center justify-center gap-2 z-50 shadow-[0_-15px_40px_rgba(0,0,0,0.6)] animate-in slide-in-from-bottom-full duration-200 ${isOutdoorMode ? 'bg-white/95 backdrop-blur-md border-t border-gray-200' : 'bg-slate-900/95 backdrop-blur-md border-t border-slate-800'}`}>
       <button onClick={() => { setReadmeOpen(true); onClose(); }} className={btnBase}><HelpCircle size={16} className="text-blue-400" /></button>
+      
+      {/* NEW: Players Button */}
+      <button onClick={() => { setRosterOpen(true); onClose(); }} className={btnBase}>
+        <Users size={16} className="text-cyan-400" /> Players
+      </button>
+
       <button onClick={() => { setHistoryOpen(true); onClose(); }} className={btnBase}><History size={16} className="text-amber-400" /></button>
       <button onClick={() => { setArchiveOpen(true); onClose(); }} className={btnBase}><Archive size={16} className="text-purple-400" /></button>
       <button onClick={() => { handleSaveMatch(); onClose(); }} className={btnBase}>{t.save}</button>

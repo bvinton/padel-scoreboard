@@ -13,6 +13,7 @@ import KeyboardListener from "./components/KeyboardListener";
 import WebhookListener from "./components/WebhookListener";
 import ServeTimer from "./components/ServeTimer";
 import PlayerPanel from "./components/PlayerPanel";
+import PlayerRosterModal from "./components/PlayerRosterModal";
 import useUmpireAudio from "./Hooks/useUmpireAudio";
 import { MoreVertical } from "lucide-react";
 
@@ -41,6 +42,7 @@ export default function HomePage() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [readmeOpen, setReadmeOpen] = useState(false);
+  const [rosterOpen, setRosterOpen] = useState(false); // NEW: Roster Modal State
   const [localDismissed, setLocalDismissed] = useState(false);
   
   const [roomCode, setRoomCode] = useState<string>("");
@@ -201,6 +203,13 @@ export default function HomePage() {
         historyLog={historyLog}
       />
 
+      {/* NEW: Player Roster Modal */}
+      <PlayerRosterModal 
+        isOpen={rosterOpen}
+        onClose={() => setRosterOpen(false)}
+        isOutdoorMode={isOutdoorMode}
+      />
+
       <ServeTimer timerStarted={timerStarted} timeLeft={timeLeft} isOutdoorMode={isOutdoorMode} />
 
       <section className="flex-grow flex flex-col p-0 relative overflow-hidden">
@@ -238,6 +247,7 @@ export default function HomePage() {
           setArchiveOpen={setArchiveOpen}
           setHistoryOpen={setHistoryOpen}
           setSettingsOpen={setSettingsOpen}
+          setRosterOpen={setRosterOpen} // NEW: Passing the function down
           onClose={() => setOptionsOpen(false)}
         />
       )}
