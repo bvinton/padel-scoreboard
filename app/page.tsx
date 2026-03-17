@@ -11,6 +11,9 @@ import ArchiveModal from "./components/ArchiveModal";
 import PointLogModal from "./components/PointLogModal";
 import KeyboardListener from "./components/KeyboardListener";
 import WebhookListener from "./components/WebhookListener";
+import ServeTimer from "./components/ServeTimer";
+import PlayerPanel from "./components/PlayerPanel";
+import useUmpireAudio from "./hooks/useUmpireAudio";
 import { MoreVertical } from "lucide-react";
 
 interface SavedMatch {
@@ -23,9 +26,8 @@ interface SavedMatch {
 
 export default function HomePage() {
   const {
-    team1, team2, server, isTiebreak, matchWinner, matchWinnerDismissed, 
-    setScores, scorePoint, undo, resetMatch, umpireEnabled,
-    isOutdoorMode, language
+    team1, team2, server, matchWinner, setScores, scorePoint, undo, 
+    resetMatch, isOutdoorMode, language
   } = useMatchStore();
 
   const t = dict[language] || dict.en; 
@@ -54,6 +56,9 @@ export default function HomePage() {
   const [historyLog, setHistoryLog] = useState<{id: number, time: string, msg: string}[]>([]);
   const [savedMatches, setSavedMatches] = useState<SavedMatch[]>([]);
 
+  // Execute Background Audio Logic
+  useUmpireAudio(appStarted, localDismissed);
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -61,27 +66,6 @@ export default function HomePage() {
   const addLog = (msg: string) => {
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     setHistoryLog(prev => [{ id: Date.now(), time, msg }, ...prev].slice(0, 30));
-  };
-
-  const speakScore = (text: string) => {
-    if (!umpireEnabled || typeof window === "undefined" || !appStarted) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    const voices = window.speechSynthesis.getVoices();
-    
-    const targetLang = language === 'es' ? 'es' : 'en';
-    const preferredVoice = voices.find(v => 
-      (v.name.toLowerCase().includes("male") || v.name.toLowerCase().includes("low") || v.name.toLowerCase().includes("hombre")) && 
-      v.lang.startsWith(targetLang)
-    );
-    const fallbackVoice = voices.find(v => v.lang.startsWith(targetLang));
-    
-    if (preferredVoice) utterance.voice = preferredVoice;
-    else if (fallbackVoice) utterance.voice = fallbackVoice;
-    
-    utterance.rate = 1.05;
-    utterance.pitch = 0.85;
-    window.speechSynthesis.speak(utterance);
   };
 
   const handleAppStart = async () => {
@@ -144,61 +128,6 @@ export default function HomePage() {
     return () => clearInterval(shiftInterval);
   }, []);
 
-  const prevGames1 = useRef(team1.games); const prevGames2 = useRef(team2.games);
-  const prevSets1 = useRef(team1.sets); const prevSets2 = useRef(team2.sets);
-  const prevIsTiebreak = useRef(isTiebreak);
-
-  useEffect(() => {
-    if (!umpireEnabled) return;
-    const isEs = language === 'es';
-
-    if (isTiebreak && !prevIsTiebreak.current) { 
-      speakScore(isEs ? "Seis iguales. Tiebreak." : "Six games all. Tiebreak."); 
-      prevIsTiebreak.current = true; return; 
-    }
-    prevIsTiebreak.current = isTiebreak;
-
-    if (matchWinner && !matchWinnerDismissed && !localDismissed) { 
-      const winnerName = matchWinner === 'team1' ? team1.name : team2.name;
-      speakScore(isEs ? `Juego, set y partido. ${winnerName}` : `Game, Set and Match. ${winnerName}`); 
-      return; 
-    }
-    if (team1.sets > prevSets1.current) { 
-      speakScore(isEs ? `Juego y set, ${team1.name}` : `Game and Set, ${team1.name}`); 
-      prevSets1.current = team1.sets; prevGames1.current = 0; prevGames2.current = 0; return; 
-    }
-    if (team2.sets > prevSets2.current) { 
-      speakScore(isEs ? `Juego y set, ${team2.name}` : `Game and Set, ${team2.name}`); 
-      prevSets2.current = team2.sets; prevGames1.current = 0; prevGames2.current = 0; return; 
-    }
-    if (team1.games > prevGames1.current) { 
-      speakScore(isEs ? `Juego, ${team1.name}` : `Game, ${team1.name}`); 
-      prevGames1.current = team1.games; return; 
-    }
-    if (team2.games > prevGames2.current) { 
-      speakScore(isEs ? `Juego, ${team2.name}` : `Game, ${team2.name}`); 
-      prevGames2.current = team2.games; return; 
-    }
-    
-    const p1 = team1.points; const p2 = team2.points;
-    if (p1 === '0' && p2 === '0') return;
-    
-    if (p1 === 'Ad' || p2 === 'Ad') speakScore(isEs ? "Ventaja" : "Advantage");
-    else if (p1 === '40' && p2 === '40') speakScore(isEs ? "Iguales" : "Deuce");
-    else if (isTiebreak) speakScore(`${p1}, ${p2}`);
-    else {
-      const p1TextEn = p1 === '0' ? "Love" : p1; const p2TextEn = p2 === '0' ? "Love" : p2;
-      const p1TextEs = p1 === '0' ? "Cero" : p1 === '15' ? "Quince" : p1 === '30' ? "Treinta" : "Cuarenta";
-      const p2TextEs = p2 === '0' ? "Cero" : p2 === '15' ? "Quince" : p2 === '30' ? "Treinta" : "Cuarenta";
-
-      const p1Text = isEs ? p1TextEs : p1TextEn;
-      const p2Text = isEs ? p2TextEs : p2TextEn;
-
-      if (p1 === p2) speakScore(isEs ? `${p1Text} iguales` : `${p1Text} All`); 
-      else speakScore(`${p1Text}, ${p2Text}`);
-    }
-  }, [team1.points, team2.points, team1.games, team2.games, team1.sets, team2.sets, isTiebreak, matchWinner, localDismissed, team1.name, team2.name, matchWinnerDismissed, umpireEnabled, language]);
-
   useEffect(() => {
     if (!lastActionRef.current) return;
     const { type, team, beforePoints, beforeGames, beforeSets } = lastActionRef.current;
@@ -227,16 +156,6 @@ export default function HomePage() {
   }, [timerStarted]);
 
   useEffect(() => { const saved = localStorage.getItem('padelArchive'); if (saved) { try { setSavedMatches(JSON.parse(saved)); } catch (e) {} } }, []);
-
-  const formatPoints = (p: string | number) => typeof p === "number" ? p.toString() : p;
-  const getBottomLeftX2 = () => timeLeft >= 16 ? ((timeLeft - 16) / 4) * 50 : 0; const getBottomRightX1 = () => timeLeft >= 16 ? 100 - (((timeLeft - 16) / 4) * 50) : 100;
-  const getSideY2 = () => timeLeft >= 16 ? 100 : timeLeft >= 4 ? ((timeLeft - 4) / 12) * 100 : 0; const getTopLeftX1 = () => timeLeft >= 4 ? 0 : 50 - ((timeLeft / 4) * 50);
-  const getTopRightX2 = () => timeLeft >= 4 ? 100 : 50 + ((timeLeft / 4) * 50);
-  const getTimerStrokeColor = () => { 
-    if (isOutdoorMode) return timeLeft > 10 ? "text-emerald-500" : "text-amber-500";
-    if (timeLeft > 10) return "text-emerald-500 drop-shadow-[0_0_12px_rgba(16,185,129,1)]"; 
-    return "text-amber-500 drop-shadow-[0_0_12px_rgba(245,158,11,1)]"; 
-  };
 
   if (!isMounted) {
     return <div className="fixed inset-0 bg-slate-950" />;
@@ -295,61 +214,25 @@ export default function HomePage() {
         historyLog={historyLog}
       />
 
-      <section className="flex-grow flex flex-col p-1 relative overflow-hidden">
-        {timerStarted && (
-          <div className="absolute inset-2 md:inset-4 pointer-events-none z-50 rounded-lg md:rounded-[1.5rem]">
-            {timeLeft > 0 && (
-              <svg className="absolute inset-0 w-full h-full overflow-visible">
-                <line x1={`${getTopLeftX1()}%`} y1="0%" x2="50%" y2="0%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerStrokeColor()}`} />
-                <line x1="50%" y1="0%" x2={`${getTopRightX2()}%`} y2="0%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerStrokeColor()}`} />
-                <line x1="0%" y1="0%" x2="0%" y2={`${getSideY2()}%`} stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerStrokeColor()}`} />
-                <line x1="100%" y1="0%" x2="100%" y2={`${getSideY2()}%`} stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerStrokeColor()}`} />
-                <line x1="0%" y1="100%" x2={`${getBottomLeftX2()}%`} y2="100%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerStrokeColor()}`} />
-                <line x1={`${getBottomRightX1()}%`} y1="100%" x2="100%" y2="100%" stroke="currentColor" strokeWidth="12" className={`transition-all duration-75 ease-linear ${getTimerStrokeColor()}`} />
-              </svg>
-            )}
-            {timeLeft <= 0 && <div className={`absolute inset-0 border-[6px] border-red-600 rounded-lg md:rounded-[1.5rem] animate-pulse ${isOutdoorMode ? '' : 'shadow-[inset_0_0_40px_rgba(220,38,38,0.8)]'}`} />}
-          </div>
-        )}
+      <ServeTimer timerStarted={timerStarted} timeLeft={timeLeft} isOutdoorMode={isOutdoorMode} />
 
-        {[ { id: "team1", data: team1 }, { id: "team2", data: team2 } ].map((tTeam) => {
-          const isServing = server === tTeam.id;
-          const btnTheme = isOutdoorMode 
-            ? (isServing ? "border-emerald-500 bg-emerald-50 z-10 shadow-sm" : "border-gray-300 bg-white")
-            : (isServing ? "border-emerald-500/50 bg-emerald-500/20 shadow-[inset_0_0_40px_rgba(16,185,129,0.25)] z-10" : "border-slate-800 bg-slate-900/20");
-          const sideColTheme = isOutdoorMode ? "border-gray-200 bg-gray-100" : "border-slate-800/30 bg-black/40";
-          const labelTheme = isOutdoorMode ? "text-gray-500" : "text-slate-400";
-          const smallNumTheme = isOutdoorMode ? "text-black" : "text-white";
-          const nameTheme = isOutdoorMode 
-            ? (isServing ? "text-emerald-700 font-extrabold" : "text-gray-500 font-bold")
-            : (isServing ? "text-emerald-400 opacity-100" : "text-slate-400 opacity-60");
-
-          return (
-            <button key={tTeam.id} onClick={() => handleScore(tTeam.id as any)} className={`flex-1 min-h-0 border-b flex flex-row items-center relative transition-all ${btnTheme}`}>
-              <div className="absolute top-1 md:top-3 left-3 md:left-8 z-20">
-                <span className={`text-[10px] md:text-2xl italic uppercase ${nameTheme}`}>{tTeam.data.name}</span>
-              </div>
-              {isServing && (
-                <div className="absolute top-1 md:top-3 right-3 md:right-8 z-20">
-                  <span className={`px-2 md:px-5 py-0.5 rounded-full font-black text-[8px] md:text-sm animate-pulse uppercase ${isOutdoorMode ? 'bg-emerald-600 text-white shadow-md' : 'bg-emerald-500 text-black shadow-[0_0_10px_rgba(16,185,129,0.5)]'}`}>{t.serving}</span>
-                </div>
-              )}
-              <div className={`w-[28%] md:w-[22%] h-full flex flex-col items-center justify-center border-r ${sideColTheme}`}>
-                <span className={`text-[10px] md:text-xl font-black uppercase italic ${labelTheme}`}>{t.sets}</span>
-                <span className={`text-[20vh] md:text-[25vh] font-black leading-none ${smallNumTheme}`}>{tTeam.data.sets}</span>
-              </div>
-              <div className="flex-1 h-full flex items-center justify-center overflow-hidden">
-                <span className={`text-[35vh] md:text-[50vh] font-black leading-none italic scale-x-[1.4] md:scale-x-[1.6] transform-gpu ${isOutdoorMode ? "text-black" : "text-white [text-shadow:_0_0_40px_rgba(255,255,255,0.3)]"}`}>
-                  {formatPoints(tTeam.data.points)}
-                </span>
-              </div>
-              <div className={`w-[28%] md:w-[22%] h-full flex flex-col items-center justify-center border-l ${sideColTheme}`}>
-                <span className={`text-[10px] md:text-xl font-black uppercase italic ${labelTheme}`}>{t.games}</span>
-                <span className={`text-[20vh] md:text-[25vh] font-black leading-none ${smallNumTheme}`}>{tTeam.data.games}</span>
-              </div>
-            </button>
-          )
-        })}
+      <section className="flex-grow flex flex-col p-0 relative overflow-hidden">
+        <PlayerPanel 
+          teamId="team1" 
+          teamData={team1} 
+          isServing={server === "team1"} 
+          isOutdoorMode={isOutdoorMode} 
+          t={t} 
+          handleScore={handleScore} 
+        />
+        <PlayerPanel 
+          teamId="team2" 
+          teamData={team2} 
+          isServing={server === "team2"} 
+          isOutdoorMode={isOutdoorMode} 
+          t={t} 
+          handleScore={handleScore} 
+        />
 
         <button 
           onClick={(e) => { e.stopPropagation(); setOptionsOpen(true); }}
