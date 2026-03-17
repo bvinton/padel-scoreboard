@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useMatchStore } from "../store/useMatchStore";
+import { useMatchStore } from "../../store/useMatchStore";
 
 export default function useUmpireAudio(appStarted: boolean, localDismissed: boolean) {
   const {
