@@ -339,8 +339,7 @@ export default function HomePage() {
                 <span className={`text-[20vh] md:text-[25vh] font-black leading-none ${smallNumTheme}`}>{tTeam.data.sets}</span>
               </div>
               <div className="flex-1 h-full flex items-center justify-center overflow-hidden">
-                {/* FIX: Scaled back font size from 35vh/50vh -> 33vh/46vh and scale-x from 1.4/1.6 -> 1.3/1.5 to prevent edge bleeding */}
-                <span className={`text-[33vh] md:text-[46vh] font-black leading-none italic scale-x-[1.3] md:scale-x-[1.5] transform-gpu ${isOutdoorMode ? "text-black" : "text-white [text-shadow:_0_0_40px_rgba(255,255,255,0.3)]"}`}>
+                <span className={`text-[35vh] md:text-[50vh] font-black leading-none italic scale-x-[1.4] md:scale-x-[1.6] transform-gpu ${isOutdoorMode ? "text-black" : "text-white [text-shadow:_0_0_40px_rgba(255,255,255,0.3)]"}`}>
                   {formatPoints(tTeam.data.points)}
                 </span>
               </div>
