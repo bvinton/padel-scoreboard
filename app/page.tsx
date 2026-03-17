@@ -248,9 +248,7 @@ export default function HomePage() {
       }}
       className={`fixed inset-0 flex flex-col select-none overflow-hidden font-sans ${isOutdoorMode ? 'bg-white text-black' : 'bg-black text-white'}`}
     >
-      {/* INVISIBLE HARDWARE LISTENERS */}
-      {/* You can leave both active, or comment one out like: {/* <WebhookListener ... /> */} 
-      <KeyboardListener handleScore={handleScore} handleUndo={handleUndo} />
+      <KeyboardListener handleScore={handleScore} handleUndo={handleUndo} setTestSignals={setTestSignals} />
       
       <WebhookListener 
         roomCode={roomCode} 
@@ -260,7 +258,6 @@ export default function HomePage() {
         setIsOnline={setIsOnline} 
       />
 
-      {/* EXTRACTED COMPONENTS */}
       <AppOverlays 
         appStarted={appStarted} 
         handleAppStart={handleAppStart} 
@@ -269,10 +266,10 @@ export default function HomePage() {
         handleReset={handleReset} 
       />
 
+      {/* Removing the roomCode prop as it's no longer needed for Bluetooth setup */}
       <HardwareWizard 
         isOpen={readmeOpen} 
         onClose={() => { setReadmeOpen(false); setTestSignals({ team1: false, team2: false, undo: false }); }} 
-        roomCode={roomCode} 
         testSignals={testSignals} 
       />
 
@@ -297,7 +294,6 @@ export default function HomePage() {
         historyLog={historyLog}
       />
 
-      {/* MAIN SCOREBOARD SECTION */}
       <section className="flex-grow flex flex-col p-1 relative overflow-hidden">
         {timerStarted && (
           <div className="absolute inset-1 pointer-events-none z-50 rounded-lg md:rounded-[1.5rem] overflow-hidden">
@@ -355,11 +351,11 @@ export default function HomePage() {
         })}
       </section>
 
+      {/* Removed the isOnline prop from the Footer */}
       <Footer 
         handleUndo={handleUndo}
         handleSaveMatch={handleSaveMatch}
         handleReset={handleReset}
-        isOnline={isOnline}
         setReadmeOpen={setReadmeOpen}
         setArchiveOpen={setArchiveOpen}
         setHistoryOpen={setHistoryOpen}

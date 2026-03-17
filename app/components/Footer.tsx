@@ -1,12 +1,11 @@
-import { useMatchStore } from "../../store/useMatchStore";
 import { dict } from "../translations";
-import { Undo2, Save, HelpCircle, History, MessageSquareText, Settings, Wifi, WifiOff } from "lucide-react";
+import { useMatchStore } from "../../store/useMatchStore";
+import { RotateCcw, Undo2, Settings, History, Archive, HelpCircle } from "lucide-react";
 
 interface FooterProps {
   handleUndo: () => void;
   handleSaveMatch: () => void;
   handleReset: () => void;
-  isOnline: boolean;
   setReadmeOpen: (v: boolean) => void;
   setArchiveOpen: (v: boolean) => void;
   setHistoryOpen: (v: boolean) => void;
@@ -14,37 +13,23 @@ interface FooterProps {
 }
 
 export default function Footer({
-  handleUndo, handleSaveMatch, handleReset, isOnline,
+  handleUndo, handleSaveMatch, handleReset,
   setReadmeOpen, setArchiveOpen, setHistoryOpen, setSettingsOpen
 }: FooterProps) {
-  const { language, isTiebreak, isOutdoorMode } = useMatchStore();
+  const { language, isOutdoorMode } = useMatchStore();
   const t = dict[language] || dict.en;
 
+  const btnBase = `flex items-center justify-center gap-2 px-3 md:px-5 py-3 rounded-xl font-black uppercase text-xs md:text-sm active:scale-95 transition-all ${isOutdoorMode ? 'bg-gray-200 text-black border border-gray-300' : 'bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700'}`;
+
   return (
-    <footer className={`flex-none h-[40px] flex items-center justify-between px-2 md:px-10 border-t z-50 transition-colors ${isOutdoorMode ? 'bg-gray-200 border-gray-300' : 'bg-slate-950/95 border-slate-900'}`}>
-      <div className="flex items-center gap-1 md:gap-4 h-full">
-        <button onClick={handleUndo} className={`flex items-center gap-1 px-2 md:px-4 py-0.5 rounded h-[30px] active:scale-95 transition-all ${isOutdoorMode ? 'bg-white border' : 'bg-slate-900/50'}`}>
-          <Undo2 className="w-3.5 h-3.5 md:w-5 md:h-5 text-slate-500" />
-          <span className="text-[10px] md:text-lg font-black uppercase hidden md:inline text-slate-500">{t.undo}</span>
-        </button>
-        <button onClick={handleSaveMatch} className={`flex items-center gap-1 px-2 md:px-4 py-0.5 rounded h-[30px] active:scale-95 transition-all ${isOutdoorMode ? 'bg-indigo-100 border' : 'bg-indigo-900/40'}`}>
-          <Save className="w-3.5 h-3.5 md:w-5 md:h-5 text-indigo-400" />
-          <span className="text-[10px] md:text-lg font-black uppercase hidden md:inline text-indigo-400">{t.save}</span>
-        </button>
-      </div>
-      <div className={`px-3 py-0.5 rounded-full font-black uppercase text-[8px] md:text-sm ${isTiebreak ? 'text-amber-400 animate-pulse' : 'text-slate-600'}`}>
-        {isTiebreak ? t.tiebreak : t.match}
-      </div>
-      <div className="flex items-center gap-1 md:gap-3 h-full">
-        <button onClick={handleReset} className="text-[10px] md:text-lg font-black uppercase mr-1 md:mr-2 text-red-900/80 hover:text-red-500 active:scale-95 transition-all">{t.reset}</button>
-        <div className="p-1 md:p-1.5 rounded-full border mr-1 md:mr-2 border-slate-800 bg-black/40 shadow-inner">
-          {isOnline ? <Wifi size={16} className="text-emerald-500" /> : <WifiOff size={16} className="text-red-500 animate-pulse" />}
-        </div>
-        <button onClick={() => setReadmeOpen(true)} className="text-emerald-500 p-1 active:scale-95 transition-all"><HelpCircle size={20} /></button>
-        <button onClick={() => setArchiveOpen(true)} className="text-indigo-400 p-1 active:scale-95 transition-all"><History size={20} /></button>
-        <button onClick={() => setHistoryOpen(true)} className="text-slate-600 p-1 active:scale-95 transition-all"><MessageSquareText size={20} /></button>
-        <button onClick={() => setSettingsOpen(true)} className="text-slate-600 p-1 active:scale-95 transition-all"><Settings size={20} /></button>
-      </div>
+    <footer className={`p-2 md:p-4 flex flex-wrap items-center justify-center gap-2 md:gap-4 z-40 relative ${isOutdoorMode ? 'bg-white border-t border-gray-200' : 'bg-slate-900 border-t border-slate-800'}`}>
+      <button onClick={() => setReadmeOpen(true)} className={btnBase}><HelpCircle size={18} className="text-blue-400" /></button>
+      <button onClick={() => setHistoryOpen(true)} className={btnBase}><History size={18} className="text-amber-400" /></button>
+      <button onClick={() => setArchiveOpen(true)} className={btnBase}><Archive size={18} className="text-purple-400" /></button>
+      <button onClick={handleSaveMatch} className={btnBase}>{t.save}</button>
+      <button onClick={handleUndo} className={btnBase}><Undo2 size={18} className="text-amber-500" /> {t.undo}</button>
+      <button onClick={handleReset} className={btnBase}><RotateCcw size={18} className="text-red-500" /> {t.reset}</button>
+      <button onClick={() => setSettingsOpen(true)} className={btnBase}><Settings size={18} className="text-emerald-400" /> {t.settings}</button>
     </footer>
   );
 }
