@@ -24,28 +24,40 @@ interface PlayerPanelProps {
 }
 
 export default function PlayerPanel({ teamId, teamData, isServing, isOutdoorMode, t, handleScore }: PlayerPanelProps) {
+  // Extract names or placeholders
   const player1Name = teamData.players ? teamData.players[0].name : 'PLAYER 1';
   const player2Name = teamData.players ? teamData.players[1].name : 'PLAYER 2';
   
+  // Determine specific server within the team
   const isPlayer1Serving = isServing && teamData.serverIndex === 0;
   const isPlayer2Serving = isServing && teamData.serverIndex === 1;
 
-  // We rely on the main app background (pure black/white). No more tinted boxes!
-  const activeGlow = isOutdoorMode 
-    ? "drop-shadow(0 0 10px rgba(5,150,105,0.8)) text-emerald-700" 
-    : "drop-shadow(0 0 20px rgba(52,211,153,1)) drop-shadow(0 0 40px rgba(52,211,153,1)) text-emerald-400";
-    
-  const inactiveStyle = isOutdoorMode ? "text-black/50" : "text-white/50";
+  // DIMMED style for non-serving partner
+  const dimmedStyle = isOutdoorMode ? "text-black/50" : "text-white/50";
+  
+  // ACTIVELY GLOWING style for server
+  // Indoor: Intense stack of drop-shadows on bright green text
+  // Outdoor: Tighter drop-shadow on darker green text
+  const neonServerGlow = isOutdoorMode
+    ? "text-emerald-700 drop-shadow(0 0 10px rgba(5,150,105,0.8))"
+    : "text-emerald-400 drop-shadow(0 0 20px rgba(52,211,153,1)) drop-shadow(0 0 40px rgba(52,211,153,1)) drop-shadow(0 0 80px rgba(52,211,153,1))";
 
   return (
     <div 
       onClick={() => handleScore(teamId)}
+      // Pure transparent background allows main app black/white to show through
       className="relative flex-1 flex items-center justify-center p-6 overflow-hidden cursor-pointer select-none active:scale-[0.99] transition-transform bg-transparent"
     >
-      {/* LEFT COLUMN */}
+      {/* LEFT COLUMN: Player 1 / Sets / Serving Badge */}
       <div className="absolute top-8 left-8 bottom-8 flex flex-col justify-between items-start z-10">
-        <div className={`text-3xl font-black uppercase tracking-wider transition-all duration-300 ${isPlayer1Serving ? activeGlow : inactiveStyle}`}>
-          {player1Name}
+        <div 
+          // Applies NEON glow if serving, dims otherwise
+          className={`text-3xl font-black uppercase tracking-wider transition-all duration-300`}
+          style={{ filter: isPlayer1Serving ? neonServerGlow : 'none' }}
+        >
+          <span className={!isPlayer1Serving ? dimmedStyle : ''}>
+            {player1Name}
+          </span>
         </div>
         
         <div className="flex flex-col items-start gap-3">
@@ -54,16 +66,23 @@ export default function PlayerPanel({ teamId, teamData, isServing, isOutdoorMode
             <div className="text-7xl font-black leading-none">{teamData.sets}</div>
           </div>
           
+          {/* Flashing SERVING box (same location as before) */}
           <div className={`px-4 py-1.5 rounded font-black text-sm tracking-widest mt-2 transition-all duration-300 ${isPlayer1Serving ? 'animate-pulse bg-emerald-500 text-black shadow-[0_0_20px_rgba(52,211,153,0.8)]' : 'opacity-0'}`}>
             SERVING
           </div>
         </div>
       </div>
 
-      {/* RIGHT COLUMN */}
+      {/* RIGHT COLUMN: Player 2 / Games / Serving Badge */}
       <div className="absolute top-8 right-8 bottom-8 flex flex-col justify-between items-end z-10">
-        <div className={`text-3xl font-black uppercase tracking-wider transition-all duration-300 ${isPlayer2Serving ? activeGlow : inactiveStyle}`}>
-          {player2Name}
+        <div 
+          // Applies NEON glow if serving, dims otherwise
+          className={`text-3xl font-black uppercase tracking-wider transition-all duration-300`}
+          style={{ filter: isPlayer2Serving ? neonServerGlow : 'none' }}
+        >
+          <span className={!isPlayer2Serving ? dimmedStyle : ''}>
+            {player2Name}
+          </span>
         </div>
         
         <div className="flex flex-col items-end gap-3">
@@ -72,18 +91,20 @@ export default function PlayerPanel({ teamId, teamData, isServing, isOutdoorMode
             <div className="text-7xl font-black leading-none">{teamData.games}</div>
           </div>
           
+          {/* Flashing SERVING box (same location as before) */}
           <div className={`px-4 py-1.5 rounded font-black text-sm tracking-widest mt-2 transition-all duration-300 ${isPlayer2Serving ? 'animate-pulse bg-emerald-500 text-black shadow-[0_0_20px_rgba(52,211,153,0.8)]' : 'opacity-0'}`}>
             SERVING
           </div>
         </div>
       </div>
 
-      {/* CENTER HERO */}
+      {/* CENTER HERO: Giant Score (pure contrast) */}
       <div className="flex-grow flex items-center justify-center relative z-0">
         <span 
-          className={`font-extrabold text-[40vh] leading-none tracking-tighter drop-shadow-2xl transition-all duration-300 ${isOutdoorMode ? 'text-black' : 'text-white'}`}
+          className={`font-extrabold text-[40vh] leading-none tracking-tighter transition-all duration-300 ${isOutdoorMode ? 'text-black' : 'text-white'}`}
           style={{ 
             transform: 'skewX(-10deg)', 
+            // Score only glows subtly with the team if they are serving (Indoor only)
             filter: isServing && !isOutdoorMode ? 'drop-shadow(0 0 80px rgba(52,211,153,0.3))' : 'none'
           }}
         >
