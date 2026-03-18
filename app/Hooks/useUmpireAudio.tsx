@@ -28,7 +28,6 @@ export default function useUmpireAudio(appStarted: boolean, localDismissed: bool
     window.speechSynthesis.speak(utterance);
   };
 
-  // FIXED: A single unified memory state that tracks the exact snapshot of the previous point
   const prev = useRef({
     t1Games: team1.games, t2Games: team2.games,
     t1Sets: team1.sets, t2Sets: team2.sets,
@@ -55,13 +54,11 @@ export default function useUmpireAudio(appStarted: boolean, localDismissed: bool
 
     // 2. UMPIRE VOICE LOGIC
     if (!umpireEnabled) {
-      // If muted, we still must sync the memory so it doesn't break when unmuted!
       prev.current = { t1Games: team1.games, t2Games: team2.games, t1Sets: team1.sets, t2Sets: team2.sets, p1: team1.points, p2: team2.points, tiebreak: isTiebreak };
       return;
     }
 
     const isEs = language === 'es';
-
     const getSpokenName = (team: typeof team1) => {
       if (!team.players) return team.name; 
       if (matchType === 'singles') return team.players[0].name;
@@ -72,55 +69,70 @@ export default function useUmpireAudio(appStarted: boolean, localDismissed: bool
     const t2Name = getSpokenName(team2);
 
     // Calculate exactly what changed since the last render
-    const games1Won = team1.games > prev.current.t1Games;
-    const games2Won = team2.games > prev.current.t2Games;
     const sets1Won = team1.sets > prev.current.t1Sets;
     const sets2Won = team2.sets > prev.current.t2Sets;
-    const pointsChanged = team1.points !== prev.current.p1 || team2.points !== prev.current.p2;
+    const games1Won = team1.games > prev.current.t1Games;
+    const games2Won = team2.games > prev.current.t2Games;
     const tiebreakStarted = isTiebreak && !prev.current.tiebreak;
+    const pointsChanged = team1.points !== prev.current.p1 || team2.points !== prev.current.p2;
 
-    // If numbers went backwards, the user hit Undo or Reset. We say nothing.
-    const isResetOrUndo = team1.games < prev.current.t1Games || team2.games < prev.current.t2Games || team1.sets < prev.current.t1Sets || team2.sets < prev.current.t2Sets;
+    // Helper to determine if an Undo happened
+    const getPointValue = (p: string | number) => {
+        if (p === '0') return 0;
+        if (p === '15') return 1;
+        if (p === '30') return 2;
+        if (p === '40') return 3;
+        if (p === 'Ad') return 4;
+        return Number(p);
+    };
 
-    if (isResetOrUndo) {
-      // Do nothing, just let the refs sync at the bottom
+    const wentBackwardsSets = team1.sets < prev.current.t1Sets || team2.sets < prev.current.t2Sets;
+    const wentBackwardsGames = team1.games < prev.current.t1Games || team2.games < prev.current.t2Games;
+    const wentBackwardsPoints = getPointValue(team1.points) < getPointValue(prev.current.p1) || getPointValue(team2.points) < getPointValue(prev.current.p2);
+
+    // FIXED: The Umpire now checks for forward progression in sets BEFORE checking if games dropped to 0!
+    if (wentBackwardsSets) {
+        // Do nothing on Set Undo
     } else if (matchWinner && !matchWinnerDismissed && !localDismissed) { 
-      speakScore(isEs ? `Juego, set y partido. ${matchWinner.name}` : `Game, Set and Match. ${matchWinner.name}`); 
+        speakScore(isEs ? `Juego, set y partido. ${matchWinner.name}` : `Game, Set and Match. ${matchWinner.name}`); 
     } else if (sets1Won) {
-      speakScore(isEs ? `Juego y set, ${t1Name}` : `Game and Set, ${t1Name}`);
+        speakScore(isEs ? `Juego y set, ${t1Name}` : `Game and Set, ${t1Name}`);
     } else if (sets2Won) {
-      speakScore(isEs ? `Juego y set, ${t2Name}` : `Game and Set, ${t2Name}`);
+        speakScore(isEs ? `Juego y set, ${t2Name}` : `Game and Set, ${t2Name}`);
+    } else if (wentBackwardsGames) {
+        // Do nothing on Game Undo
     } else if (games1Won && !isTiebreak) {
-      speakScore(isEs ? `Juego, ${t1Name}` : `Game, ${t1Name}`);
+        speakScore(isEs ? `Juego, ${t1Name}` : `Game, ${t1Name}`);
     } else if (games2Won && !isTiebreak) {
-      speakScore(isEs ? `Juego, ${t2Name}` : `Game, ${t2Name}`);
+        speakScore(isEs ? `Juego, ${t2Name}` : `Game, ${t2Name}`);
     } else if (tiebreakStarted) {
-      speakScore(isEs ? "Seis iguales. Tiebreak." : "Six games all. Tiebreak.");
+        speakScore(isEs ? "Seis iguales. Tiebreak." : "Six games all. Tiebreak.");
+    } else if (wentBackwardsPoints) {
+        // Do nothing on Point Undo
     } else if (pointsChanged) {
-      const p1 = team1.points; const p2 = team2.points;
-      
-      if (p1 === '0' && p2 === '0') {
-        // New game started, we don't say 0-0 immediately after "Game"
-      } else if (p1 === 'Ad' || p2 === 'Ad') {
-        speakScore(isEs ? "Ventaja" : "Advantage");
-      } else if (p1 === '40' && p2 === '40') {
-        speakScore(isEs ? "Iguales" : "Deuce");
-      } else if (isTiebreak) {
-        speakScore(`${p1}, ${p2}`);
-      } else {
-        const p1TextEn = p1 === '0' ? "Love" : p1; const p2TextEn = p2 === '0' ? "Love" : p2;
-        const p1TextEs = p1 === '0' ? "Cero" : p1 === '15' ? "Quince" : p1 === '30' ? "Treinta" : "Cuarenta";
-        const p2TextEs = p2 === '0' ? "Cero" : p2 === '15' ? "Quince" : p2 === '30' ? "Treinta" : "Cuarenta";
+        const p1 = team1.points; const p2 = team2.points;
+        
+        if (p1 === '0' && p2 === '0') {
+          // New game started
+        } else if (p1 === 'Ad' || p2 === 'Ad') {
+          speakScore(isEs ? "Ventaja" : "Advantage");
+        } else if (p1 === '40' && p2 === '40') {
+          speakScore(isEs ? "Iguales" : "Deuce");
+        } else if (isTiebreak) {
+          speakScore(`${p1}, ${p2}`);
+        } else {
+          const p1TextEn = p1 === '0' ? "Love" : p1; const p2TextEn = p2 === '0' ? "Love" : p2;
+          const p1TextEs = p1 === '0' ? "Cero" : p1 === '15' ? "Quince" : p1 === '30' ? "Treinta" : "Cuarenta";
+          const p2TextEs = p2 === '0' ? "Cero" : p2 === '15' ? "Quince" : p2 === '30' ? "Treinta" : "Cuarenta";
 
-        const p1Text = isEs ? p1TextEs : p1TextEn;
-        const p2Text = isEs ? p2TextEs : p2TextEn;
+          const p1Text = isEs ? p1TextEs : p1TextEn;
+          const p2Text = isEs ? p2TextEs : p2TextEn;
 
-        if (p1 === p2) speakScore(isEs ? `${p1Text} iguales` : `${p1Text} All`); 
-        else speakScore(`${p1Text}, ${p2Text}`);
-      }
+          if (p1 === p2) speakScore(isEs ? `${p1Text} iguales` : `${p1Text} All`); 
+          else speakScore(`${p1Text}, ${p2Text}`);
+        }
     }
 
-    // FIXED: Unconditionally sync the Umpire's memory at the end of every point so it never gets stuck
     prev.current = {
       t1Games: team1.games, t2Games: team2.games,
       t1Sets: team1.sets, t2Sets: team2.sets,
