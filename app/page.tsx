@@ -14,7 +14,7 @@ import WebhookListener from "./components/WebhookListener";
 import ServeTimer from "./components/ServeTimer";
 import PlayerPanel from "./components/PlayerPanel";
 import PlayerRosterModal from "./components/PlayerRosterModal";
-import PlayerSelectModal from "./components/PlayerSelectModal"; // NEW: Import Modal
+import PlayerSelectModal from "./components/PlayerSelectModal";
 import useUmpireAudio from "./Hooks/useUmpireAudio";
 import { MoreHorizontal } from "lucide-react";
 
@@ -46,7 +46,6 @@ export default function HomePage() {
   const [rosterOpen, setRosterOpen] = useState(false);
   const [localDismissed, setLocalDismissed] = useState(false);
   
-  // NEW: State for tracking which player slot is being assigned
   const [playerSelectConfig, setPlayerSelectConfig] = useState<{ teamId: 'team1' | 'team2', playerIndex: 0 | 1 } | null>(null);
 
   const [roomCode, setRoomCode] = useState<string>("");
@@ -213,7 +212,6 @@ export default function HomePage() {
         isOutdoorMode={isOutdoorMode}
       />
 
-      {/* NEW: Player Selection Pop-up */}
       <PlayerSelectModal 
         isOpen={playerSelectConfig !== null}
         onClose={() => setPlayerSelectConfig(null)}
