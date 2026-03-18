@@ -70,13 +70,34 @@ export default function MatchSetupModal({ isOpen, onClose, onPlayerClick, setRos
                )}
             </div>
 
-            <div className="grid grid-cols-2 gap-2 mt-1">
-              <button onClick={toggleGoldenPoint} className={`py-3 rounded-xl border font-black uppercase text-[10px] tracking-widest transition-all flex items-center justify-center ${useGoldenPoint ? 'bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.3)] border-amber-400' : (isOutdoorMode ? 'bg-gray-100 border-gray-300 text-gray-500' : 'bg-slate-900 border-slate-700 text-slate-500')}`}>{t.goldenPoint}: {useGoldenPoint ? t.on : t.off}</button>
-              
-              <button onClick={toggleSwapSidesRule} className={`py-3 rounded-xl border font-black uppercase text-[10px] tracking-widest transition-all flex items-center justify-center gap-1.5 ${swapSidesRule === 'official' ? 'bg-indigo-600 text-white shadow-[0_0_10px_rgba(79,70,229,0.3)] border-indigo-500' : (isOutdoorMode ? 'bg-gray-100 border-gray-300 text-gray-500' : 'bg-slate-900 border-slate-700 text-slate-500')}`}>
-                <RefreshCw size={12} className="flex-shrink-0" /> 
-                <span className="truncate">{language === 'es' ? 'Cambio' : 'Change Ends'}: {swapSidesRule === 'official' ? (language === 'es' ? 'Oficial' : 'Official') : (language === 'es' ? 'Set' : 'Set End')}</span>
+            <div className="grid grid-cols-2 gap-3 mt-1">
+              {/* FIXED: Reverted Golden Point to a glowing standalone toggle button */}
+              <button 
+                onClick={toggleGoldenPoint} 
+                className={`flex flex-col items-center justify-center rounded-xl border transition-all active:scale-95 ${
+                  useGoldenPoint 
+                    ? 'bg-amber-500 text-black shadow-[0_0_15px_rgba(245,158,11,0.4)] border-amber-400' 
+                    : (isOutdoorMode ? 'bg-gray-100 border-gray-300 text-gray-400' : 'bg-slate-900 border-slate-800 text-slate-600')
+                }`}
+              >
+                <span className="text-[10px] font-black uppercase tracking-widest opacity-80">{t.goldenPoint}</span>
+                <span className="text-sm font-black uppercase mt-0.5">{useGoldenPoint ? t.on : t.off}</span>
               </button>
+
+              {/* Change Ends stays as a segmented toggle */}
+              <div className={`flex flex-col rounded-xl border overflow-hidden shadow-sm ${isOutdoorMode ? 'border-gray-300' : 'border-slate-700'}`}>
+                <div className={`text-[9px] uppercase font-black tracking-widest text-center py-1.5 flex items-center justify-center gap-1 ${isOutdoorMode ? 'bg-gray-200 text-gray-600' : 'bg-slate-800 text-slate-400'}`}>
+                  <RefreshCw size={10} /> {language === 'es' ? 'Cambio Lado' : 'Change Ends'}
+                </div>
+                <div className="flex flex-1">
+                  <button onClick={() => swapSidesRule !== 'official' && toggleSwapSidesRule()} className={`flex-1 py-2 flex justify-center items-center text-[9px] font-black uppercase transition-all ${swapSidesRule === 'official' ? 'bg-indigo-600 text-white shadow-inner' : (isOutdoorMode ? 'bg-white text-gray-400 hover:bg-gray-50' : 'bg-slate-900 text-slate-500 hover:bg-slate-800')}`}>
+                    {language === 'es' ? 'Oficial' : 'Official'}
+                  </button>
+                  <button onClick={() => swapSidesRule !== 'endOfSet' && toggleSwapSidesRule()} className={`flex-1 py-2 flex justify-center items-center text-[9px] font-black uppercase transition-all ${swapSidesRule === 'endOfSet' ? 'bg-emerald-600 text-white shadow-inner' : (isOutdoorMode ? 'bg-white text-gray-400 hover:bg-gray-50' : 'bg-slate-900 text-slate-500 hover:bg-slate-800')}`}>
+                    {language === 'es' ? 'Set' : 'Set End'}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
