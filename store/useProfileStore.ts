@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-// 1. Define exactly what stats we track for every player
 export interface PlayerStats {
   matchesPlayed: number;
   wins: number;
@@ -15,32 +14,30 @@ export interface PlayerStats {
   longestWinningStreak: number;
 }
 
-// 2. Define the Player Profile structure
 export interface PlayerProfile {
   id: string;
   name: string;
-  themeColor: string; // E.g., 'emerald', 'orange', 'cyan', 'rose'
+  themeColor: string; 
   stats: PlayerStats;
 }
 
-// 3. Define the actions we can take on the database
 interface ProfileState {
   profiles: PlayerProfile[];
   addProfile: (name: string, themeColor?: string) => void;
   updateProfile: (id: string, updates: Partial<PlayerProfile>) => void;
   deleteProfile: (id: string) => void;
+  // NEW: The function that does all the heavy math when a match ends
+  recordMatchResult: (winningPlayerIds: string[], losingPlayerIds: string[]) => void;
 }
 
-// 4. Create the actual database
 export const useProfileStore = create<ProfileState>()(
   persist(
     (set) => ({
       profiles: [],
       
-      // Function to create a brand new player from scratch
       addProfile: (name, themeColor = 'emerald') => set((state) => {
         const newProfile: PlayerProfile = {
-          id: Date.now().toString() + Math.random().toString(36).substring(2, 9), // Generates a unique ID
+          id: Date.now().toString() + Math.random().toString(36).substring(2, 9),
           name,
           themeColor,
           stats: {
@@ -59,20 +56,48 @@ export const useProfileStore = create<ProfileState>()(
         return { profiles: [...state.profiles, newProfile] };
       }),
 
-      // Function to edit a player (like changing their name or color)
       updateProfile: (id, updates) => set((state) => ({
         profiles: state.profiles.map(profile => 
           profile.id === id ? { ...profile, ...updates } : profile
         )
       })),
 
-      // Function to permanently delete a player
       deleteProfile: (id) => set((state) => ({
         profiles: state.profiles.filter(profile => profile.id !== id)
       })),
+
+      // NEW: Automatically calculates wins, losses, and streaks!
+      recordMatchResult: (winningPlayerIds, losingPlayerIds) => set((state) => ({
+        profiles: state.profiles.map(profile => {
+          const isWinner = winningPlayerIds.includes(profile.id);
+          const isLoser = losingPlayerIds.includes(profile.id);
+
+          // If they didn't play in this match, don't change their stats
+          if (!isWinner && !isLoser) return profile;
+
+          const newMatchesPlayed = profile.stats.matchesPlayed + 1;
+          const newWins = isWinner ? profile.stats.wins + 1 : profile.stats.wins;
+          const newLosses = isLoser ? profile.stats.losses + 1 : profile.stats.losses;
+          
+          // Streak logic
+          const newStreak = isWinner ? profile.stats.currentWinningStreak + 1 : 0;
+          const newLongestStreak = Math.max(profile.stats.longestWinningStreak, newStreak);
+
+          return {
+            ...profile,
+            stats: {
+              ...profile.stats,
+              matchesPlayed: newMatchesPlayed,
+              wins: newWins,
+              losses: newLosses,
+              currentWinningStreak: newStreak,
+              longestWinningStreak: newLongestStreak
+            }
+          };
+        })
+      }))
     }),
     {
-      // This is the magic part: it automatically saves this database to your tablet's memory
       name: 'padel-player-profiles', 
     }
   )

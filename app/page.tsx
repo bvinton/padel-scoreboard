@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useMatchStore } from "../store/useMatchStore";
+import { useProfileStore } from "../store/useProfileStore"; // NEW: Import profile store
 import { dict } from "./translations";
 import HardwareWizard from "./components/HardwareWizard";
 import SettingsModal from "./components/SettingsModal";
@@ -15,7 +16,7 @@ import ServeTimer from "./components/ServeTimer";
 import PlayerPanel from "./components/PlayerPanel";
 import PlayerRosterModal from "./components/PlayerRosterModal";
 import PlayerSelectModal from "./components/PlayerSelectModal";
-import LockedWarningModal from "./components/LockedWarningModal"; // NEW: Import the lock modal
+import LockedWarningModal from "./components/LockedWarningModal";
 import useUmpireAudio from "./Hooks/useUmpireAudio";
 import { MoreHorizontal } from "lucide-react";
 
@@ -30,9 +31,10 @@ interface SavedMatch {
 export default function HomePage() {
   const {
     team1, team2, server, matchWinner, setScores, scorePoint, undo, 
-    resetMatch, isOutdoorMode, language,
-    history // NEW: Pulling history to check if the match has started
+    resetMatch, isOutdoorMode, language, history
   } = useMatchStore();
+
+  const { recordMatchResult } = useProfileStore(); // NEW: Destructure stat recorder
 
   const t = dict[language] || dict.en; 
 
@@ -49,10 +51,7 @@ export default function HomePage() {
   const [localDismissed, setLocalDismissed] = useState(false);
   
   const [playerSelectConfig, setPlayerSelectConfig] = useState<{ teamId: 'team1' | 'team2', playerIndex: 0 | 1 } | null>(null);
-  
-  // NEW: State for the locked warning modal
   const [lockedWarningOpen, setLockedWarningOpen] = useState(false);
-
   const [roomCode, setRoomCode] = useState<string>("");
   const [testSignals, setTestSignals] = useState({ team1: false, team2: false, undo: false });
   
@@ -100,15 +99,36 @@ export default function HomePage() {
   };
 
   const handleReset = () => {
-    addLog(language === 'es' ? "Partido Reiniciado" : "Match Reset"); setHistoryLog([]); setLocalDismissed(false); endTimeRef.current = null; setTimerStarted(false); setTimeLeft(0);
+    addLog(language === 'es' ? "Partido Reiniciado (Sin guardar estadísticas)" : "Match Reset (No Stats Recorded)"); 
+    setHistoryLog([]); setLocalDismissed(false); endTimeRef.current = null; setTimerStarted(false); setTimeLeft(0);
     resetMatch();
   };
 
-  const handleSaveMatch = () => {
+  // NEW: The massive End Match sequence
+  const handleEndMatch = () => {
+    // 1. Save to visual archive log
     let scoreString = setScores.map(set => `${set.team1}-${set.team2}`).join(', ');
     if (team1.games > 0 || team2.games > 0) { const currentScore = `${team1.games}-${team2.games}`; scoreString = scoreString ? `${scoreString}, ${currentScore}` : currentScore; }
     const newMatch: SavedMatch = { id: Date.now(), date: new Date().toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), team1Name: team1.name, team2Name: team2.name, scores: scoreString || "0-0" };
-    const updated = [newMatch, ...savedMatches]; setSavedMatches(updated); localStorage.setItem('padelArchive', JSON.stringify(updated)); addLog(language === 'es' ? "Partido Guardado" : "Match Saved");
+    const updated = [newMatch, ...savedMatches]; setSavedMatches(updated); localStorage.setItem('padelArchive', JSON.stringify(updated)); 
+
+    // 2. Process Stats if someone actually won
+    if (matchWinner) {
+      const winningTeam = matchWinner === 'team1' ? team1 : team2;
+      const losingTeam = matchWinner === 'team1' ? team2 : team1;
+
+      const winningIds = winningTeam.players ? winningTeam.players.map(p => p.id) : [];
+      const losingIds = losingTeam.players ? losingTeam.players.map(p => p.id) : [];
+
+      recordMatchResult(winningIds, losingIds);
+      addLog(language === 'es' ? "Partido Finalizado y Estadísticas Guardadas" : "Match Ended & Stats Recorded");
+    } else {
+      addLog(language === 'es' ? "Partido Guardado (Sin Ganador)" : "Match Saved (No Winner)");
+    }
+
+    // 3. Reset board for the rematch
+    setLocalDismissed(false); endTimeRef.current = null; setTimerStarted(false); setTimeLeft(0);
+    resetMatch();
   };
 
   const deleteSavedMatch = (id: number) => { const updated = savedMatches.filter(m => m.id !== id); setSavedMatches(updated); localStorage.setItem('padelArchive', JSON.stringify(updated)); };
@@ -158,7 +178,6 @@ export default function HomePage() {
 
   useEffect(() => { const saved = localStorage.getItem('padelArchive'); if (saved) { try { setSavedMatches(JSON.parse(saved)); } catch (e) {} } }, []);
 
-  // NEW: The handler that decides whether to open the Roster or the Warning
   const handlePlayerSlotClick = (teamId: 'team1' | 'team2', playerIndex: 0 | 1) => {
     if (history.length > 0) {
       setLockedWarningOpen(true);
@@ -234,7 +253,6 @@ export default function HomePage() {
         isOutdoorMode={isOutdoorMode}
       />
 
-      {/* NEW: The Warning Modal */}
       <LockedWarningModal
         isOpen={lockedWarningOpen}
         onClose={() => setLockedWarningOpen(false)}
@@ -251,7 +269,7 @@ export default function HomePage() {
           isOutdoorMode={isOutdoorMode} 
           t={t} 
           handleScore={handleScore}
-          onPlayerClick={handlePlayerSlotClick} // Updated to use the smart handler
+          onPlayerClick={handlePlayerSlotClick} 
         />
         <PlayerPanel 
           teamId="team2" 
@@ -260,7 +278,7 @@ export default function HomePage() {
           isOutdoorMode={isOutdoorMode} 
           t={t} 
           handleScore={handleScore}
-          onPlayerClick={handlePlayerSlotClick} // Updated to use the smart handler
+          onPlayerClick={handlePlayerSlotClick} 
         />
 
         <button 
@@ -274,7 +292,7 @@ export default function HomePage() {
       {optionsOpen && (
         <Footer 
           handleUndo={handleUndo}
-          handleSaveMatch={handleSaveMatch}
+          handleEndMatch={handleEndMatch} // NEW: Pass the new handler
           handleReset={handleReset}
           setReadmeOpen={setReadmeOpen}
           setArchiveOpen={setArchiveOpen}

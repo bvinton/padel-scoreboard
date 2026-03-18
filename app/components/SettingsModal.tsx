@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMatchStore, MatchFormat } from "../../store/useMatchStore";
 import { dict } from "../translations";
-import { Volume2, Maximize, Languages, ChevronDown } from "lucide-react";
+import { Volume2, Maximize, Languages, ChevronDown, UserMinus } from "lucide-react";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -17,7 +17,8 @@ export default function SettingsModal({ isOpen, onClose, roomCode, generateNewRo
     matchFormat, setMatchFormat,
     isOutdoorMode, toggleOutdoorMode,
     useGoldenPoint, toggleGoldenPoint,
-    toggleServer
+    toggleServer,
+    clearAllPlayers // NEW: Hooked in the clear action
   } = useMatchStore();
   
   const t = dict[language] || dict.en;
@@ -51,7 +52,6 @@ export default function SettingsModal({ isOpen, onClose, roomCode, generateNewRo
            </div>
          </div>
 
-         {/* ADVANCED POLISHED DROPDOWN MENU - Now taking full width since Team Names are gone */}
          <div className="relative mt-2">
            <button 
              onClick={() => setIsFormatDropdownOpen(!isFormatDropdownOpen)}
@@ -102,7 +102,15 @@ export default function SettingsModal({ isOpen, onClose, roomCode, generateNewRo
 
          <button onClick={toggleServer} className="py-4 bg-slate-800 rounded-xl text-white font-black uppercase active:scale-95 transition-all">{t.swapServer}</button>
          
-         <button onClick={onClose} className="py-4 bg-white text-black font-black rounded-xl uppercase mt-2 active:scale-95 transition-all">{t.close}</button>
+         {/* NEW: Clear Active Players Button */}
+         <button 
+           onClick={() => { clearAllPlayers(); onClose(); }} 
+           className="py-4 mt-2 bg-red-500/10 text-red-500 border border-red-500/30 font-black rounded-xl uppercase active:scale-95 transition-all flex justify-center items-center gap-3"
+         >
+           <UserMinus size={20} /> Clear Active Players
+         </button>
+
+         <button onClick={onClose} className="py-4 bg-white text-black font-black rounded-xl uppercase mt-1 active:scale-95 transition-all">{t.close}</button>
 
          <div className="text-center mt-2">
            <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Padel Pro v1.0 • Offline Ready</span>

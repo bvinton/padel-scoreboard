@@ -17,21 +17,26 @@ export default function PlayerSelectModal({ isOpen, onClose, teamId, playerIndex
 
   if (!isOpen || !teamId || playerIndex === null) return null;
 
+  // NEW: Scrape the IDs of everyone currently assigned to the court
+  const getSelectedIds = () => {
+    const ids: string[] = [];
+    if (team1.players) { ids.push(team1.players[0].id, team1.players[1].id); }
+    if (team2.players) { ids.push(team2.players[0].id, team2.players[1].id); }
+    return ids;
+  };
+  const currentlyOnCourtIds = getSelectedIds();
+
   const handleSelect = (profile: { id: string, name: string }) => {
-    // 1. Get current team data
     const teamData = teamId === 'team1' ? team1 : team2;
     
-    // 2. If no players are set yet, create a placeholder array so we don't overwrite the other slot with null
     const currentPlayers = teamData.players || [
       { id: `temp-${teamId}-0`, name: 'PLAYER 1' },
       { id: `temp-${teamId}-1`, name: 'PLAYER 2' }
     ];
     
-    // 3. Clone array and inject the chosen profile into the correct slot
     const newPlayers: [TeamPlayerRef, TeamPlayerRef] = [...currentPlayers] as [TeamPlayerRef, TeamPlayerRef];
     newPlayers[playerIndex] = { id: profile.id, name: profile.name };
     
-    // 4. Save to match store and close
     setTeamPlayers(teamId, newPlayers);
     onClose();
   };
@@ -43,7 +48,6 @@ export default function PlayerSelectModal({ isOpen, onClose, teamId, playerIndex
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4" onClick={onClose}>
       <div className={`${bgColor} border ${isOutdoorMode ? 'border-gray-300' : 'border-slate-700'} rounded-2xl w-full max-w-md max-h-[80vh] flex flex-col shadow-2xl`} onClick={e => e.stopPropagation()}>
         
-        {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-inherit">
           <h2 className="text-xl font-bold uppercase tracking-widest">Select Player</h2>
           <button onClick={onClose} className="p-2 rounded-full hover:bg-black/10 hover:dark:bg-white/10 transition-colors">
@@ -51,30 +55,44 @@ export default function PlayerSelectModal({ isOpen, onClose, teamId, playerIndex
           </button>
         </div>
 
-        {/* Profile List */}
         <div className="flex-grow overflow-y-auto p-4 space-y-3">
           {profiles.length === 0 ? (
             <div className="text-center opacity-50 py-8 px-4 font-bold">
               No profiles found. Open the "Players" menu at the bottom to build your roster first!
             </div>
           ) : (
-            profiles.map(profile => (
-              <button
-                key={profile.id}
-                onClick={() => handleSelect(profile)}
-                className={`w-full flex items-center gap-4 ${panelColor} border rounded-xl p-4 transition-transform active:scale-95 text-left`}
-              >
-                <div className="bg-emerald-500/20 p-3 rounded-full text-emerald-500">
-                  <User size={24} />
-                </div>
-                <div>
-                  <div className="font-black text-xl tracking-wide uppercase">{profile.name}</div>
-                  <div className="text-sm opacity-60 font-bold mt-1">
-                    Win Rate: {profile.stats.matchesPlayed > 0 ? Math.round((profile.stats.wins / profile.stats.matchesPlayed) * 100) : 0}%
+            profiles.map(profile => {
+              // NEW: Check if this specific profile is already on the court
+              const isAlreadySelected = currentlyOnCourtIds.includes(profile.id);
+
+              return (
+                <button
+                  key={profile.id}
+                  onClick={() => !isAlreadySelected && handleSelect(profile)}
+                  disabled={isAlreadySelected}
+                  className={`w-full flex items-center justify-between gap-4 ${panelColor} border rounded-xl p-4 transition-transform text-left ${isAlreadySelected ? 'opacity-40 grayscale cursor-not-allowed' : 'active:scale-95'}`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`p-3 rounded-full ${isAlreadySelected ? 'bg-slate-500/20 text-slate-500' : 'bg-emerald-500/20 text-emerald-500'}`}>
+                      <User size={24} />
+                    </div>
+                    <div>
+                      <div className="font-black text-xl tracking-wide uppercase">{profile.name}</div>
+                      <div className="text-sm opacity-60 font-bold mt-1">
+                        Win Rate: {profile.stats.matchesPlayed > 0 ? Math.round((profile.stats.wins / profile.stats.matchesPlayed) * 100) : 0}%
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </button>
-            ))
+
+                  {/* NEW: Sleek badge showing they are already taken */}
+                  {isAlreadySelected && (
+                    <div className="flex flex-col items-center justify-center bg-slate-800 text-slate-400 px-3 py-1 rounded-lg border border-slate-700">
+                      <span className="text-[10px] font-black tracking-widest uppercase">On Court</span>
+                    </div>
+                  )}
+                </button>
+              );
+            })
           )}
         </div>
 
