@@ -15,6 +15,7 @@ import ServeTimer from "./components/ServeTimer";
 import PlayerPanel from "./components/PlayerPanel";
 import PlayerRosterModal from "./components/PlayerRosterModal";
 import PlayerSelectModal from "./components/PlayerSelectModal";
+import LockedWarningModal from "./components/LockedWarningModal"; // NEW: Import the lock modal
 import useUmpireAudio from "./Hooks/useUmpireAudio";
 import { MoreHorizontal } from "lucide-react";
 
@@ -29,7 +30,8 @@ interface SavedMatch {
 export default function HomePage() {
   const {
     team1, team2, server, matchWinner, setScores, scorePoint, undo, 
-    resetMatch, isOutdoorMode, language
+    resetMatch, isOutdoorMode, language,
+    history // NEW: Pulling history to check if the match has started
   } = useMatchStore();
 
   const t = dict[language] || dict.en; 
@@ -47,6 +49,9 @@ export default function HomePage() {
   const [localDismissed, setLocalDismissed] = useState(false);
   
   const [playerSelectConfig, setPlayerSelectConfig] = useState<{ teamId: 'team1' | 'team2', playerIndex: 0 | 1 } | null>(null);
+  
+  // NEW: State for the locked warning modal
+  const [lockedWarningOpen, setLockedWarningOpen] = useState(false);
 
   const [roomCode, setRoomCode] = useState<string>("");
   const [testSignals, setTestSignals] = useState({ team1: false, team2: false, undo: false });
@@ -153,6 +158,15 @@ export default function HomePage() {
 
   useEffect(() => { const saved = localStorage.getItem('padelArchive'); if (saved) { try { setSavedMatches(JSON.parse(saved)); } catch (e) {} } }, []);
 
+  // NEW: The handler that decides whether to open the Roster or the Warning
+  const handlePlayerSlotClick = (teamId: 'team1' | 'team2', playerIndex: 0 | 1) => {
+    if (history.length > 0) {
+      setLockedWarningOpen(true);
+    } else {
+      setPlayerSelectConfig({ teamId, playerIndex });
+    }
+  };
+
   if (!isMounted) {
     return <div className="fixed inset-0 bg-slate-950" />;
   }
@@ -220,6 +234,13 @@ export default function HomePage() {
         isOutdoorMode={isOutdoorMode}
       />
 
+      {/* NEW: The Warning Modal */}
+      <LockedWarningModal
+        isOpen={lockedWarningOpen}
+        onClose={() => setLockedWarningOpen(false)}
+        isOutdoorMode={isOutdoorMode}
+      />
+
       <ServeTimer timerStarted={timerStarted} timeLeft={timeLeft} isOutdoorMode={isOutdoorMode} />
 
       <section className="flex-grow flex flex-col p-0 relative overflow-hidden">
@@ -230,7 +251,7 @@ export default function HomePage() {
           isOutdoorMode={isOutdoorMode} 
           t={t} 
           handleScore={handleScore}
-          onPlayerClick={(team, idx) => setPlayerSelectConfig({ teamId: team, playerIndex: idx })} 
+          onPlayerClick={handlePlayerSlotClick} // Updated to use the smart handler
         />
         <PlayerPanel 
           teamId="team2" 
@@ -239,7 +260,7 @@ export default function HomePage() {
           isOutdoorMode={isOutdoorMode} 
           t={t} 
           handleScore={handleScore}
-          onPlayerClick={(team, idx) => setPlayerSelectConfig({ teamId: team, playerIndex: idx })} 
+          onPlayerClick={handlePlayerSlotClick} // Updated to use the smart handler
         />
 
         <button 
