@@ -6,6 +6,8 @@ import { useProfileStore } from "../store/useProfileStore";
 import { dict } from "./translations";
 import HardwareWizard from "./components/HardwareWizard";
 import SettingsModal from "./components/SettingsModal";
+import MatchSetupModal from "./components/MatchSetupModal"; // NEW
+import UserGuideModal from "./components/UserGuideModal";   // NEW
 import AppOverlays from "./components/AppOverlays";
 import Footer from "./components/Footer";
 import ArchiveModal from "./components/ArchiveModal";
@@ -44,6 +46,8 @@ export default function HomePage() {
   
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [matchSetupOpen, setMatchSetupOpen] = useState(false); // NEW
+  const [userGuideOpen, setUserGuideOpen] = useState(false);   // NEW
   const [historyOpen, setHistoryOpen] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [readmeOpen, setReadmeOpen] = useState(false);
@@ -134,7 +138,6 @@ export default function HomePage() {
 
       const durationMinutes = matchStats.startTime ? Math.round((Date.now() - matchStats.startTime) / 60000) : 0;
 
-      // FIXED: Passing exactly 6 arguments directly
       recordMatchResult(
         matchWinner, 
         team1Ids, 
@@ -234,6 +237,22 @@ export default function HomePage() {
         handleReset={handleReset} 
       />
 
+      {/* NEW: Extracted Menu Modals */}
+      <MatchSetupModal 
+        isOpen={matchSetupOpen}
+        onClose={() => setMatchSetupOpen(false)}
+        setRosterOpen={setRosterOpen}
+        setHistoryOpen={setHistoryOpen}
+        setArchiveOpen={setArchiveOpen}
+      />
+
+      <UserGuideModal
+        isOpen={userGuideOpen}
+        onClose={() => setUserGuideOpen(false)}
+        isOutdoorMode={isOutdoorMode}
+      />
+
+      {/* Existing Modals */}
       <HardwareWizard 
         isOpen={readmeOpen} 
         onClose={() => { setReadmeOpen(false); setTestSignals({ team1: false, team2: false, undo: false }); }} 
@@ -244,7 +263,9 @@ export default function HomePage() {
         isOpen={settingsOpen} 
         onClose={() => setSettingsOpen(false)} 
         roomCode={roomCode} 
-        generateNewRoomCode={generateNewRoomCode} 
+        generateNewRoomCode={generateNewRoomCode}
+        setReadmeOpen={setReadmeOpen}       // NEW
+        setUserGuideOpen={setUserGuideOpen} // NEW
       />
 
       <ArchiveModal 
@@ -316,11 +337,8 @@ export default function HomePage() {
           handleUndo={handleUndo}
           handleEndMatch={handleEndMatch} 
           handleReset={handleReset}
-          setReadmeOpen={setReadmeOpen}
-          setArchiveOpen={setArchiveOpen}
-          setHistoryOpen={setHistoryOpen}
+          setMatchSetupOpen={setMatchSetupOpen} // NEW
           setSettingsOpen={setSettingsOpen}
-          setRosterOpen={setRosterOpen}
           onClose={() => setOptionsOpen(false)}
         />
       )}
