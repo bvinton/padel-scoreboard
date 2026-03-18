@@ -46,6 +46,9 @@ export default function HomePage() {
   const [roomCode, setRoomCode] = useState<string>("");
   const [testSignals, setTestSignals] = useState({ team1: false, team2: false, undo: false });
 
+  // THE FIX: State to remember if we need to return to the Roster after viewing logs
+  const [returnToRoster, setReturnToRoster] = useState(false);
+
   const { requestWakeLock } = useWakeLock(appStarted);
   const { optionsOpen, setOptionsOpen, showWelcomeHint, setShowWelcomeHint, touchHandlers } = useLongPressMenu();
   const { timeLeft, timerStarted, historyLog, savedMatches, handleScore, handleUndo, handleReset, handleEndMatch, deleteSavedMatch, clearArchive } = useMatchController(localDismissed, setLocalDismissed, setShowWelcomeHint);
@@ -105,15 +108,42 @@ export default function HomePage() {
       <UserGuideModal isOpen={userGuideOpen} onClose={() => setUserGuideOpen(false)} isOutdoorMode={isOutdoorMode} />
       <HardwareWizard isOpen={readmeOpen} onClose={() => { setReadmeOpen(false); setTestSignals({ team1: false, team2: false, undo: false }); }} testSignals={testSignals} />
       <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} roomCode={roomCode} generateNewRoomCode={generateNewRoomCode} setReadmeOpen={setReadmeOpen} setUserGuideOpen={setUserGuideOpen} />
-      <ArchiveModal isOpen={archiveOpen} onClose={() => setArchiveOpen(false)} savedMatches={savedMatches} deleteSavedMatch={deleteSavedMatch} clearArchive={clearArchive} />
-      <PointLogModal isOpen={historyOpen} onClose={() => setHistoryOpen(false)} historyLog={historyLog} />
       
+      {/* THE FIX: When the History Modal closes, check if we need to instantly pop the Roster back open! */}
+      <PointLogModal 
+        isOpen={historyOpen} 
+        onClose={() => { 
+          setHistoryOpen(false); 
+          if (returnToRoster) { setRosterOpen(true); setReturnToRoster(false); }
+        }} 
+        historyLog={historyLog} 
+      />
+      
+      {/* THE FIX: When the Archive Modal closes, check if we need to instantly pop the Roster back open! */}
+      <ArchiveModal 
+        isOpen={archiveOpen} 
+        onClose={() => { 
+          setArchiveOpen(false); 
+          if (returnToRoster) { setRosterOpen(true); setReturnToRoster(false); }
+        }} 
+        savedMatches={savedMatches} 
+        deleteSavedMatch={deleteSavedMatch} 
+        clearArchive={clearArchive} 
+      />
+      
+      {/* THE FIX: We intercept the calls from the Roster to quietly flag that we need to return here later */}
       <PlayerRosterModal 
         isOpen={rosterOpen} 
         onClose={() => setRosterOpen(false)} 
         isOutdoorMode={isOutdoorMode} 
-        setHistoryOpen={setHistoryOpen} 
-        setArchiveOpen={setArchiveOpen} 
+        setHistoryOpen={(v) => { 
+          if (v) { setReturnToRoster(true); setHistoryOpen(true); } 
+          else setHistoryOpen(false); 
+        }} 
+        setArchiveOpen={(v) => { 
+          if (v) { setReturnToRoster(true); setArchiveOpen(true); } 
+          else setArchiveOpen(false); 
+        }} 
       />
       
       <PlayerSelectModal isOpen={playerSelectConfig !== null} onClose={() => setPlayerSelectConfig(null)} teamId={playerSelectConfig?.teamId || null} playerIndex={playerSelectConfig?.playerIndex ?? null} isOutdoorMode={isOutdoorMode} />
