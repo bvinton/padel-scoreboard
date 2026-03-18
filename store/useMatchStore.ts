@@ -7,7 +7,6 @@ type StandardPoint = '0' | '15' | '30' | '40' | 'Ad';
 export type Language = 'en' | 'es';
 export type MatchFormat = 'bestOf3' | 'bestOf5' | 'proSet' | 'superTiebreak';
 
-// NEW: Define the structure for individual players from the Profile Store
 export interface TeamPlayerRef {
   id: string;
   name: string;
@@ -18,7 +17,6 @@ interface TeamState {
   points: string | number;
   games: number;
   sets: number;
-  // NEW: Holds the two players and tracks whose turn it is
   players: [TeamPlayerRef, TeamPlayerRef] | null;
   serverIndex: 0 | 1; 
 }
@@ -31,6 +29,8 @@ export interface SetScore {
 export interface PadelState {
   useGoldenPoint: boolean;
   matchFormat: MatchFormat; 
+  // THE FIX: Explicitly telling TypeScript this property exists
+  matchType: 'singles' | 'doubles';
   umpireEnabled: boolean;
   isOutdoorMode: boolean; 
 
@@ -53,25 +53,23 @@ export interface PadelState {
   toggleGoldenPoint: () => void;
   toggleServer: () => void;
   setMatchFormat: (format: MatchFormat) => void; 
+  toggleMatchType: () => void;
   toggleUmpire: () => void;
   toggleOutdoorMode: () => void;
   setLanguage: (lang: Language) => void;
   setTeamName: (team: TeamKey, name: string) => void;
-  // NEW: Action to link profiles to a team
   setTeamPlayers: (team: TeamKey, players: [TeamPlayerRef, TeamPlayerRef] | null) => void;
   resetMatch: () => void;
 }
 
-// Ensure new actions are excluded from the history snapshot
 export type PadelStateSnapshot = Omit<
   PadelState,
-  'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setLanguage' | 'setTeamName' | 'toggleOutdoorMode' | 'setTeamPlayers'
+  'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setLanguage' | 'setTeamName' | 'toggleOutdoorMode' | 'setTeamPlayers' | 'toggleMatchType'
 >;
 
 const STANDARD_POINTS: StandardPoint[] = ['0', '15', '30', '40', 'Ad'];
 const getOppositeTeam = (team: TeamKey): TeamKey => team === 'team1' ? 'team2' : 'team1';
 
-// NEW: Initialize with empty players and serverIndex 0
 const createInitialTeamState = (name: string): TeamState => ({ 
   name, 
   points: '0', 
@@ -81,9 +79,10 @@ const createInitialTeamState = (name: string): TeamState => ({
   serverIndex: 0 
 });
 
-const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setLanguage' | 'setTeamName' | 'toggleOutdoorMode' | 'setTeamPlayers'> => ({
+const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setLanguage' | 'setTeamName' | 'toggleOutdoorMode' | 'setTeamPlayers' | 'toggleMatchType'> => ({
   useGoldenPoint: true,
   matchFormat: 'bestOf3', 
+  matchType: 'doubles', // Defaults to doubles
   umpireEnabled: false,
   isOutdoorMode: false, 
   language: 'en', 
@@ -98,7 +97,7 @@ const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint
 });
 
 const cloneSnapshot = (state: PadelState): PadelStateSnapshot => {
-  const { history, scorePoint, undo, toggleGoldenPoint, toggleServer, setMatchFormat, resetMatch, toggleUmpire, setLanguage, setTeamName, toggleOutdoorMode, setTeamPlayers, ...rest } = state;
+  const { history, scorePoint, undo, toggleGoldenPoint, toggleServer, setMatchFormat, resetMatch, toggleUmpire, setLanguage, setTeamName, toggleOutdoorMode, setTeamPlayers, toggleMatchType, ...rest } = state;
   return JSON.parse(JSON.stringify(rest)) as PadelStateSnapshot;
 };
 
@@ -111,7 +110,6 @@ const applyGameWin = (state: PadelState, winner: TeamKey): void => {
   winnerTeam.points = '0';
   loserTeam.points = '0';
   
-  // NEW: Smart Service Rotation. When the game ends, toggle the serverIndex for the team that JUST finished serving.
   const oldServer = state.server;
   state.server = getOppositeTeam(state.server);
   state[oldServer].serverIndex = state[oldServer].serverIndex === 0 ? 1 : 0;
@@ -199,9 +197,7 @@ const handleTiebreakPoint = (state: PadelState, scoringTeamKey: TeamKey): void =
   scoringTeam.points = scoringPoints + 1;
   const totalPointsAfter = (scoringPoints + 1) + otherPoints;
 
-  // Tiebreak Server Rotation logic (1st point, then every 2 points)
   if (totalPointsAfter === 1 || (totalPointsAfter > 1 && totalPointsAfter % 2 === 1)) {
-    // NEW: Smart Tiebreak Rotation. Same as games, toggle index of the team passing the serve.
     const oldServer = state.server;
     state.server = getOppositeTeam(state.server);
     state[oldServer].serverIndex = state[oldServer].serverIndex === 0 ? 1 : 0;
@@ -240,12 +236,12 @@ export const useMatchStore = create<PadelState>()(
         },
         toggleServer: () => set((state) => ({ server: state.server === 'team1' ? 'team2' : 'team1' })),
         setMatchFormat: (format: MatchFormat) => set({ matchFormat: format }),
+        toggleMatchType: () => set((state) => ({ matchType: state.matchType === 'doubles' ? 'singles' : 'doubles' })),
         toggleUmpire: () => set((state) => ({ umpireEnabled: !state.umpireEnabled })),
         setLanguage: (lang: Language) => set({ language: lang, hasSelectedLanguage: true }), 
         toggleOutdoorMode: () => set((state) => ({ isOutdoorMode: !state.isOutdoorMode })),
         setTeamName: (team: TeamKey, name: string) => set((state) => ({ [team]: { ...state[team], name } })),
         
-        // NEW: Action to link profiles to a team
         setTeamPlayers: (team: TeamKey, players) => set((state) => ({
           [team]: { ...state[team], players }
         })),
@@ -261,7 +257,7 @@ export const useMatchStore = create<PadelState>()(
         },
         toggleGoldenPoint: () => set((state) => ({ useGoldenPoint: !state.useGoldenPoint })),
         resetMatch: () => {
-          const { useGoldenPoint, umpireEnabled, language, hasSelectedLanguage, isOutdoorMode, team1, team2 } = get();
+          const { useGoldenPoint, umpireEnabled, language, hasSelectedLanguage, isOutdoorMode, team1, team2, matchType } = get();
           const base = createInitialState();
           set({
             ...base,
@@ -271,7 +267,7 @@ export const useMatchStore = create<PadelState>()(
             language, 
             hasSelectedLanguage, 
             isOutdoorMode, 
-            // Keep the selected players and names attached even after a match reset!
+            matchType, // Keep the matchType the same when resetting the score
             team1: { ...base.team1, name: team1.name, players: team1.players },
             team2: { ...base.team2, name: team2.name, players: team2.players },
           });
