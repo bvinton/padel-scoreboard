@@ -1,7 +1,7 @@
 import React from 'react';
 import { useMatchStore } from '../../store/useMatchStore';
 import { dict } from '../translations';
-import { Users, User, History, Archive, X, ClipboardList } from 'lucide-react';
+import { Users, User, History, Archive, X, ClipboardList, UserMinus } from 'lucide-react';
 
 interface MatchSetupModalProps {
   isOpen: boolean;
@@ -12,7 +12,7 @@ interface MatchSetupModalProps {
 }
 
 export default function MatchSetupModal({ isOpen, onClose, setRosterOpen, setHistoryOpen, setArchiveOpen }: MatchSetupModalProps) {
-  const { language, isOutdoorMode, matchType, toggleMatchType } = useMatchStore();
+  const { language, isOutdoorMode, matchType, toggleMatchType, clearAllPlayers } = useMatchStore();
   const t = dict[language] || dict.en;
 
   if (!isOpen) return null;
@@ -48,6 +48,16 @@ export default function MatchSetupModal({ isOpen, onClose, setRosterOpen, setHis
             <span className="text-xl">{matchType === 'doubles' ? 'DOUBLES' : 'SINGLES'}</span>
           </button>
 
+          {/* NEW: Clear Active Players moved here */}
+          <button 
+            onClick={() => { clearAllPlayers(); onClose(); }} 
+            className={`w-full py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex justify-center items-center gap-3 border ${isOutdoorMode ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100' : 'bg-red-900/10 text-red-400 border-red-900/30 hover:bg-red-900/20'}`}
+          >
+            <UserMinus size={18} /> Clear Active Players
+          </button>
+
+          <hr className={isOutdoorMode ? 'border-gray-200' : 'border-slate-800'} />
+
           {/* Player Roster */}
           <button 
             onClick={() => { setRosterOpen(true); onClose(); }} 
@@ -57,7 +67,6 @@ export default function MatchSetupModal({ isOpen, onClose, setRosterOpen, setHis
           </button>
 
           <div className="grid grid-cols-2 gap-4 mt-2">
-            {/* Point Log */}
             <button 
               onClick={() => { setHistoryOpen(true); onClose(); }} 
               className={`py-4 rounded-xl font-black uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-2 border ${panelColor}`}
@@ -66,7 +75,6 @@ export default function MatchSetupModal({ isOpen, onClose, setRosterOpen, setHis
               <span className="text-xs">Point Log</span>
             </button>
 
-            {/* Saved Matches */}
             <button 
               onClick={() => { setArchiveOpen(true); onClose(); }} 
               className={`py-4 rounded-xl font-black uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-2 border ${panelColor}`}
