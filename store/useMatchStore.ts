@@ -42,7 +42,6 @@ export interface PadelState {
   language: Language;
   hasSelectedLanguage: boolean;
 
-  // NEW: Play for Serve state
   initialServerDecided: boolean;
   
   server: Server;
@@ -63,7 +62,7 @@ export interface PadelState {
   undo: () => void;
   toggleGoldenPoint: () => void;
   toggleServer: () => void;
-  setInitialServer: (team: TeamKey) => void; // NEW
+  setInitialServer: (team: TeamKey) => void; 
   setMatchFormat: (format: MatchFormat) => void; 
   toggleMatchType: () => void;
   toggleUmpire: () => void;
@@ -95,7 +94,7 @@ const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint
   isOutdoorMode: false, 
   language: 'en', 
   hasSelectedLanguage: false, 
-  initialServerDecided: false, // Starts false for the toss
+  initialServerDecided: false, 
   server: 'team1',
   isTiebreak: false,
   matchWinner: null,
@@ -247,7 +246,6 @@ export const useMatchStore = create<PadelState>()(
       return {
         ...initialState,
         history: [], 
-        // NEW: Handles the coin toss explicitly
         setInitialServer: (team: TeamKey) => set({
           server: team,
           initialServerDecided: true
@@ -291,8 +289,16 @@ export const useMatchStore = create<PadelState>()(
         })),
 
         undo: () => {
-          const { history } = get();
-          if (history.length === 0) return;
+          const { history, initialServerDecided, team1, team2 } = get();
+          
+          // FIXED: If there are no points scored yet, but the server was decided, Undo reverts the coin toss!
+          if (history.length === 0) {
+            if (initialServerDecided && team1.points === '0' && team2.points === '0' && team1.games === 0 && team2.games === 0 && team1.sets === 0 && team2.sets === 0) {
+              set({ initialServerDecided: false });
+            }
+            return;
+          }
+
           const previous = history[history.length - 1];
           set((state) => ({
             ...(JSON.parse(JSON.stringify(previous)) as PadelStateSnapshot),

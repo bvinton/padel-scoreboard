@@ -17,7 +17,7 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
   const {
     team1, team2, matchWinner, matchWinnerDismissed,
     language, setLanguage, hasSelectedLanguage, setScores,
-    initialServerDecided, setInitialServer // NEW
+    initialServerDecided, setInitialServer 
   } = useMatchStore();
 
   const t = dict[language] || dict.en;
@@ -69,6 +69,10 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
     }
   };
 
+  // FIXED: Fallback names in case local storage loaded an empty string
+  const team1FallbackName = team1?.name?.trim() ? team1.name : (language === 'es' ? 'Equipo 1' : 'Team 1');
+  const team2FallbackName = team2?.name?.trim() ? team2.name : (language === 'es' ? 'Equipo 2' : 'Team 2');
+
   return (
     <>
       {!hasSelectedLanguage && (
@@ -98,7 +102,6 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
         </div>
       )}
 
-      {/* NEW: Play For Serve Interceptor */}
       {hasSelectedLanguage && appStarted && !initialServerDecided && (
         <div className="absolute inset-0 z-[400] bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center gap-8 p-6 animate-in fade-in duration-300">
           <h2 className="text-5xl md:text-7xl font-black uppercase text-white italic drop-shadow-lg tracking-widest text-center">
@@ -107,14 +110,15 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
           <p className="text-slate-400 font-bold uppercase tracking-wider text-center max-w-lg mb-4">
             {language === 'es' ? '¿Quién ganó el sorteo?' : 'Who won the toss / rally?'}
             <br/>
-            <span className="text-xs md:text-sm text-emerald-500 mt-4 block">(Tap Flic 1x for {team1.name}, 2x for {team2.name})</span>
+            {/* FIXED: Uses the fallback names so it never shows an empty space */}
+            <span className="text-xs md:text-sm text-emerald-500 mt-4 block">(Tap Flic 1x for {team1FallbackName}, 2x for {team2FallbackName})</span>
           </p>
           <div className="flex flex-col md:flex-row gap-6 w-full max-w-3xl justify-center">
             <button onClick={() => setInitialServer('team1')} className="flex-1 py-10 bg-slate-800 border-4 border-slate-700 hover:border-emerald-500 rounded-[2rem] text-3xl md:text-4xl font-black text-white uppercase active:scale-95 transition-all shadow-xl">
-              {team1.name}
+              {team1FallbackName}
             </button>
             <button onClick={() => setInitialServer('team2')} className="flex-1 py-10 bg-slate-800 border-4 border-slate-700 hover:border-emerald-500 rounded-[2rem] text-3xl md:text-4xl font-black text-white uppercase active:scale-95 transition-all shadow-xl">
-              {team2.name}
+              {team2FallbackName}
             </button>
           </div>
         </div>
