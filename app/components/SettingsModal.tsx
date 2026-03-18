@@ -12,7 +12,6 @@ interface SettingsModalProps {
 
 export default function SettingsModal({ isOpen, onClose, roomCode, generateNewRoomCode }: SettingsModalProps) {
   const {
-    team1, team2, setTeamName,
     umpireEnabled, toggleUmpire,
     language, setLanguage,
     matchFormat, setMatchFormat,
@@ -52,29 +51,15 @@ export default function SettingsModal({ isOpen, onClose, roomCode, generateNewRo
            </div>
          </div>
 
-         {/* NEW: Team Names with Reset Button */}
-         <div className="flex flex-col gap-2">
-           <div className="grid grid-cols-2 gap-2">
-             <input value={team1.name} onChange={e => setTeamName('team1', e.target.value)} placeholder={t.team1} className="bg-slate-800 rounded-xl p-3 text-white font-black uppercase text-center outline-none" />
-             <input value={team2.name} onChange={e => setTeamName('team2', e.target.value)} placeholder={t.team2} className="bg-slate-800 rounded-xl p-3 text-white font-black uppercase text-center outline-none" />
-           </div>
-           <button 
-             onClick={() => { setTeamName('team1', 'Team 1'); setTeamName('team2', 'Team 2'); }} 
-             className="text-slate-500 text-xs font-bold uppercase tracking-wider hover:text-white transition-colors mx-auto -mt-1"
-           >
-             {t.resetNames}
-           </button>
-         </div>
-
-         {/* ADVANCED POLISHED DROPDOWN MENU */}
-         <div className="relative">
+         {/* ADVANCED POLISHED DROPDOWN MENU - Now taking full width since Team Names are gone */}
+         <div className="relative mt-2">
            <button 
              onClick={() => setIsFormatDropdownOpen(!isFormatDropdownOpen)}
-             className={`w-full py-3 px-4 bg-slate-800 border ${isFormatDropdownOpen ? 'border-emerald-500' : 'border-slate-700'} rounded-xl flex items-center justify-between text-white transition-all active:scale-[0.98]`}
+             className={`w-full py-4 px-5 bg-slate-800 border ${isFormatDropdownOpen ? 'border-emerald-500' : 'border-slate-700'} rounded-xl flex items-center justify-between text-white transition-all active:scale-[0.98]`}
            >
              <div className="flex flex-col items-start">
                <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-0.5">{t.format}</span>
-               <span className="font-black uppercase text-lg leading-none">
+               <span className="font-black uppercase text-xl leading-none">
                  {formatLabels[matchFormat]}
                </span>
              </div>
@@ -90,7 +75,7 @@ export default function SettingsModal({ isOpen, onClose, roomCode, generateNewRo
                      setMatchFormat(format);
                      setIsFormatDropdownOpen(false);
                    }}
-                   className={`w-full py-4 px-4 text-left font-black uppercase tracking-wider transition-colors border-b border-slate-700/50 last:border-0 ${
+                   className={`w-full py-4 px-5 text-left font-black uppercase tracking-wider transition-colors border-b border-slate-700/50 last:border-0 ${
                      matchFormat === format ? 'bg-indigo-600 text-white' : 'text-slate-300 hover:bg-slate-700'
                    }`}
                  >
@@ -101,23 +86,23 @@ export default function SettingsModal({ isOpen, onClose, roomCode, generateNewRo
            )}
          </div>
 
-         <button onClick={toggleUmpire} className={`py-4 rounded-xl border-2 font-black uppercase flex items-center justify-center gap-4 ${umpireEnabled ? 'bg-indigo-600 border-white text-white shadow-[0_0_15px_rgba(79,70,229,0.5)]' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
+         <button onClick={toggleUmpire} className={`py-4 mt-1 rounded-xl border-2 font-black uppercase flex items-center justify-center gap-4 ${umpireEnabled ? 'bg-indigo-600 border-white text-white shadow-[0_0_15px_rgba(79,70,229,0.5)]' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
            <Volume2 size={24} /> {t.umpire}: {umpireEnabled ? t.on : t.off}
          </button>
 
-         <div className="grid grid-cols-2 gap-2">
-            <button onClick={toggleFullscreen} className="py-3 rounded-xl bg-slate-800 text-white font-black uppercase flex items-center justify-center gap-4 active:scale-95 transition-all"><Maximize size={24} /> {t.fullscreen}</button>
-            <button onClick={() => setLanguage(language === 'en' ? 'es' : 'en')} className="py-3 rounded-xl bg-slate-800 text-emerald-400 font-black uppercase flex items-center justify-center gap-4 border border-emerald-500/30 active:scale-95 transition-all"><Languages size={24} /> {t.language}: {language === 'en' ? 'EN' : 'ES'}</button>
+         <div className="grid grid-cols-2 gap-2 mt-1">
+            <button onClick={toggleFullscreen} className="py-4 rounded-xl bg-slate-800 text-white font-black uppercase flex items-center justify-center gap-4 active:scale-95 transition-all"><Maximize size={24} /> {t.fullscreen}</button>
+            <button onClick={() => setLanguage(language === 'en' ? 'es' : 'en')} className="py-4 rounded-xl bg-slate-800 text-emerald-400 font-black uppercase flex items-center justify-center gap-4 border border-emerald-500/30 active:scale-95 transition-all"><Languages size={24} /> {t.language}: {language === 'en' ? 'EN' : 'ES'}</button>
          </div>
 
          <div className="grid grid-cols-2 gap-2">
-            <button onClick={toggleOutdoorMode} className={`py-3 rounded-xl border-2 font-black uppercase transition-all ${isOutdoorMode ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.6)]' : 'bg-black border-white text-white shadow-[0_0_15px_rgba(255,255,255,0.3)]'}`}>{t.court}: {isOutdoorMode ? t.outdoor : t.indoor}</button>
-            <button onClick={toggleGoldenPoint} className={`py-3 rounded-xl border font-black uppercase transition-all ${useGoldenPoint ? 'bg-amber-500 text-black shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 'bg-slate-800 text-slate-500'}`}>{t.goldenPoint}: {useGoldenPoint ? t.on : t.off}</button>
+            <button onClick={toggleOutdoorMode} className={`py-4 rounded-xl border-2 font-black uppercase transition-all flex items-center justify-center ${isOutdoorMode ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.6)]' : 'bg-black border-white text-white shadow-[0_0_15px_rgba(255,255,255,0.3)]'}`}>{t.court}: {isOutdoorMode ? t.outdoor : t.indoor}</button>
+            <button onClick={toggleGoldenPoint} className={`py-4 rounded-xl border font-black uppercase transition-all flex items-center justify-center ${useGoldenPoint ? 'bg-amber-500 text-black shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 'bg-slate-800 text-slate-500'}`}>{t.goldenPoint}: {useGoldenPoint ? t.on : t.off}</button>
          </div>
 
-         <button onClick={toggleServer} className="py-3 bg-slate-800 rounded-xl text-white font-black uppercase active:scale-95 transition-all">{t.swapServer}</button>
+         <button onClick={toggleServer} className="py-4 bg-slate-800 rounded-xl text-white font-black uppercase active:scale-95 transition-all">{t.swapServer}</button>
          
-         <button onClick={onClose} className="py-3 bg-white text-black font-black rounded-xl uppercase mt-2 active:scale-95 transition-all">{t.close}</button>
+         <button onClick={onClose} className="py-4 bg-white text-black font-black rounded-xl uppercase mt-2 active:scale-95 transition-all">{t.close}</button>
 
          <div className="text-center mt-2">
            <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Padel Pro v1.0 • Offline Ready</span>
