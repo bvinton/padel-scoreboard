@@ -31,9 +31,10 @@ export default function MatchSetupModal({ isOpen, onClose, onPlayerClick, setRos
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[200] p-4" onClick={onClose}>
-      <div className={`${bgColor} border ${isOutdoorMode ? 'border-gray-300' : 'border-slate-700'} rounded-2xl w-full max-w-sm flex flex-col shadow-2xl animate-in zoom-in-95 duration-200 max-h-[95vh] overflow-hidden`} onClick={e => e.stopPropagation()}>
+      {/* FIXED: Reduced max-h to 90vh and ensured flex architecture is solid */}
+      <div className={`${bgColor} border ${isOutdoorMode ? 'border-gray-300' : 'border-slate-700'} rounded-2xl w-full max-w-sm flex flex-col shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-hidden`} onClick={e => e.stopPropagation()}>
         
-        <div className="flex justify-between items-center p-5 border-b border-inherit bg-black/5 dark:bg-white/5 sticky top-0 backdrop-blur-md z-10">
+        <div className="flex justify-between items-center p-5 border-b border-inherit bg-inherit z-10 shrink-0">
           <div className="flex items-center gap-3">
             <ClipboardList className={isOutdoorMode ? "text-blue-600" : "text-blue-400"} size={28} />
             <h2 className="text-xl font-black uppercase tracking-widest">Match Setup</h2>
@@ -43,10 +44,10 @@ export default function MatchSetupModal({ isOpen, onClose, onPlayerClick, setRos
           </button>
         </div>
 
-        <div className="p-5 flex flex-col gap-4 overflow-y-auto">
+        {/* FIXED: Added flex-1 to force this container to scroll rather than pushing the modal off screen */}
+        <div className="p-5 flex-1 overflow-y-auto flex flex-col gap-4">
           
-          {/* NEW: Match Rules Block */}
-          <div className={`p-3 rounded-xl border ${panelColor} flex flex-col gap-2`}>
+          <div className={`p-3 rounded-xl border ${panelColor} flex flex-col gap-2 shrink-0`}>
             <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Match Rules</h3>
 
             <button onClick={toggleMatchType} className={`w-full py-3 px-4 rounded-xl font-black uppercase tracking-wider transition-all flex items-center justify-between border ${isOutdoorMode ? 'bg-blue-50 text-blue-800 border-blue-200' : 'bg-blue-900/30 text-blue-400 border-blue-800/50'}`}>
@@ -75,14 +76,16 @@ export default function MatchSetupModal({ isOpen, onClose, onPlayerClick, setRos
 
             <div className="grid grid-cols-2 gap-2 mt-1">
               <button onClick={toggleGoldenPoint} className={`py-3 rounded-xl border font-black uppercase text-[10px] tracking-widest transition-all flex items-center justify-center ${useGoldenPoint ? 'bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.3)] border-amber-400' : (isOutdoorMode ? 'bg-gray-100 border-gray-300 text-gray-500' : 'bg-slate-900 border-slate-700 text-slate-500')}`}>{t.goldenPoint}: {useGoldenPoint ? t.on : t.off}</button>
+              
+              {/* FIXED: Changed text to "Change Ends" */}
               <button onClick={toggleSwapSidesRule} className={`py-3 rounded-xl border font-black uppercase text-[10px] tracking-widest transition-all flex items-center justify-center gap-1.5 ${swapSidesRule === 'official' ? 'bg-indigo-600 text-white shadow-[0_0_10px_rgba(79,70,229,0.3)] border-indigo-500' : (isOutdoorMode ? 'bg-gray-100 border-gray-300 text-gray-500' : 'bg-slate-900 border-slate-700 text-slate-500')}`}>
-                <RefreshCw size={12} /> {language === 'es' ? 'Lado' : 'Swap'}: {swapSidesRule === 'official' ? (language === 'es' ? 'Oficial' : 'Official') : (language === 'es' ? 'Set' : 'Set End')}
+                <RefreshCw size={12} className="flex-shrink-0" /> 
+                <span className="truncate">{language === 'es' ? 'Cambio' : 'Change Ends'}: {swapSidesRule === 'official' ? (language === 'es' ? 'Oficial' : 'Official') : (language === 'es' ? 'Set' : 'Set End')}</span>
               </button>
             </div>
           </div>
 
-          {/* Team Roster Block */}
-          <div className={`p-3 rounded-xl border ${panelColor} flex flex-col gap-3`}>
+          <div className={`p-3 rounded-xl border ${panelColor} flex flex-col gap-3 shrink-0`}>
             <div className="flex flex-col gap-1.5">
               <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Team 1 Players</h3>
               <div className="flex gap-2">
@@ -116,17 +119,17 @@ export default function MatchSetupModal({ isOpen, onClose, onPlayerClick, setRos
             </button>
           </div>
 
-          <button onClick={() => toggleServer()} className={`w-full py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex justify-center items-center gap-3 border ${panelColor}`}>
+          <button onClick={() => toggleServer()} className={`w-full py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex justify-center items-center gap-3 border ${panelColor} shrink-0`}>
             <RefreshCw size={18} className="text-indigo-400" /> {t.swapServer}
           </button>
 
-          <hr className={isOutdoorMode ? 'border-gray-200' : 'border-slate-800'} />
+          <hr className={`shrink-0 ${isOutdoorMode ? 'border-gray-200' : 'border-slate-800'}`} />
 
-          <button onClick={() => setRosterOpen(true)} className={`w-full py-3 px-5 rounded-xl font-black uppercase text-sm tracking-wider transition-all flex items-center justify-center gap-3 border ${panelColor}`}>
+          <button onClick={() => setRosterOpen(true)} className={`w-full py-3 px-5 rounded-xl font-black uppercase text-sm tracking-wider transition-all flex items-center justify-center gap-3 border ${panelColor} shrink-0`}>
             <Users size={20} className="text-cyan-500" /> Manage Roster Database
           </button>
 
-          <div className="grid grid-cols-2 gap-4 mt-1">
+          <div className="grid grid-cols-2 gap-4 mt-1 shrink-0">
             <button onClick={() => setHistoryOpen(true)} className={`py-4 rounded-xl font-black uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-2 border ${panelColor}`}>
               <History size={20} className="text-amber-500" />
               <span className="text-[10px]">Point Log</span>
@@ -139,7 +142,7 @@ export default function MatchSetupModal({ isOpen, onClose, onPlayerClick, setRos
 
           <button 
             onClick={() => { completeSetup(); onClose(); }} 
-            className="w-full mt-2 py-4 rounded-xl font-black uppercase tracking-widest transition-all bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)] flex justify-center items-center gap-3 active:scale-95"
+            className="w-full mt-2 mb-2 py-4 rounded-xl font-black uppercase tracking-widest transition-all bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)] flex justify-center items-center gap-3 active:scale-95 shrink-0"
           >
             <Play size={20} /> START MATCH
           </button>
