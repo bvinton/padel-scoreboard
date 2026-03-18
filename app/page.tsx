@@ -26,7 +26,7 @@ import PlayerSelectModal from "./components/PlayerSelectModal";
 import LockedWarningModal from "./components/LockedWarningModal";
 
 export default function HomePage() {
-  const { team1, team2, server, matchWinner, isOutdoorMode, language, history, initialServerDecided, isSetupComplete } = useMatchStore();
+  const { team1, team2, server, matchWinner, isOutdoorMode, language, history, initialServerDecided, isSetupComplete, forceNewMatchState } = useMatchStore();
   const t = dict[language] || dict.en; 
 
   const [isMounted, setIsMounted] = useState(false);
@@ -67,6 +67,12 @@ export default function HomePage() {
       window.speechSynthesis.speak(silentUtterance);
     }
     await requestWakeLock(); 
+
+    // FIXED: If the app starts and the game is at exactly 0-0, force the setup prompts to appear!
+    const isBrandNewMatch = history.length === 0 && team1.points === '0' && team2.points === '0' && team1.games === 0 && team2.games === 0 && team1.sets === 0 && team2.sets === 0;
+    if (isBrandNewMatch) {
+      forceNewMatchState();
+    }
   };
 
   const generateNewRoomCode = () => { 
@@ -96,7 +102,6 @@ export default function HomePage() {
       <KeyboardListener handleScore={(team) => { if (!readmeOpen) handleScore(team); }} handleUndo={() => { if (!readmeOpen) handleUndo(); }} setTestSignals={setTestSignals} />
       <WebhookListener roomCode={roomCode} handleScore={(team) => { if (!readmeOpen) handleScore(team); }} handleUndo={() => { if (!readmeOpen) handleUndo(); }} setTestSignals={setTestSignals} setIsOnline={setIsOnline} />
 
-      {/* FIXED: We pass matchSetupOpen in so it knows when to hide the Play For Serve prompt */}
       <AppOverlays appStarted={appStarted} handleAppStart={handleAppStart} localDismissed={localDismissed} setLocalDismissed={setLocalDismissed} handleReset={handleReset} openMatchSetup={() => setMatchSetupOpen(true)} matchSetupOpen={matchSetupOpen} />
 
       <MatchSetupModal isOpen={matchSetupOpen} onClose={() => setMatchSetupOpen(false)} onPlayerClick={handlePlayerSlotClick} setRosterOpen={setRosterOpen} setHistoryOpen={setHistoryOpen} setArchiveOpen={setArchiveOpen} />

@@ -13,7 +13,7 @@ interface MatchSetupModalProps {
 }
 
 export default function MatchSetupModal({ isOpen, onClose, onPlayerClick, setRosterOpen, setHistoryOpen, setArchiveOpen }: MatchSetupModalProps) {
-  const { language, isOutdoorMode, matchType, toggleMatchType, clearAllPlayers, toggleServer, team1, team2 } = useMatchStore();
+  const { language, isOutdoorMode, matchType, toggleMatchType, clearAllPlayers, toggleServer, team1, team2, completeSetup } = useMatchStore();
   const t = dict[language] || dict.en;
 
   if (!isOpen) return null;
@@ -46,7 +46,6 @@ export default function MatchSetupModal({ isOpen, onClose, onPlayerClick, setRos
             <div className="flex flex-col gap-1.5">
               <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Team 1 Players</h3>
               <div className="flex gap-2">
-                {/* FIXED: Removed onClose() so the user can keep assigning players without the menu closing */}
                 <button onClick={() => onPlayerClick('team1', 0)} className="flex-1 py-2 bg-black/10 dark:bg-black/30 rounded-lg text-xs font-bold border border-inherit truncate px-2 hover:bg-black/20 dark:hover:bg-black/50 transition-colors">
                   {team1.players?.[0]?.name || '+ Select P1'}
                 </button>
@@ -72,37 +71,36 @@ export default function MatchSetupModal({ isOpen, onClose, onPlayerClick, setRos
               </div>
             </div>
             
-            {/* FIXED: Removed onClose() */}
             <button onClick={() => clearAllPlayers()} className="mt-1 w-full py-2 rounded-lg font-black uppercase text-[10px] tracking-widest transition-all flex justify-center items-center gap-2 bg-red-500/10 text-red-500 hover:bg-red-500/20">
               <UserMinus size={14} /> Clear Players
             </button>
           </div>
 
-          {/* FIXED: Removed onClose() */}
           <button onClick={() => toggleServer()} className={`w-full py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex justify-center items-center gap-3 border ${panelColor}`}>
             <RefreshCw size={18} className="text-indigo-400" /> {t.swapServer}
           </button>
 
           <hr className={isOutdoorMode ? 'border-gray-200' : 'border-slate-800'} />
 
-          <button onClick={() => { setRosterOpen(true); onClose(); }} className={`w-full py-3 px-5 rounded-xl font-black uppercase text-sm tracking-wider transition-all flex items-center justify-center gap-3 border ${panelColor}`}>
+          {/* FIXED: Removed onClose() so Match Setup stays patiently in the background */}
+          <button onClick={() => setRosterOpen(true)} className={`w-full py-3 px-5 rounded-xl font-black uppercase text-sm tracking-wider transition-all flex items-center justify-center gap-3 border ${panelColor}`}>
             <Users size={20} className="text-cyan-500" /> Manage Roster Database
           </button>
 
           <div className="grid grid-cols-2 gap-4 mt-1">
-            <button onClick={() => { setHistoryOpen(true); onClose(); }} className={`py-4 rounded-xl font-black uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-2 border ${panelColor}`}>
+            <button onClick={() => setHistoryOpen(true)} className={`py-4 rounded-xl font-black uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-2 border ${panelColor}`}>
               <History size={20} className="text-amber-500" />
               <span className="text-[10px]">Point Log</span>
             </button>
-            <button onClick={() => { setArchiveOpen(true); onClose(); }} className={`py-4 rounded-xl font-black uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-2 border ${panelColor}`}>
+            <button onClick={() => setArchiveOpen(true)} className={`py-4 rounded-xl font-black uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-2 border ${panelColor}`}>
               <Archive size={20} className="text-purple-500" />
               <span className="text-[10px]">Saved Matches</span>
             </button>
           </div>
 
-          {/* NEW: Massive Start Match Finalization Button */}
+          {/* FIXED: Hitting START MATCH completes the setup and cleanly hides this modal! */}
           <button 
-            onClick={onClose} 
+            onClick={() => { completeSetup(); onClose(); }} 
             className="w-full mt-2 py-4 rounded-xl font-black uppercase tracking-widest transition-all bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)] flex justify-center items-center gap-3 active:scale-95"
           >
             <Play size={20} /> START MATCH
