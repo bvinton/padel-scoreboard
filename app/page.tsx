@@ -46,13 +46,15 @@ export default function HomePage() {
   const [roomCode, setRoomCode] = useState<string>("");
   const [testSignals, setTestSignals] = useState({ team1: false, team2: false, undo: false });
 
-  // THE FIX: State to remember if we need to return to the Roster after viewing logs
   const [returnToRoster, setReturnToRoster] = useState(false);
 
   const { requestWakeLock } = useWakeLock(appStarted);
   const { optionsOpen, setOptionsOpen, showWelcomeHint, setShowWelcomeHint, touchHandlers } = useLongPressMenu();
   const { timeLeft, timerStarted, historyLog, savedMatches, handleScore, handleUndo, handleReset, handleEndMatch, deleteSavedMatch, clearArchive } = useMatchController(localDismissed, setLocalDismissed, setShowWelcomeHint);
   useUmpireAudio(appStarted, localDismissed);
+
+  // NEW: The Master Radar. It checks if any of these specific modals are open on the screen.
+  const isAnyModalOpen = matchSetupOpen || settingsOpen || userGuideOpen || historyOpen || archiveOpen || readmeOpen || rosterOpen || lockedWarningOpen || (playerSelectConfig !== null);
 
   useEffect(() => { setIsMounted(true); }, []);
 
@@ -102,14 +104,14 @@ export default function HomePage() {
       <KeyboardListener handleScore={(team) => { if (!readmeOpen) handleScore(team); }} handleUndo={() => { if (!readmeOpen) handleUndo(); }} setTestSignals={setTestSignals} />
       <WebhookListener roomCode={roomCode} handleScore={(team) => { if (!readmeOpen) handleScore(team); }} handleUndo={() => { if (!readmeOpen) handleUndo(); }} setTestSignals={setTestSignals} setIsOnline={setIsOnline} />
 
-      <AppOverlays appStarted={appStarted} handleAppStart={handleAppStart} localDismissed={localDismissed} setLocalDismissed={setLocalDismissed} handleReset={handleReset} openMatchSetup={() => setMatchSetupOpen(true)} matchSetupOpen={matchSetupOpen} />
+      {/* FIXED: We pass our master radar directly into the Overlays */}
+      <AppOverlays appStarted={appStarted} handleAppStart={handleAppStart} localDismissed={localDismissed} setLocalDismissed={setLocalDismissed} handleReset={handleReset} openMatchSetup={() => setMatchSetupOpen(true)} isAnyModalOpen={isAnyModalOpen} />
 
       <MatchSetupModal isOpen={matchSetupOpen} onClose={() => setMatchSetupOpen(false)} onPlayerClick={handlePlayerSlotClick} setRosterOpen={setRosterOpen} />
       <UserGuideModal isOpen={userGuideOpen} onClose={() => setUserGuideOpen(false)} isOutdoorMode={isOutdoorMode} />
       <HardwareWizard isOpen={readmeOpen} onClose={() => { setReadmeOpen(false); setTestSignals({ team1: false, team2: false, undo: false }); }} testSignals={testSignals} />
       <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} roomCode={roomCode} generateNewRoomCode={generateNewRoomCode} setReadmeOpen={setReadmeOpen} setUserGuideOpen={setUserGuideOpen} />
       
-      {/* THE FIX: When the History Modal closes, check if we need to instantly pop the Roster back open! */}
       <PointLogModal 
         isOpen={historyOpen} 
         onClose={() => { 
@@ -119,7 +121,6 @@ export default function HomePage() {
         historyLog={historyLog} 
       />
       
-      {/* THE FIX: When the Archive Modal closes, check if we need to instantly pop the Roster back open! */}
       <ArchiveModal 
         isOpen={archiveOpen} 
         onClose={() => { 
@@ -131,7 +132,6 @@ export default function HomePage() {
         clearArchive={clearArchive} 
       />
       
-      {/* THE FIX: We intercept the calls from the Roster to quietly flag that we need to return here later */}
       <PlayerRosterModal 
         isOpen={rosterOpen} 
         onClose={() => setRosterOpen(false)} 

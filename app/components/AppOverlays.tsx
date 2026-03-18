@@ -12,16 +12,16 @@ interface AppOverlaysProps {
   setLocalDismissed: (v: boolean) => void;
   handleReset: () => void;
   openMatchSetup: () => void; 
-  matchSetupOpen: boolean; 
+  isAnyModalOpen: boolean; // FIXED: The master radar flag
 }
 
-export default function AppOverlays({ appStarted, handleAppStart, localDismissed, setLocalDismissed, handleReset, openMatchSetup, matchSetupOpen }: AppOverlaysProps) {
+export default function AppOverlays({ appStarted, handleAppStart, localDismissed, setLocalDismissed, handleReset, openMatchSetup, isAnyModalOpen }: AppOverlaysProps) {
   const {
     team1, team2, matchWinner, matchWinnerDismissed,
     language, setLanguage, hasSelectedLanguage, setScores,
     initialServerDecided, setInitialServer,
     isSetupComplete, completeSetup, history,
-    matchAnnouncement, clearAnnouncement // NEW
+    matchAnnouncement, clearAnnouncement 
   } = useMatchStore();
 
   const t = dict[language] || dict.en;
@@ -31,12 +31,11 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
 
   const isBrandNewMatch = history.length === 0 && team1.points === '0' && team2.points === '0' && team1.games === 0 && team2.games === 0 && team1.sets === 0 && team2.sets === 0;
 
-  // NEW: Auto-Dismiss Timer for Announcements
   useEffect(() => {
     if (matchAnnouncement) {
       const timer = setTimeout(() => {
         clearAnnouncement();
-      }, 7000); // Prompts stay exactly 7 seconds
+      }, 7000); 
       return () => clearTimeout(timer);
     }
   }, [matchAnnouncement, clearAnnouncement]);
@@ -80,7 +79,8 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
         </div>
       )}
 
-      {hasSelectedLanguage && !appStarted && (
+      {/* FIXED: Hides if ANY modal is open to prevent blocking z-index issues */}
+      {hasSelectedLanguage && !appStarted && !isAnyModalOpen && (
         <div className="absolute inset-0 z-[500] bg-slate-950 flex flex-col items-center justify-center gap-6 cursor-pointer" onClick={handleAppStart}>
           <Play size={100} className="text-emerald-400 animate-pulse" />
           <h1 className="text-4xl md:text-6xl font-black uppercase text-white drop-shadow-lg">{t.tapToStart}</h1>
@@ -88,7 +88,8 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
         </div>
       )}
 
-      {hasSelectedLanguage && appStarted && !isSetupComplete && isBrandNewMatch && !matchSetupOpen && (
+      {/* FIXED: Hides if ANY modal is open */}
+      {hasSelectedLanguage && appStarted && !isSetupComplete && isBrandNewMatch && !isAnyModalOpen && (
         <div className="absolute inset-0 z-[450] bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center gap-8 p-6 animate-in fade-in duration-300">
           <h2 className="text-5xl md:text-6xl font-black uppercase text-white italic drop-shadow-lg tracking-widest text-center">
             {language === 'es' ? 'Nuevo Partido' : 'New Match'}
@@ -107,7 +108,8 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
         </div>
       )}
 
-      {hasSelectedLanguage && appStarted && isSetupComplete && !initialServerDecided && isBrandNewMatch && !matchSetupOpen && (
+      {/* FIXED: Hides if ANY modal is open */}
+      {hasSelectedLanguage && appStarted && isSetupComplete && !initialServerDecided && isBrandNewMatch && !isAnyModalOpen && (
         <div className="absolute inset-0 z-[400] bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center gap-8 p-6 animate-in fade-in duration-300">
           <h2 className="text-5xl md:text-7xl font-black uppercase text-white italic drop-shadow-lg tracking-widest text-center">
             Play for Serve
@@ -128,7 +130,6 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
         </div>
       )}
 
-      {/* NEW STAGE 3: Auto-Dismissing Announcements (Tiebreaks & Set Wins) */}
       {matchAnnouncement && !matchWinner && (
         <div 
           className="absolute inset-0 z-[350] bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center gap-6 p-6 animate-in zoom-in duration-300 cursor-pointer" 
