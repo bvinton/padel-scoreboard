@@ -12,11 +12,9 @@ export default function PlayerRosterModal({ isOpen, onClose, isOutdoorMode }: Pl
   const { profiles, addProfile, deleteProfile } = useProfileStore();
   const [newName, setNewName] = useState('');
   
-  // NEW: Track which player is currently selected for the deep dive view
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
 
   if (!isOpen) {
-    // Reset the view if the modal is closed so it opens to the list next time
     if (selectedProfileId) setSelectedProfileId(null);
     return null;
   }
@@ -38,7 +36,6 @@ export default function PlayerRosterModal({ isOpen, onClose, isOutdoorMode }: Pl
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4">
       <div className={`${bgColor} border ${isOutdoorMode ? 'border-gray-300' : 'border-slate-700'} rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden`}>
         
-        {/* Header changes based on what view we are in */}
         <div className="flex justify-between items-center p-6 border-b border-inherit bg-black/5 dark:bg-white/5">
           {selectedProfile ? (
             <button 
@@ -55,7 +52,6 @@ export default function PlayerRosterModal({ isOpen, onClose, isOutdoorMode }: Pl
           </button>
         </div>
 
-        {/* --- VIEW 1: THE ROSTER LIST --- */}
         {!selectedProfile && (
           <>
             <form onSubmit={handleAdd} className="p-6 border-b border-inherit flex gap-4">
@@ -83,7 +79,6 @@ export default function PlayerRosterModal({ isOpen, onClose, isOutdoorMode }: Pl
                 profiles.map(profile => (
                   <div 
                     key={profile.id} 
-                    // Make the whole card clickable to view details
                     onClick={() => setSelectedProfileId(profile.id)}
                     className={`${panelColor} border rounded-xl p-4 flex justify-between items-center cursor-pointer hover:border-emerald-500/50 transition-all active:scale-[0.98]`}
                   >
@@ -97,7 +92,7 @@ export default function PlayerRosterModal({ isOpen, onClose, isOutdoorMode }: Pl
                     </div>
                     <button
                       onClick={(e) => {
-                        e.stopPropagation(); // Prevents the card click from firing when deleting
+                        e.stopPropagation();
                         if (window.confirm(`Delete ${profile.name} and all their stats?`)) {
                           deleteProfile(profile.id);
                         }
@@ -113,7 +108,6 @@ export default function PlayerRosterModal({ isOpen, onClose, isOutdoorMode }: Pl
           </>
         )}
 
-        {/* --- VIEW 2: THE DEEP STATS PROFILE --- */}
         {selectedProfile && (
           <div className="flex-grow overflow-y-auto p-6">
             <div className="flex justify-between items-start mb-6 border-b border-inherit pb-4">
@@ -154,7 +148,12 @@ export default function PlayerRosterModal({ isOpen, onClose, isOutdoorMode }: Pl
               <div className={`p-4 rounded-xl ${isOutdoorMode ? 'bg-black/5' : 'bg-white/5'}`}>
                 <div className="text-xs uppercase opacity-60 font-bold mb-1">Total Points</div>
                 <div className="text-2xl font-black">{selectedProfile.stats.totalPointsWon}</div>
-                <div className="text-sm text-amber-500 font-bold mt-2">{selectedProfile.stats.breakPointsWon} Break Pts Won</div>
+              </div>
+
+              {/* NEW: Displays the Service Holds and Breaks! */}
+              <div className={`p-4 rounded-xl ${isOutdoorMode ? 'bg-black/5' : 'bg-white/5'}`}>
+                <div className="text-xs uppercase opacity-60 font-bold mb-1">Holds / Breaks</div>
+                <div className="text-2xl font-black">{selectedProfile.stats.serviceGamesWon} <span className="text-lg opacity-60 font-medium">/ {selectedProfile.stats.breaksWon}</span></div>
               </div>
 
               <div className={`p-4 rounded-xl ${isOutdoorMode ? 'bg-black/5' : 'bg-white/5'}`}>
