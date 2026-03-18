@@ -1,7 +1,7 @@
-import React from 'react';
-import { useMatchStore } from '../../store/useMatchStore';
+import React, { useState } from 'react';
+import { useMatchStore, MatchFormat } from '../../store/useMatchStore';
 import { dict } from '../translations';
-import { Users, User, History, Archive, X, ClipboardList, UserMinus, RefreshCw, Play } from 'lucide-react';
+import { Users, User, History, Archive, X, ClipboardList, UserMinus, RefreshCw, Play, ChevronDown } from 'lucide-react';
 
 interface MatchSetupModalProps {
   isOpen: boolean;
@@ -13,8 +13,16 @@ interface MatchSetupModalProps {
 }
 
 export default function MatchSetupModal({ isOpen, onClose, onPlayerClick, setRosterOpen, setHistoryOpen, setArchiveOpen }: MatchSetupModalProps) {
-  const { language, isOutdoorMode, matchType, toggleMatchType, clearAllPlayers, toggleServer, team1, team2, completeSetup } = useMatchStore();
+  const { 
+    language, isOutdoorMode, matchType, toggleMatchType, clearAllPlayers, toggleServer, team1, team2, completeSetup,
+    matchFormat, setMatchFormat, useGoldenPoint, toggleGoldenPoint, swapSidesRule, toggleSwapSidesRule 
+  } = useMatchStore();
+  
   const t = dict[language] || dict.en;
+  const [isFormatDropdownOpen, setIsFormatDropdownOpen] = useState(false);
+
+  const formats: MatchFormat[] = ['bestOf3', 'bestOf5', 'proSet', 'superTiebreak'];
+  const formatLabels: Record<MatchFormat, string> = { bestOf3: t.bestOf3, bestOf5: t.bestOf5, proSet: t.proSet, superTiebreak: t.superTiebreak };
 
   if (!isOpen) return null;
 
@@ -37,11 +45,43 @@ export default function MatchSetupModal({ isOpen, onClose, onPlayerClick, setRos
 
         <div className="p-5 flex flex-col gap-4 overflow-y-auto">
           
-          <button onClick={toggleMatchType} className={`w-full py-4 px-5 rounded-xl font-black uppercase tracking-wider transition-all flex items-center justify-between border-2 ${isOutdoorMode ? 'bg-blue-50 text-blue-800 border-blue-200' : 'bg-blue-900/20 text-blue-400 border-blue-800/50'}`}>
-            <div className="flex items-center gap-3">{matchType === 'doubles' ? <Users size={24} /> : <User size={24} />}<span>Mode</span></div>
-            <span className="text-xl">{matchType === 'doubles' ? 'DOUBLES' : 'SINGLES'}</span>
-          </button>
+          {/* NEW: Match Rules Block */}
+          <div className={`p-3 rounded-xl border ${panelColor} flex flex-col gap-2`}>
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Match Rules</h3>
 
+            <button onClick={toggleMatchType} className={`w-full py-3 px-4 rounded-xl font-black uppercase tracking-wider transition-all flex items-center justify-between border ${isOutdoorMode ? 'bg-blue-50 text-blue-800 border-blue-200' : 'bg-blue-900/30 text-blue-400 border-blue-800/50'}`}>
+              <div className="flex items-center gap-2">{matchType === 'doubles' ? <Users size={18} /> : <User size={18} />}<span className="text-xs">Mode</span></div>
+              <span className="text-sm">{matchType === 'doubles' ? 'DOUBLES' : 'SINGLES'}</span>
+            </button>
+
+            <div className="relative">
+               <button onClick={() => setIsFormatDropdownOpen(!isFormatDropdownOpen)} className={`w-full py-3 px-4 ${isOutdoorMode ? 'bg-gray-100 border-gray-300 text-black' : 'bg-slate-900 border-slate-700 text-white'} border rounded-xl flex items-center justify-between transition-all active:scale-[0.98]`}>
+                 <div className="flex flex-col items-start">
+                   <span className="text-[9px] font-black uppercase text-slate-500 tracking-wider mb-0.5">{t.format}</span>
+                   <span className="font-black uppercase text-sm leading-none">{formatLabels[matchFormat]}</span>
+                 </div>
+                 <ChevronDown className={`text-slate-400 transition-transform duration-300 ${isFormatDropdownOpen ? 'rotate-180 text-emerald-500' : ''}`} size={18} />
+               </button>
+               {isFormatDropdownOpen && (
+                 <div className={`absolute top-full left-0 right-0 mt-1 ${isOutdoorMode ? 'bg-white border-gray-300' : 'bg-slate-800 border-slate-700'} border rounded-xl overflow-hidden z-50 shadow-xl flex flex-col animate-in fade-in slide-in-from-top-2 duration-200`}>
+                   {formats.map((format) => (
+                     <button key={format} onClick={() => { setMatchFormat(format); setIsFormatDropdownOpen(false); }} className={`w-full py-3 px-4 text-left font-black uppercase tracking-wider text-xs transition-colors border-b ${isOutdoorMode ? 'border-gray-200' : 'border-slate-700/50'} last:border-0 ${matchFormat === format ? 'bg-indigo-600 text-white' : (isOutdoorMode ? 'text-gray-700 hover:bg-gray-100' : 'text-slate-300 hover:bg-slate-700')}`}>
+                       {formatLabels[format]}
+                     </button>
+                   ))}
+                 </div>
+               )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 mt-1">
+              <button onClick={toggleGoldenPoint} className={`py-3 rounded-xl border font-black uppercase text-[10px] tracking-widest transition-all flex items-center justify-center ${useGoldenPoint ? 'bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.3)] border-amber-400' : (isOutdoorMode ? 'bg-gray-100 border-gray-300 text-gray-500' : 'bg-slate-900 border-slate-700 text-slate-500')}`}>{t.goldenPoint}: {useGoldenPoint ? t.on : t.off}</button>
+              <button onClick={toggleSwapSidesRule} className={`py-3 rounded-xl border font-black uppercase text-[10px] tracking-widest transition-all flex items-center justify-center gap-1.5 ${swapSidesRule === 'official' ? 'bg-indigo-600 text-white shadow-[0_0_10px_rgba(79,70,229,0.3)] border-indigo-500' : (isOutdoorMode ? 'bg-gray-100 border-gray-300 text-gray-500' : 'bg-slate-900 border-slate-700 text-slate-500')}`}>
+                <RefreshCw size={12} /> {language === 'es' ? 'Lado' : 'Swap'}: {swapSidesRule === 'official' ? (language === 'es' ? 'Oficial' : 'Official') : (language === 'es' ? 'Set' : 'Set End')}
+              </button>
+            </div>
+          </div>
+
+          {/* Team Roster Block */}
           <div className={`p-3 rounded-xl border ${panelColor} flex flex-col gap-3`}>
             <div className="flex flex-col gap-1.5">
               <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Team 1 Players</h3>
@@ -82,7 +122,6 @@ export default function MatchSetupModal({ isOpen, onClose, onPlayerClick, setRos
 
           <hr className={isOutdoorMode ? 'border-gray-200' : 'border-slate-800'} />
 
-          {/* FIXED: Removed onClose() so Match Setup stays patiently in the background */}
           <button onClick={() => setRosterOpen(true)} className={`w-full py-3 px-5 rounded-xl font-black uppercase text-sm tracking-wider transition-all flex items-center justify-center gap-3 border ${panelColor}`}>
             <Users size={20} className="text-cyan-500" /> Manage Roster Database
           </button>
@@ -98,7 +137,6 @@ export default function MatchSetupModal({ isOpen, onClose, onPlayerClick, setRos
             </button>
           </div>
 
-          {/* FIXED: Hitting START MATCH completes the setup and cleanly hides this modal! */}
           <button 
             onClick={() => { completeSetup(); onClose(); }} 
             className="w-full mt-2 py-4 rounded-xl font-black uppercase tracking-widest transition-all bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)] flex justify-center items-center gap-3 active:scale-95"

@@ -38,6 +38,7 @@ export interface PadelState {
   matchType: 'singles' | 'doubles';
   umpireEnabled: boolean;
   isOutdoorMode: boolean; 
+  swapSidesRule: 'official' | 'endOfSet';
 
   language: Language;
   hasSelectedLanguage: boolean;
@@ -65,6 +66,7 @@ export interface PadelState {
   undo: () => void;
   toggleGoldenPoint: () => void;
   toggleServer: () => void;
+  toggleSwapSidesRule: () => void; 
   setInitialServer: (team: TeamKey) => void; 
   completeSetup: () => void; 
   forceNewMatchState: () => void; 
@@ -82,7 +84,7 @@ export interface PadelState {
 
 export type PadelStateSnapshot = Omit<
   PadelState,
-  'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setLanguage' | 'setTeamName' | 'toggleOutdoorMode' | 'setTeamPlayers' | 'toggleMatchType' | 'clearAllPlayers' | 'setInitialServer' | 'completeSetup' | 'forceNewMatchState' | 'clearAnnouncement'
+  'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setLanguage' | 'setTeamName' | 'toggleOutdoorMode' | 'setTeamPlayers' | 'toggleMatchType' | 'clearAllPlayers' | 'setInitialServer' | 'completeSetup' | 'forceNewMatchState' | 'clearAnnouncement' | 'toggleSwapSidesRule'
 >;
 
 const STANDARD_POINTS: StandardPoint[] = ['0', '15', '30', '40', 'Ad'];
@@ -92,12 +94,13 @@ const createInitialTeamState = (name: string): TeamState => ({
   name, points: '0', games: 0, sets: 0, players: null, serverIndex: 0 
 });
 
-const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setLanguage' | 'setTeamName' | 'toggleOutdoorMode' | 'setTeamPlayers' | 'toggleMatchType' | 'clearAllPlayers' | 'setInitialServer' | 'completeSetup' | 'forceNewMatchState' | 'clearAnnouncement'> => ({
+const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setLanguage' | 'setTeamName' | 'toggleOutdoorMode' | 'setTeamPlayers' | 'toggleMatchType' | 'clearAllPlayers' | 'setInitialServer' | 'completeSetup' | 'forceNewMatchState' | 'clearAnnouncement' | 'toggleSwapSidesRule'> => ({
   useGoldenPoint: true,
   matchFormat: 'bestOf3', 
   matchType: 'doubles',
   umpireEnabled: false,
   isOutdoorMode: false, 
+  swapSidesRule: 'endOfSet', // Defaults to the casual way
   language: 'en', 
   hasSelectedLanguage: false, 
   isSetupComplete: false, 
@@ -118,7 +121,7 @@ const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint
 });
 
 const cloneSnapshot = (state: PadelState): PadelStateSnapshot => {
-  const { history, scorePoint, undo, toggleGoldenPoint, toggleServer, setMatchFormat, resetMatch, toggleUmpire, setLanguage, setTeamName, toggleOutdoorMode, setTeamPlayers, toggleMatchType, clearAllPlayers, setInitialServer, completeSetup, forceNewMatchState, clearAnnouncement, ...rest } = state;
+  const { history, scorePoint, undo, toggleGoldenPoint, toggleServer, setMatchFormat, resetMatch, toggleUmpire, setLanguage, setTeamName, toggleOutdoorMode, setTeamPlayers, toggleMatchType, clearAllPlayers, setInitialServer, completeSetup, forceNewMatchState, clearAnnouncement, toggleSwapSidesRule, ...rest } = state;
   return JSON.parse(JSON.stringify(rest)) as PadelStateSnapshot;
 };
 
@@ -141,6 +144,7 @@ const applyGameWin = (state: PadelState, winner: TeamKey): void => {
   state.server = getOppositeTeam(state.server);
   state[oldServer].serverIndex = state[oldServer].serverIndex === 0 ? 1 : 0;
 
+  const totalGamesInSet = winnerTeam.games + loserTeam.games;
   const gamesDiff = winnerTeam.games - loserTeam.games;
   let wonSet = false;
   
@@ -155,7 +159,6 @@ const applyGameWin = (state: PadelState, winner: TeamKey): void => {
     state.isTiebreak = true;
     const isEs = state.language === 'es';
     
-    // FIXED: Corrected Tiebreak text to First to 7 instead of Swap Sides!
     state.matchAnnouncement = {
       title: "Tiebreak",
       subtitle: isEs ? "A 7 puntos" : "First to 7"
@@ -197,9 +200,17 @@ const applyGameWin = (state: PadelState, winner: TeamKey): void => {
         state.matchWinnerDismissed = false;
       } else {
         const setNum = state.team1.sets + state.team2.sets;
+        
+        let subtitleText = isEs ? "Cambio de lado" : "Swap Sides";
+        
+        // If official rules are on, and the set ends on an EVEN total of games, you stay put!
+        if (state.swapSidesRule === 'official' && totalGamesInSet % 2 === 0) {
+          subtitleText = isEs ? "Mantener lado" : "Stay on Ends";
+        }
+
         state.matchAnnouncement = {
           title: isEs ? `Set ${setNum} para\n${winName}` : `Set ${setNum} Winner\n${winName}`,
-          subtitle: isEs ? "Cambio de lado" : "Swap Sides"
+          subtitle: subtitleText
         };
 
         if (state.matchFormat === 'superTiebreak' && state.team1.sets === 1 && state.team2.sets === 1) {
@@ -211,6 +222,13 @@ const applyGameWin = (state: PadelState, winner: TeamKey): void => {
         }
       }
     }
+  } else if (!state.isTiebreak && state.swapSidesRule === 'official' && totalGamesInSet % 2 !== 0) {
+    // This ONLY fires if you have "Official" toggled on
+    const isEs = state.language === 'es';
+    state.matchAnnouncement = {
+      title: isEs ? "Cambio de Lado" : "Swap Sides",
+      subtitle: isEs ? "Juegos impares" : "Odd Games"
+    };
   }
 };
 
@@ -263,6 +281,13 @@ const handleTiebreakPoint = (state: PadelState, scoringTeamKey: TeamKey): void =
 
   if ((scoringPoints + 1) >= targetPoints && pointsDiff >= 2) {
     applyGameWin(state, scoringTeamKey);
+  } else if (state.swapSidesRule === 'official' && totalPointsAfter % 6 === 0) {
+    // This ONLY fires in the Tiebreak if you have "Official" toggled on
+    const isEs = state.language === 'es';
+    state.matchAnnouncement = {
+      title: isEs ? "Cambio de Lado" : "Swap Sides",
+      subtitle: isEs ? "Tiebreak (6 ptos)" : "Tiebreak (6 pts)"
+    };
   }
 };
 
@@ -305,6 +330,7 @@ export const useMatchStore = create<PadelState>()(
           });
         },
         toggleServer: () => set((state) => ({ server: state.server === 'team1' ? 'team2' : 'team1' })),
+        toggleSwapSidesRule: () => set((state) => ({ swapSidesRule: state.swapSidesRule === 'endOfSet' ? 'official' : 'endOfSet' })),
         setMatchFormat: (format: MatchFormat) => set({ matchFormat: format }),
         toggleMatchType: () => set((state) => ({ matchType: state.matchType === 'doubles' ? 'singles' : 'doubles' })),
         toggleUmpire: () => set((state) => ({ umpireEnabled: !state.umpireEnabled })),
@@ -331,11 +357,11 @@ export const useMatchStore = create<PadelState>()(
         },
         toggleGoldenPoint: () => set((state) => ({ useGoldenPoint: !state.useGoldenPoint })),
         resetMatch: () => {
-          const { useGoldenPoint, umpireEnabled, language, hasSelectedLanguage, isOutdoorMode, team1, team2, matchType } = get();
+          const { useGoldenPoint, umpireEnabled, language, hasSelectedLanguage, isOutdoorMode, team1, team2, matchType, swapSidesRule } = get();
           const base = createInitialState();
           set({
             ...base,
-            history: [], useGoldenPoint, umpireEnabled, language, hasSelectedLanguage, isOutdoorMode, matchType,
+            history: [], useGoldenPoint, umpireEnabled, language, hasSelectedLanguage, isOutdoorMode, matchType, swapSidesRule,
             team1: { ...base.team1, name: team1.name, players: team1.players },
             team2: { ...base.team2, name: team2.name, players: team2.players },
           });
