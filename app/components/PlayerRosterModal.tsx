@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { useProfileStore } from '../../store/useProfileStore';
-import { X, Trash2, UserPlus, ChevronLeft } from 'lucide-react';
+import { X, Trash2, UserPlus, ChevronLeft, History, Archive } from 'lucide-react';
 
 interface PlayerRosterModalProps {
   isOpen: boolean;
   onClose: () => void;
   isOutdoorMode: boolean;
+  setHistoryOpen: (v: boolean) => void;
+  setArchiveOpen: (v: boolean) => void;
 }
 
-export default function PlayerRosterModal({ isOpen, onClose, isOutdoorMode }: PlayerRosterModalProps) {
+export default function PlayerRosterModal({ isOpen, onClose, isOutdoorMode, setHistoryOpen, setArchiveOpen }: PlayerRosterModalProps) {
   const { profiles, addProfile, deleteProfile } = useProfileStore();
   const [newName, setNewName] = useState('');
   
@@ -45,7 +47,7 @@ export default function PlayerRosterModal({ isOpen, onClose, isOutdoorMode }: Pl
               <ChevronLeft size={24} /> Back to Roster
             </button>
           ) : (
-            <h2 className="text-2xl font-bold">Player Roster</h2>
+            <h2 className="text-2xl font-bold">Player Roster & Stats</h2>
           )}
           <button onClick={onClose} className="p-2 rounded-full hover:bg-black/10 hover:dark:bg-white/10 transition-colors">
             <X size={28} />
@@ -71,6 +73,24 @@ export default function PlayerRosterModal({ isOpen, onClose, isOutdoorMode }: Pl
                 Add
               </button>
             </form>
+
+            {/* NEW: Point Log and Match History Global Actions */}
+            <div className="px-6 pt-4 grid grid-cols-2 gap-4 shrink-0">
+              <button 
+                onClick={() => { setHistoryOpen(true); onClose(); }} 
+                className={`py-4 rounded-xl font-black uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-2 border ${isOutdoorMode ? 'bg-white border-gray-300 shadow-sm hover:bg-gray-50 text-black' : 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-white'}`}
+              >
+                <History size={20} className="text-amber-500" />
+                <span className="text-[10px]">Point Log</span>
+              </button>
+              <button 
+                onClick={() => { setArchiveOpen(true); onClose(); }} 
+                className={`py-4 rounded-xl font-black uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-2 border ${isOutdoorMode ? 'bg-white border-gray-300 shadow-sm hover:bg-gray-50 text-black' : 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-white'}`}
+              >
+                <Archive size={20} className="text-purple-500" />
+                <span className="text-[10px]">Match History</span>
+              </button>
+            </div>
 
             <div className="flex-grow overflow-y-auto p-6 space-y-3">
               {profiles.length === 0 ? (
@@ -150,7 +170,6 @@ export default function PlayerRosterModal({ isOpen, onClose, isOutdoorMode }: Pl
                 <div className="text-2xl font-black">{selectedProfile.stats.totalPointsWon}</div>
               </div>
 
-              {/* NEW: Displays the Service Holds and Breaks! */}
               <div className={`p-4 rounded-xl ${isOutdoorMode ? 'bg-black/5' : 'bg-white/5'}`}>
                 <div className="text-xs uppercase opacity-60 font-bold mb-1">Holds / Breaks</div>
                 <div className="text-2xl font-black">{selectedProfile.stats.serviceGamesWon} <span className="text-lg opacity-60 font-medium">/ {selectedProfile.stats.breaksWon}</span></div>

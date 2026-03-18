@@ -1,18 +1,16 @@
 import React, { useState } from 'react';
 import { useMatchStore, MatchFormat } from '../../store/useMatchStore';
 import { dict } from '../translations';
-import { Users, User, History, Archive, X, ClipboardList, UserMinus, RefreshCw, Play, ChevronDown } from 'lucide-react';
+import { Users, User, X, ClipboardList, UserMinus, RefreshCw, Play, ChevronDown } from 'lucide-react';
 
 interface MatchSetupModalProps {
   isOpen: boolean;
   onClose: () => void;
   onPlayerClick: (team: 'team1' | 'team2', index: 0 | 1) => void; 
   setRosterOpen: (v: boolean) => void;
-  setHistoryOpen: (v: boolean) => void;
-  setArchiveOpen: (v: boolean) => void;
 }
 
-export default function MatchSetupModal({ isOpen, onClose, onPlayerClick, setRosterOpen, setHistoryOpen, setArchiveOpen }: MatchSetupModalProps) {
+export default function MatchSetupModal({ isOpen, onClose, onPlayerClick, setRosterOpen }: MatchSetupModalProps) {
   const { 
     language, isOutdoorMode, matchType, toggleMatchType, clearAllPlayers, toggleServer, team1, team2, completeSetup,
     matchFormat, setMatchFormat, useGoldenPoint, toggleGoldenPoint, swapSidesRule, toggleSwapSidesRule 
@@ -31,8 +29,7 @@ export default function MatchSetupModal({ isOpen, onClose, onPlayerClick, setRos
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[200] p-4" onClick={onClose}>
-      {/* FIXED: Reduced max-h to 90vh and ensured flex architecture is solid */}
-      <div className={`${bgColor} border ${isOutdoorMode ? 'border-gray-300' : 'border-slate-700'} rounded-2xl w-full max-w-sm flex flex-col shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-hidden`} onClick={e => e.stopPropagation()}>
+      <div className={`${bgColor} border ${isOutdoorMode ? 'border-gray-300' : 'border-slate-700'} rounded-2xl w-full max-w-md md:max-w-lg flex flex-col shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-hidden`} onClick={e => e.stopPropagation()}>
         
         <div className="flex justify-between items-center p-5 border-b border-inherit bg-inherit z-10 shrink-0">
           <div className="flex items-center gap-3">
@@ -44,7 +41,6 @@ export default function MatchSetupModal({ isOpen, onClose, onPlayerClick, setRos
           </button>
         </div>
 
-        {/* FIXED: Added flex-1 to force this container to scroll rather than pushing the modal off screen */}
         <div className="p-5 flex-1 overflow-y-auto flex flex-col gap-4">
           
           <div className={`p-3 rounded-xl border ${panelColor} flex flex-col gap-2 shrink-0`}>
@@ -77,7 +73,6 @@ export default function MatchSetupModal({ isOpen, onClose, onPlayerClick, setRos
             <div className="grid grid-cols-2 gap-2 mt-1">
               <button onClick={toggleGoldenPoint} className={`py-3 rounded-xl border font-black uppercase text-[10px] tracking-widest transition-all flex items-center justify-center ${useGoldenPoint ? 'bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.3)] border-amber-400' : (isOutdoorMode ? 'bg-gray-100 border-gray-300 text-gray-500' : 'bg-slate-900 border-slate-700 text-slate-500')}`}>{t.goldenPoint}: {useGoldenPoint ? t.on : t.off}</button>
               
-              {/* FIXED: Changed text to "Change Ends" */}
               <button onClick={toggleSwapSidesRule} className={`py-3 rounded-xl border font-black uppercase text-[10px] tracking-widest transition-all flex items-center justify-center gap-1.5 ${swapSidesRule === 'official' ? 'bg-indigo-600 text-white shadow-[0_0_10px_rgba(79,70,229,0.3)] border-indigo-500' : (isOutdoorMode ? 'bg-gray-100 border-gray-300 text-gray-500' : 'bg-slate-900 border-slate-700 text-slate-500')}`}>
                 <RefreshCw size={12} className="flex-shrink-0" /> 
                 <span className="truncate">{language === 'es' ? 'Cambio' : 'Change Ends'}: {swapSidesRule === 'official' ? (language === 'es' ? 'Oficial' : 'Official') : (language === 'es' ? 'Set' : 'Set End')}</span>
@@ -125,20 +120,9 @@ export default function MatchSetupModal({ isOpen, onClose, onPlayerClick, setRos
 
           <hr className={`shrink-0 ${isOutdoorMode ? 'border-gray-200' : 'border-slate-800'}`} />
 
-          <button onClick={() => setRosterOpen(true)} className={`w-full py-3 px-5 rounded-xl font-black uppercase text-sm tracking-wider transition-all flex items-center justify-center gap-3 border ${panelColor} shrink-0`}>
-            <Users size={20} className="text-cyan-500" /> Manage Roster Database
+          <button onClick={() => { setRosterOpen(true); onClose(); }} className={`w-full py-4 px-5 rounded-xl font-black uppercase text-sm tracking-wider transition-all flex items-center justify-center gap-3 border ${panelColor} shrink-0`}>
+            <Users size={20} className="text-cyan-500" /> Player Roster & Stats
           </button>
-
-          <div className="grid grid-cols-2 gap-4 mt-1 shrink-0">
-            <button onClick={() => setHistoryOpen(true)} className={`py-4 rounded-xl font-black uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-2 border ${panelColor}`}>
-              <History size={20} className="text-amber-500" />
-              <span className="text-[10px]">Point Log</span>
-            </button>
-            <button onClick={() => setArchiveOpen(true)} className={`py-4 rounded-xl font-black uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-2 border ${panelColor}`}>
-              <Archive size={20} className="text-purple-500" />
-              <span className="text-[10px]">Saved Matches</span>
-            </button>
-          </div>
 
           <button 
             onClick={() => { completeSetup(); onClose(); }} 

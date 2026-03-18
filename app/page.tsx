@@ -68,11 +68,8 @@ export default function HomePage() {
     }
     await requestWakeLock(); 
 
-    // FIXED: If the app starts and the game is at exactly 0-0, force the setup prompts to appear!
     const isBrandNewMatch = history.length === 0 && team1.points === '0' && team2.points === '0' && team1.games === 0 && team2.games === 0 && team1.sets === 0 && team2.sets === 0;
-    if (isBrandNewMatch) {
-      forceNewMatchState();
-    }
+    if (isBrandNewMatch) forceNewMatchState();
   };
 
   const generateNewRoomCode = () => { 
@@ -104,13 +101,21 @@ export default function HomePage() {
 
       <AppOverlays appStarted={appStarted} handleAppStart={handleAppStart} localDismissed={localDismissed} setLocalDismissed={setLocalDismissed} handleReset={handleReset} openMatchSetup={() => setMatchSetupOpen(true)} matchSetupOpen={matchSetupOpen} />
 
-      <MatchSetupModal isOpen={matchSetupOpen} onClose={() => setMatchSetupOpen(false)} onPlayerClick={handlePlayerSlotClick} setRosterOpen={setRosterOpen} setHistoryOpen={setHistoryOpen} setArchiveOpen={setArchiveOpen} />
+      <MatchSetupModal isOpen={matchSetupOpen} onClose={() => setMatchSetupOpen(false)} onPlayerClick={handlePlayerSlotClick} setRosterOpen={setRosterOpen} />
       <UserGuideModal isOpen={userGuideOpen} onClose={() => setUserGuideOpen(false)} isOutdoorMode={isOutdoorMode} />
       <HardwareWizard isOpen={readmeOpen} onClose={() => { setReadmeOpen(false); setTestSignals({ team1: false, team2: false, undo: false }); }} testSignals={testSignals} />
       <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} roomCode={roomCode} generateNewRoomCode={generateNewRoomCode} setReadmeOpen={setReadmeOpen} setUserGuideOpen={setUserGuideOpen} />
       <ArchiveModal isOpen={archiveOpen} onClose={() => setArchiveOpen(false)} savedMatches={savedMatches} deleteSavedMatch={deleteSavedMatch} clearArchive={clearArchive} />
       <PointLogModal isOpen={historyOpen} onClose={() => setHistoryOpen(false)} historyLog={historyLog} />
-      <PlayerRosterModal isOpen={rosterOpen} onClose={() => setRosterOpen(false)} isOutdoorMode={isOutdoorMode} />
+      
+      <PlayerRosterModal 
+        isOpen={rosterOpen} 
+        onClose={() => setRosterOpen(false)} 
+        isOutdoorMode={isOutdoorMode} 
+        setHistoryOpen={setHistoryOpen} 
+        setArchiveOpen={setArchiveOpen} 
+      />
+      
       <PlayerSelectModal isOpen={playerSelectConfig !== null} onClose={() => setPlayerSelectConfig(null)} teamId={playerSelectConfig?.teamId || null} playerIndex={playerSelectConfig?.playerIndex ?? null} isOutdoorMode={isOutdoorMode} />
       <LockedWarningModal isOpen={lockedWarningOpen} onClose={() => setLockedWarningOpen(false)} isOutdoorMode={isOutdoorMode} />
 
