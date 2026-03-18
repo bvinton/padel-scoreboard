@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from 'react';
 
 interface KeyboardListenerProps {
   handleScore: (team: 'team1' | 'team2') => void;
@@ -7,40 +7,29 @@ interface KeyboardListenerProps {
 }
 
 export default function KeyboardListener({ handleScore, handleUndo, setTestSignals }: KeyboardListenerProps) {
-  const handlersRef = useRef({ handleScore, handleUndo, setTestSignals });
-  useEffect(() => { handlersRef.current = { handleScore, handleUndo, setTestSignals }; });
-
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore keystrokes if the user is typing in a text input (like adding player names)
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
-      const key = e.key.toLowerCase();
-
-      const triggerSignal = (type: 'team1' | 'team2' | 'undo') => {
-        handlersRef.current.setTestSignals(prev => ({ ...prev, [type]: true }));
-        setTimeout(() => {
-          handlersRef.current.setTestSignals(prev => ({ ...prev, [type]: false }));
-        }, 500); // 500ms flash effect
-      };
-      
-      if (['1', 'arrowleft', 'pageup', 'a'].includes(key)) {
-        e.preventDefault();
-        triggerSignal('team1');
-        handlersRef.current.handleScore('team1');
-      } else if (['2', 'arrowright', 'pagedown', 'd', 'enter'].includes(key)) {
-        e.preventDefault();
-        triggerSignal('team2');
-        handlersRef.current.handleScore('team2');
-      } else if (['3', 'backspace', 'escape', 'u'].includes(key)) {
-        e.preventDefault();
-        triggerSignal('undo');
-        handlersRef.current.handleUndo();
+      if (e.key === '1') {
+        setTestSignals(prev => ({ ...prev, team1: true }));
+        handleScore('team1');
+        setTimeout(() => setTestSignals(prev => ({ ...prev, team1: false })), 300);
+      } else if (e.key === '2') {
+        setTestSignals(prev => ({ ...prev, team2: true }));
+        handleScore('team2');
+        setTimeout(() => setTestSignals(prev => ({ ...prev, team2: false })), 300);
+      } else if (e.key === '3') {
+        setTestSignals(prev => ({ ...prev, undo: true }));
+        handleUndo();
+        setTimeout(() => setTestSignals(prev => ({ ...prev, undo: false })), 300);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [handleScore, handleUndo, setTestSignals]);
 
-  return null; 
+  return null;
 }

@@ -68,7 +68,8 @@ export default function SettingsModal({
          </button>
          <div className="grid grid-cols-2 gap-2 mt-1">
             <button onClick={toggleFullscreen} className="py-4 rounded-xl bg-slate-800 text-white font-black uppercase flex items-center justify-center gap-4 active:scale-95 transition-all"><Maximize size={24} /> {t.fullscreen}</button>
-            <button onClick={() => setLanguage(language === 'en' ? 'es' : 'en')} className="py-4 rounded-xl bg-slate-800 text-emerald-400 font-black uppercase flex items-center justify-center gap-4 border border-emerald-500/30 active:scale-95 transition-all"><Languages size={24} /> {language === 'en' ? 'EN' : 'ES'}</button>
+            {/* UPDATED: EN/ES changed to English/Español */}
+            <button onClick={() => setLanguage(language === 'en' ? 'es' : 'en')} className="py-4 rounded-xl bg-slate-800 text-emerald-400 font-black uppercase flex items-center justify-center gap-4 border border-emerald-500/30 active:scale-95 transition-all"><Languages size={24} /> {language === 'en' ? 'English' : 'Español'}</button>
          </div>
          <div className="grid grid-cols-2 gap-2">
             <button onClick={toggleOutdoorMode} className={`py-4 rounded-xl border-2 font-black uppercase transition-all flex items-center justify-center ${isOutdoorMode ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.6)]' : 'bg-black border-white text-white shadow-[0_0_15px_rgba(255,255,255,0.3)]'}`}>{t.court}: {isOutdoorMode ? t.outdoor : t.indoor}</button>

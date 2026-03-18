@@ -47,7 +47,7 @@ export default function HomePage() {
   const [roomCode, setRoomCode] = useState<string>("");
   const [testSignals, setTestSignals] = useState({ team1: false, team2: false, undo: false });
 
-  // Custom Hooks Handling the Heavy Lifting!
+  // Custom Hooks Handling the Heavy Lifting
   const { requestWakeLock } = useWakeLock(appStarted);
   const { optionsOpen, setOptionsOpen, showWelcomeHint, setShowWelcomeHint, touchHandlers } = useLongPressMenu();
   const { timeLeft, timerStarted, historyLog, savedMatches, handleScore, handleUndo, handleReset, handleEndMatch, deleteSavedMatch, clearArchive } = useMatchController(localDismissed, setLocalDismissed, setShowWelcomeHint);
@@ -95,8 +95,19 @@ export default function HomePage() {
       style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none' }} 
       className={`fixed inset-0 flex flex-col select-none overflow-hidden font-sans ${isOutdoorMode ? 'bg-white text-black' : 'bg-black text-white'}`}
     >
-      <KeyboardListener handleScore={handleScore} handleUndo={handleUndo} setTestSignals={setTestSignals} />
-      <WebhookListener roomCode={roomCode} handleScore={handleScore} handleUndo={handleUndo} setTestSignals={setTestSignals} setIsOnline={setIsOnline} />
+      {/* FIXED: The listeners now check if readmeOpen is true. If it is, they silently swallow the score command. */}
+      <KeyboardListener 
+        handleScore={(team) => { if (!readmeOpen) handleScore(team); }} 
+        handleUndo={() => { if (!readmeOpen) handleUndo(); }} 
+        setTestSignals={setTestSignals} 
+      />
+      <WebhookListener 
+        roomCode={roomCode} 
+        handleScore={(team) => { if (!readmeOpen) handleScore(team); }} 
+        handleUndo={() => { if (!readmeOpen) handleUndo(); }} 
+        setTestSignals={setTestSignals} 
+        setIsOnline={setIsOnline} 
+      />
 
       <AppOverlays appStarted={appStarted} handleAppStart={handleAppStart} localDismissed={localDismissed} setLocalDismissed={setLocalDismissed} handleReset={handleReset} />
 
