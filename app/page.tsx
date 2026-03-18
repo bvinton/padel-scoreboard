@@ -15,7 +15,7 @@ import ServeTimer from "./components/ServeTimer";
 import PlayerPanel from "./components/PlayerPanel";
 import PlayerRosterModal from "./components/PlayerRosterModal";
 import useUmpireAudio from "./Hooks/useUmpireAudio";
-import { MoreHorizontal } from "lucide-react"; // CHANGED: Now using MoreHorizontal
+import { MoreHorizontal } from "lucide-react";
 
 interface SavedMatch {
   id: number;
@@ -229,10 +229,9 @@ export default function HomePage() {
           handleScore={handleScore} 
         />
 
-        {/* CHANGED ICON: MoreHorizontal replacing MoreVertical */}
         <button 
           onClick={(e) => { e.stopPropagation(); setOptionsOpen(true); }}
-          className={`absolute bottom-4 left-1/2 -translate-x-1/2 z-40 p-3 rounded-full transition-all backdrop-blur-sm shadow-lg ${isOutdoorMode ? 'bg-white/70 text-black/50 hover:bg-white hover:text-black border border-gray-200' : 'bg-slate-800/40 text-white/30 hover:bg-slate-800 hover:text-white border border-slate-700/50'}`}
+          className={`absolute bottom-2 left-1/2 -translate-x-1/2 z-40 px-8 py-1.5 rounded-xl transition-all backdrop-blur-sm shadow-lg ${isOutdoorMode ? 'bg-white/80 text-black/50 hover:bg-white hover:text-black border border-gray-300' : 'bg-slate-800/60 text-white/30 hover:bg-slate-800 hover:text-white border border-slate-700/50'}`}
         >
           <MoreHorizontal size={28} />
         </button>
