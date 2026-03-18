@@ -31,6 +31,7 @@ export default function MatchSetupModal({ isOpen, onClose, onPlayerClick, setRos
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[200] p-4" onClick={onClose}>
       <div className={`${bgColor} border ${isOutdoorMode ? 'border-gray-300' : 'border-slate-700'} rounded-2xl w-full max-w-md md:max-w-lg flex flex-col shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-hidden`} onClick={e => e.stopPropagation()}>
         
+        {/* Fixed Header */}
         <div className="flex justify-between items-center p-5 border-b border-inherit bg-inherit z-10 shrink-0">
           <div className="flex items-center gap-3">
             <ClipboardList className={isOutdoorMode ? "text-blue-600" : "text-blue-400"} size={28} />
@@ -41,6 +42,7 @@ export default function MatchSetupModal({ isOpen, onClose, onPlayerClick, setRos
           </button>
         </div>
 
+        {/* Scrollable Content */}
         <div className="p-5 flex-1 overflow-y-auto flex flex-col gap-4">
           
           <div className={`p-3 rounded-xl border ${panelColor} flex flex-col gap-2 shrink-0`}>
@@ -71,7 +73,6 @@ export default function MatchSetupModal({ isOpen, onClose, onPlayerClick, setRos
             </div>
 
             <div className="grid grid-cols-2 gap-3 mt-1">
-              {/* FIXED: Reverted Golden Point to a glowing standalone toggle button */}
               <button 
                 onClick={toggleGoldenPoint} 
                 className={`flex flex-col items-center justify-center rounded-xl border transition-all active:scale-95 ${
@@ -84,7 +85,6 @@ export default function MatchSetupModal({ isOpen, onClose, onPlayerClick, setRos
                 <span className="text-sm font-black uppercase mt-0.5">{useGoldenPoint ? t.on : t.off}</span>
               </button>
 
-              {/* Change Ends stays as a segmented toggle */}
               <div className={`flex flex-col rounded-xl border overflow-hidden shadow-sm ${isOutdoorMode ? 'border-gray-300' : 'border-slate-700'}`}>
                 <div className={`text-[9px] uppercase font-black tracking-widest text-center py-1.5 flex items-center justify-center gap-1 ${isOutdoorMode ? 'bg-gray-200 text-gray-600' : 'bg-slate-800 text-slate-400'}`}>
                   <RefreshCw size={10} /> {language === 'es' ? 'Cambio Lado' : 'Change Ends'}
@@ -139,20 +139,22 @@ export default function MatchSetupModal({ isOpen, onClose, onPlayerClick, setRos
             <RefreshCw size={18} className="text-indigo-400" /> {t.swapServer}
           </button>
 
-          <hr className={`shrink-0 ${isOutdoorMode ? 'border-gray-200' : 'border-slate-800'}`} />
-
           <button onClick={() => { setRosterOpen(true); onClose(); }} className={`w-full py-4 px-5 rounded-xl font-black uppercase text-sm tracking-wider transition-all flex items-center justify-center gap-3 border ${panelColor} shrink-0`}>
             <Users size={20} className="text-cyan-500" /> Player Roster & Stats
           </button>
 
+        </div>
+
+        {/* FIXED: Start Match Button is now pinned to the bottom and will never scroll away! */}
+        <div className="p-4 border-t border-inherit bg-inherit shrink-0">
           <button 
             onClick={() => { completeSetup(); onClose(); }} 
-            className="w-full mt-2 mb-2 py-4 rounded-xl font-black uppercase tracking-widest transition-all bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)] flex justify-center items-center gap-3 active:scale-95 shrink-0"
+            className="w-full py-4 rounded-xl font-black uppercase tracking-widest transition-all bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)] flex justify-center items-center gap-3 active:scale-95"
           >
             <Play size={20} /> START MATCH
           </button>
-
         </div>
+
       </div>
     </div>
   );

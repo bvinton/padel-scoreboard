@@ -13,7 +13,8 @@ export function useLongPressMenu() {
     }, 600); 
   };
 
-  const handleTouchEnd = () => {
+  // FIXED: If the finger moves (scrolling) or lifts, instantly cancel the menu timer!
+  const handleTouchEndOrMove = () => {
     if (longPressTimer.current) clearTimeout(longPressTimer.current);
   };
 
@@ -24,9 +25,11 @@ export function useLongPressMenu() {
     setShowWelcomeHint,
     touchHandlers: {
       onMouseDown: handleTouchStart,
-      onMouseUp: handleTouchEnd,
+      onMouseUp: handleTouchEndOrMove,
+      onMouseMove: handleTouchEndOrMove, // Cancel on mouse move
       onTouchStart: handleTouchStart,
-      onTouchEnd: handleTouchEnd,
+      onTouchEnd: handleTouchEndOrMove,
+      onTouchMove: handleTouchEndOrMove, // Cancel on touch drag/scroll
       onContextMenu: (e: React.MouseEvent) => e.preventDefault()
     }
   };
