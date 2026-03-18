@@ -33,8 +33,28 @@ export default function useUmpireAudio(appStarted: boolean, localDismissed: bool
   const prevSets1 = useRef(team1.sets); 
   const prevSets2 = useRef(team2.sets);
   const prevIsTiebreak = useRef(isTiebreak);
+  
+  // NEW: Ref to ensure the music only plays exactly once per victory
+  const prevMatchWinner = useRef<string | null>(null);
 
   useEffect(() => {
+    // 1. INDEPENDENT MUSIC LOGIC
+    // Reset the winner ref if match is cleared so it's ready for the next game
+    if (!matchWinner) {
+      prevMatchWinner.current = null;
+    }
+
+    if (matchWinner && !matchWinnerDismissed && !localDismissed) {
+      if (prevMatchWinner.current !== matchWinner.key) {
+        // The legendary FF7 Victory Fanfare!
+        const audio = new Audio('https://www.myinstants.com/media/sounds/final-fantasy-vii-victory-fanfare-1.mp3'); 
+        audio.volume = 0.5;
+        audio.play().catch(e => console.log("Autoplay blocked:", e));
+        prevMatchWinner.current = matchWinner.key;
+      }
+    }
+
+    // 2. UMPIRE VOICE LOGIC
     if (!umpireEnabled) return;
     const isEs = language === 'es';
 
@@ -53,7 +73,6 @@ export default function useUmpireAudio(appStarted: boolean, localDismissed: bool
     }
     prevIsTiebreak.current = isTiebreak;
 
-    // FIXED: Now we ensure the Game is announced properly before moving to the overall Match win.
     if (team1.games > prevGames1.current) { 
       speakScore(isEs ? `Juego, ${t1Name}` : `Game, ${t1Name}`); 
       prevGames1.current = team1.games; return; 
