@@ -16,7 +16,8 @@ interface AppOverlaysProps {
 export default function AppOverlays({ appStarted, handleAppStart, localDismissed, setLocalDismissed, handleReset }: AppOverlaysProps) {
   const {
     team1, team2, matchWinner, matchWinnerDismissed,
-    language, setLanguage, hasSelectedLanguage, setScores
+    language, setLanguage, hasSelectedLanguage, setScores,
+    initialServerDecided, setInitialServer // NEW
   } = useMatchStore();
 
   const t = dict[language] || dict.en;
@@ -24,7 +25,6 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
   const cardRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
 
-  // Confetti Effect
   useEffect(() => {
     if (matchWinner && !matchWinnerDismissed && !localDismissed) {
       const duration = 3000;
@@ -71,7 +71,6 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
 
   return (
     <>
-      {/* 0: LANGUAGE SELECTION */}
       {!hasSelectedLanguage && (
         <div className="absolute inset-0 z-[1000] bg-slate-950 flex flex-col items-center justify-center gap-10 p-6 text-center">
           <Globe size={100} className="text-emerald-500 animate-pulse" />
@@ -83,7 +82,6 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
         </div>
       )}
 
-      {/* 1: ROTATE DEVICE */}
       {hasSelectedLanguage && (
         <div className="hidden portrait:flex fixed inset-0 z-[600] bg-slate-950 items-center justify-center flex-col gap-8 p-10 text-center">
           <Smartphone size={100} className="text-emerald-400 relative z-10" />
@@ -92,7 +90,6 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
         </div>
       )}
 
-      {/* 2: TAP TO START */}
       {hasSelectedLanguage && !appStarted && (
         <div className="absolute inset-0 z-[500] bg-slate-950 flex flex-col items-center justify-center gap-6 cursor-pointer" onClick={handleAppStart}>
           <Play size={100} className="text-emerald-400 animate-pulse" />
@@ -101,7 +98,28 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
         </div>
       )}
 
-      {/* 3: MATCH WINNER MODAL */}
+      {/* NEW: Play For Serve Interceptor */}
+      {hasSelectedLanguage && appStarted && !initialServerDecided && (
+        <div className="absolute inset-0 z-[400] bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center gap-8 p-6 animate-in fade-in duration-300">
+          <h2 className="text-5xl md:text-7xl font-black uppercase text-white italic drop-shadow-lg tracking-widest text-center">
+            Play for Serve
+          </h2>
+          <p className="text-slate-400 font-bold uppercase tracking-wider text-center max-w-lg mb-4">
+            {language === 'es' ? '¿Quién ganó el sorteo?' : 'Who won the toss / rally?'}
+            <br/>
+            <span className="text-xs md:text-sm text-emerald-500 mt-4 block">(Tap Flic 1x for {team1.name}, 2x for {team2.name})</span>
+          </p>
+          <div className="flex flex-col md:flex-row gap-6 w-full max-w-3xl justify-center">
+            <button onClick={() => setInitialServer('team1')} className="flex-1 py-10 bg-slate-800 border-4 border-slate-700 hover:border-emerald-500 rounded-[2rem] text-3xl md:text-4xl font-black text-white uppercase active:scale-95 transition-all shadow-xl">
+              {team1.name}
+            </button>
+            <button onClick={() => setInitialServer('team2')} className="flex-1 py-10 bg-slate-800 border-4 border-slate-700 hover:border-emerald-500 rounded-[2rem] text-3xl md:text-4xl font-black text-white uppercase active:scale-95 transition-all shadow-xl">
+              {team2.name}
+            </button>
+          </div>
+        </div>
+      )}
+
       {matchWinner && !matchWinnerDismissed && !localDismissed && (
         <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/90 p-4" onClick={() => { if (!isExporting) setLocalDismissed(true); }}>
           <div 
@@ -111,7 +129,6 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
           >
             <Trophy className="w-12 h-12 md:w-20 md:h-20 text-amber-400 mb-3 animate-pulse" />
             
-            {/* FIXED: The overlay now reads the exact dynamic name from the store */}
             <h2 className="text-4xl md:text-7xl font-black mb-1 italic uppercase tracking-tighter text-white">
               {matchWinner.name}
             </h2>

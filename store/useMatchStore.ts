@@ -42,10 +42,12 @@ export interface PadelState {
   language: Language;
   hasSelectedLanguage: boolean;
 
+  // NEW: Play for Serve state
+  initialServerDecided: boolean;
+  
   server: Server;
   isTiebreak: boolean;
   
-  // FIXED: Now stores the actual name of the winner for the overlay
   matchWinner: { key: TeamKey; name: string } | null; 
   matchWinnerDismissed: boolean;
   
@@ -61,6 +63,7 @@ export interface PadelState {
   undo: () => void;
   toggleGoldenPoint: () => void;
   toggleServer: () => void;
+  setInitialServer: (team: TeamKey) => void; // NEW
   setMatchFormat: (format: MatchFormat) => void; 
   toggleMatchType: () => void;
   toggleUmpire: () => void;
@@ -74,7 +77,7 @@ export interface PadelState {
 
 export type PadelStateSnapshot = Omit<
   PadelState,
-  'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setLanguage' | 'setTeamName' | 'toggleOutdoorMode' | 'setTeamPlayers' | 'toggleMatchType' | 'clearAllPlayers'
+  'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setLanguage' | 'setTeamName' | 'toggleOutdoorMode' | 'setTeamPlayers' | 'toggleMatchType' | 'clearAllPlayers' | 'setInitialServer'
 >;
 
 const STANDARD_POINTS: StandardPoint[] = ['0', '15', '30', '40', 'Ad'];
@@ -84,7 +87,7 @@ const createInitialTeamState = (name: string): TeamState => ({
   name, points: '0', games: 0, sets: 0, players: null, serverIndex: 0 
 });
 
-const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setLanguage' | 'setTeamName' | 'toggleOutdoorMode' | 'setTeamPlayers' | 'toggleMatchType' | 'clearAllPlayers'> => ({
+const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setLanguage' | 'setTeamName' | 'toggleOutdoorMode' | 'setTeamPlayers' | 'toggleMatchType' | 'clearAllPlayers' | 'setInitialServer'> => ({
   useGoldenPoint: true,
   matchFormat: 'bestOf3', 
   matchType: 'doubles',
@@ -92,6 +95,7 @@ const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint
   isOutdoorMode: false, 
   language: 'en', 
   hasSelectedLanguage: false, 
+  initialServerDecided: false, // Starts false for the toss
   server: 'team1',
   isTiebreak: false,
   matchWinner: null,
@@ -107,7 +111,7 @@ const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint
 });
 
 const cloneSnapshot = (state: PadelState): PadelStateSnapshot => {
-  const { history, scorePoint, undo, toggleGoldenPoint, toggleServer, setMatchFormat, resetMatch, toggleUmpire, setLanguage, setTeamName, toggleOutdoorMode, setTeamPlayers, toggleMatchType, clearAllPlayers, ...rest } = state;
+  const { history, scorePoint, undo, toggleGoldenPoint, toggleServer, setMatchFormat, resetMatch, toggleUmpire, setLanguage, setTeamName, toggleOutdoorMode, setTeamPlayers, toggleMatchType, clearAllPlayers, setInitialServer, ...rest } = state;
   return JSON.parse(JSON.stringify(rest)) as PadelStateSnapshot;
 };
 
@@ -166,7 +170,6 @@ const applyGameWin = (state: PadelState, winner: TeamKey): void => {
       if (state.matchFormat === 'proSet') setsNeeded = 1;
 
       if (winnerTeam.sets >= setsNeeded) {
-        // FIXED: Dynamically construct the winning name(s) to pass to the overlay
         const isEs = state.language === 'es';
         let winName = winnerTeam.name;
         if (winnerTeam.players) {
@@ -244,6 +247,11 @@ export const useMatchStore = create<PadelState>()(
       return {
         ...initialState,
         history: [], 
+        // NEW: Handles the coin toss explicitly
+        setInitialServer: (team: TeamKey) => set({
+          server: team,
+          initialServerDecided: true
+        }),
         scorePoint: (team: TeamKey) => {
           const currentState = get();
           if (currentState.matchWinner && !currentState.matchWinnerDismissed) {
