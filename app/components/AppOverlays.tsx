@@ -11,21 +11,25 @@ interface AppOverlaysProps {
   localDismissed: boolean;
   setLocalDismissed: (v: boolean) => void;
   handleReset: () => void;
-  openMatchSetup: () => void; // NEW
+  openMatchSetup: () => void; 
+  matchSetupOpen: boolean; // NEW: Tells the overlay if the setup modal is active
 }
 
-export default function AppOverlays({ appStarted, handleAppStart, localDismissed, setLocalDismissed, handleReset, openMatchSetup }: AppOverlaysProps) {
+export default function AppOverlays({ appStarted, handleAppStart, localDismissed, setLocalDismissed, handleReset, openMatchSetup, matchSetupOpen }: AppOverlaysProps) {
   const {
     team1, team2, matchWinner, matchWinnerDismissed,
     language, setLanguage, hasSelectedLanguage, setScores,
     initialServerDecided, setInitialServer,
-    isSetupComplete, completeSetup // NEW
+    isSetupComplete, completeSetup, history // NEW: Imported history to check match status
   } = useMatchStore();
 
   const t = dict[language] || dict.en;
   
   const cardRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
+
+  // FIXED: Logic to detect if we are actually at the very start of a brand new match.
+  const isBrandNewMatch = history.length === 0 && team1.points === '0' && team2.points === '0' && team1.games === 0 && team2.games === 0 && team1.sets === 0 && team2.sets === 0;
 
   useEffect(() => {
     if (matchWinner && !matchWinnerDismissed && !localDismissed) {
@@ -40,7 +44,22 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
     }
   }, [matchWinner, matchWinnerDismissed, localDismissed]);
 
-  const handleShare = async () => { /* ... share logic ... */ };
+  const handleShare = async () => {
+    if (!cardRef.current) return;
+    setIsExporting(true);
+    try {
+      await new Promise(res => setTimeout(res, 100));
+      const dataUrl = await toPng(cardRef.current, { quality: 1.0, backgroundColor: '#0f172a', style: { transform: 'scale(1)', margin: '0' } });
+      setIsExporting(false);
+      if (navigator.share) {
+        const blob = await (await fetch(dataUrl)).blob();
+        const file = new File([blob], 'padel-result.png', { type: 'image/png' });
+        await navigator.share({ title: language === 'es' ? 'Resultado de Pádel' : 'Padel Match Result', files: [file] });
+      } else {
+        const link = document.createElement('a'); link.download = 'padel-result.png'; link.href = dataUrl; link.click();
+      }
+    } catch (err) { setIsExporting(false); }
+  };
 
   const team1FallbackName = team1?.name?.trim() ? team1.name : (language === 'es' ? 'Equipo 1' : 'Team 1');
   const team2FallbackName = team2?.name?.trim() ? team2.name : (language === 'es' ? 'Equipo 2' : 'Team 2');
@@ -74,8 +93,8 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
         </div>
       )}
 
-      {/* NEW STAGE 1: Match Setup Prompt */}
-      {hasSelectedLanguage && appStarted && !isSetupComplete && (
+      {/* STAGE 1: Match Setup Prompt (ONLY shows if it is genuinely a new 0-0 match) */}
+      {hasSelectedLanguage && appStarted && !isSetupComplete && isBrandNewMatch && (
         <div className="absolute inset-0 z-[450] bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center gap-8 p-6 animate-in fade-in duration-300">
           <h2 className="text-5xl md:text-6xl font-black uppercase text-white italic drop-shadow-lg tracking-widest text-center">
             {language === 'es' ? 'Nuevo Partido' : 'New Match'}
@@ -100,8 +119,8 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
         </div>
       )}
 
-      {/* STAGE 2: Play For Serve Interceptor (Only shows AFTER setup is complete) */}
-      {hasSelectedLanguage && appStarted && isSetupComplete && !initialServerDecided && (
+      {/* STAGE 2: Play For Serve Interceptor (ONLY shows if setup is done, server is undecided, match is 0-0, AND setup modal is closed!) */}
+      {hasSelectedLanguage && appStarted && isSetupComplete && !initialServerDecided && isBrandNewMatch && !matchSetupOpen && (
         <div className="absolute inset-0 z-[400] bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center gap-8 p-6 animate-in fade-in duration-300">
           <h2 className="text-5xl md:text-7xl font-black uppercase text-white italic drop-shadow-lg tracking-widest text-center">
             Play for Serve

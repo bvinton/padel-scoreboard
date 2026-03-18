@@ -96,8 +96,8 @@ export default function HomePage() {
       <KeyboardListener handleScore={(team) => { if (!readmeOpen) handleScore(team); }} handleUndo={() => { if (!readmeOpen) handleUndo(); }} setTestSignals={setTestSignals} />
       <WebhookListener roomCode={roomCode} handleScore={(team) => { if (!readmeOpen) handleScore(team); }} handleUndo={() => { if (!readmeOpen) handleUndo(); }} setTestSignals={setTestSignals} setIsOnline={setIsOnline} />
 
-      {/* NEW: Passed setMatchSetupOpen so the prompt can trigger the modal */}
-      <AppOverlays appStarted={appStarted} handleAppStart={handleAppStart} localDismissed={localDismissed} setLocalDismissed={setLocalDismissed} handleReset={handleReset} openMatchSetup={() => setMatchSetupOpen(true)} />
+      {/* FIXED: We pass matchSetupOpen in so it knows when to hide the Play For Serve prompt */}
+      <AppOverlays appStarted={appStarted} handleAppStart={handleAppStart} localDismissed={localDismissed} setLocalDismissed={setLocalDismissed} handleReset={handleReset} openMatchSetup={() => setMatchSetupOpen(true)} matchSetupOpen={matchSetupOpen} />
 
       <MatchSetupModal isOpen={matchSetupOpen} onClose={() => setMatchSetupOpen(false)} onPlayerClick={handlePlayerSlotClick} setRosterOpen={setRosterOpen} setHistoryOpen={setHistoryOpen} setArchiveOpen={setArchiveOpen} />
       <UserGuideModal isOpen={userGuideOpen} onClose={() => setUserGuideOpen(false)} isOutdoorMode={isOutdoorMode} />
