@@ -1,5 +1,5 @@
 import React from 'react';
-import { useMatchStore } from '../store/useMatchStore';
+import { useMatchStore } from '../../store/useMatchStore'; // FIXED: Added the extra ../
 
 interface TeamPlayerRef {
   id: string;
