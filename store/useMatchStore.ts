@@ -26,7 +26,6 @@ export interface SetScore {
   team2: number;
 }
 
-// NEW: The Shadow Tracker for deep stats
 export interface MatchStatsTracker {
   startTime: number | null;
   team1: { totalPoints: number; serviceGamesWon: number; breaksWon: number };
@@ -45,13 +44,15 @@ export interface PadelState {
 
   server: Server;
   isTiebreak: boolean;
-  matchWinner: TeamKey | null; 
+  
+  // FIXED: Now stores the actual name of the winner for the overlay
+  matchWinner: { key: TeamKey; name: string } | null; 
   matchWinnerDismissed: boolean;
   
   team1: TeamState;
   team2: TeamState;
   
-  matchStats: MatchStatsTracker; // NEW
+  matchStats: MatchStatsTracker;
 
   setScores: SetScore[];
   history: PadelStateSnapshot[];
@@ -115,7 +116,6 @@ const applyGameWin = (state: PadelState, winner: TeamKey): void => {
   const winnerTeam = state[winner];
   const loserTeam = state[loser];
 
-  // NEW: Track Service Holds vs Breaks BEFORE swapping the server
   if (state.server === winner) {
     state.matchStats[winner].serviceGamesWon += 1;
   } else {
@@ -166,7 +166,16 @@ const applyGameWin = (state: PadelState, winner: TeamKey): void => {
       if (state.matchFormat === 'proSet') setsNeeded = 1;
 
       if (winnerTeam.sets >= setsNeeded) {
-        state.matchWinner = winner;
+        // FIXED: Dynamically construct the winning name(s) to pass to the overlay
+        const isEs = state.language === 'es';
+        let winName = winnerTeam.name;
+        if (winnerTeam.players) {
+           winName = state.matchType === 'singles' 
+             ? winnerTeam.players[0].name 
+             : `${winnerTeam.players[0].name} ${isEs ? 'y' : 'and'} ${winnerTeam.players[1].name}`;
+        }
+        
+        state.matchWinner = { key: winner, name: winName };
         state.matchWinnerDismissed = false;
       } else if (state.matchFormat === 'superTiebreak' && state.team1.sets === 1 && state.team2.sets === 1) {
         state.isTiebreak = true;
@@ -246,7 +255,6 @@ export const useMatchStore = create<PadelState>()(
             const nextState = JSON.parse(JSON.stringify(state)) as PadelState;
             nextState.history = [...state.history, snapshot];
             
-            // NEW: Tally the point and start the timer if this is the first point
             nextState.matchStats[team].totalPoints += 1;
             if (nextState.matchStats.startTime === null) {
               nextState.matchStats.startTime = Date.now();

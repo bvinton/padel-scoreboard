@@ -111,8 +111,9 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
           >
             <Trophy className="w-12 h-12 md:w-20 md:h-20 text-amber-400 mb-3 animate-pulse" />
             
+            {/* FIXED: The overlay now reads the exact dynamic name from the store */}
             <h2 className="text-4xl md:text-7xl font-black mb-1 italic uppercase tracking-tighter text-white">
-              {matchWinner === 'team1' ? team1.name : team2.name}
+              {matchWinner.name}
             </h2>
             
             <div className="text-xl md:text-3xl text-white font-black uppercase tracking-widest mb-2">

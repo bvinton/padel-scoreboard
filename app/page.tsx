@@ -62,14 +62,13 @@ export default function HomePage() {
   const [timerStarted, setTimerStarted] = useState(false);
   const endTimeRef = useRef<number | null>(null);
 
-  // NEW: Long Press Logic
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   
   const handleTouchStart = () => {
     longPressTimer.current = setTimeout(() => {
       setOptionsOpen(true);
-      if (navigator.vibrate) navigator.vibrate(50); // Haptic feedback
-    }, 600); // 0.6 seconds to trigger
+      if (navigator.vibrate) navigator.vibrate(50);
+    }, 600); 
   };
 
   const handleTouchEnd = () => {
@@ -151,7 +150,7 @@ export default function HomePage() {
 
       const durationMinutes = matchStats.startTime ? Math.round((Date.now() - matchStats.startTime) / 60000) : 0;
 
-      recordMatchResult(matchWinner, team1Ids, team1Stats, team2Ids, team2Stats, durationMinutes);
+      recordMatchResult(matchWinner.key, team1Ids, team1Stats, team2Ids, team2Stats, durationMinutes);
       addLog(language === 'es' ? "Partido Finalizado y Estadísticas Guardadas" : "Match Ended & Deep Stats Recorded");
     } else {
       addLog(language === 'es' ? "Partido Guardado (Sin Ganador)" : "Match Saved (No Winner)");
@@ -196,15 +195,16 @@ export default function HomePage() {
     lastActionRef.current = null;
   }, [team1.points, team2.points, team1.games, team2.games, team1.sets, team2.sets, matchWinner, team1.name, team2.name, language]);
 
+  // FIXED: Timer explicitly freezes if matchWinner is true
   useEffect(() => {
-    if (!timerStarted || !endTimeRef.current) return;
+    if (!timerStarted || !endTimeRef.current || matchWinner) return;
     const interval = setInterval(() => {
       const remaining = Math.max(0, (endTimeRef.current! - Date.now()) / 1000);
       setTimeLeft(remaining);
       if (remaining <= 0) { clearInterval(interval); setTimeout(() => setTimerStarted(false), 2000); }
     }, 50);
     return () => clearInterval(interval);
-  }, [timerStarted]);
+  }, [timerStarted, matchWinner]);
 
   useEffect(() => { const saved = localStorage.getItem('padelArchive'); if (saved) { try { setSavedMatches(JSON.parse(saved)); } catch (e) {} } }, []);
 
@@ -215,7 +215,6 @@ export default function HomePage() {
 
   if (!isMounted) return <div className="fixed inset-0 bg-slate-950" />;
 
-  // Smart Hint Check
   const showHint = history.length === 0 && !matchWinner;
 
   return (
@@ -241,13 +240,13 @@ export default function HomePage() {
       <PlayerSelectModal isOpen={playerSelectConfig !== null} onClose={() => setPlayerSelectConfig(null)} teamId={playerSelectConfig?.teamId || null} playerIndex={playerSelectConfig?.playerIndex ?? null} isOutdoorMode={isOutdoorMode} />
       <LockedWarningModal isOpen={lockedWarningOpen} onClose={() => setLockedWarningOpen(false)} isOutdoorMode={isOutdoorMode} />
 
-      <ServeTimer timerStarted={timerStarted} timeLeft={timeLeft} isOutdoorMode={isOutdoorMode} />
+      {/* FIXED: We pass the exact opposite of matchWinner so the timer stops rendering entirely */}
+      <ServeTimer timerStarted={timerStarted && !matchWinner} timeLeft={timeLeft} isOutdoorMode={isOutdoorMode} />
 
       <section className="flex-grow flex flex-col p-0 relative overflow-hidden">
         <PlayerPanel teamId="team1" teamData={team1} isServing={server === "team1"} isOutdoorMode={isOutdoorMode} t={t} handleScore={handleScore} onPlayerClick={handlePlayerSlotClick} />
         <PlayerPanel teamId="team2" teamData={team2} isServing={server === "team2"} isOutdoorMode={isOutdoorMode} t={t} handleScore={handleScore} onPlayerClick={handlePlayerSlotClick} />
 
-        {/* SMART HINT: Only appears when score is 0-0 */}
         {showHint && (
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40 animate-pulse pointer-events-none">
              <span className={`text-[10px] font-black uppercase tracking-[0.3em] opacity-30 ${isOutdoorMode ? 'text-black' : 'text-white'}`}>
