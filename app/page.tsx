@@ -26,14 +26,13 @@ import PlayerSelectModal from "./components/PlayerSelectModal";
 import LockedWarningModal from "./components/LockedWarningModal";
 
 export default function HomePage() {
-  const { team1, team2, server, matchWinner, isOutdoorMode, language, history, initialServerDecided } = useMatchStore();
+  const { team1, team2, server, matchWinner, isOutdoorMode, language, history, initialServerDecided, isSetupComplete } = useMatchStore();
   const t = dict[language] || dict.en; 
 
   const [isMounted, setIsMounted] = useState(false);
   const [appStarted, setAppStarted] = useState(false); 
   const [isOnline, setIsOnline] = useState(false);     
   
-  // UI State Modals
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [matchSetupOpen, setMatchSetupOpen] = useState(false);
   const [userGuideOpen, setUserGuideOpen] = useState(false);
@@ -47,7 +46,6 @@ export default function HomePage() {
   const [roomCode, setRoomCode] = useState<string>("");
   const [testSignals, setTestSignals] = useState({ team1: false, team2: false, undo: false });
 
-  // Custom Hooks Handling the Heavy Lifting
   const { requestWakeLock } = useWakeLock(appStarted);
   const { optionsOpen, setOptionsOpen, showWelcomeHint, setShowWelcomeHint, touchHandlers } = useLongPressMenu();
   const { timeLeft, timerStarted, historyLog, savedMatches, handleScore, handleUndo, handleReset, handleEndMatch, deleteSavedMatch, clearArchive } = useMatchController(localDismissed, setLocalDismissed, setShowWelcomeHint);
@@ -87,7 +85,7 @@ export default function HomePage() {
 
   if (!isMounted) return <div className="fixed inset-0 bg-slate-950" />;
 
-  const displayHint = (history.length === 0 && !matchWinner && initialServerDecided) || showWelcomeHint;
+  const displayHint = (history.length === 0 && !matchWinner && isSetupComplete && initialServerDecided) || showWelcomeHint;
 
   return (
     <main 
@@ -95,23 +93,13 @@ export default function HomePage() {
       style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none' }} 
       className={`fixed inset-0 flex flex-col select-none overflow-hidden font-sans ${isOutdoorMode ? 'bg-white text-black' : 'bg-black text-white'}`}
     >
-      {/* FIXED: The listeners now check if readmeOpen is true. If it is, they silently swallow the score command. */}
-      <KeyboardListener 
-        handleScore={(team) => { if (!readmeOpen) handleScore(team); }} 
-        handleUndo={() => { if (!readmeOpen) handleUndo(); }} 
-        setTestSignals={setTestSignals} 
-      />
-      <WebhookListener 
-        roomCode={roomCode} 
-        handleScore={(team) => { if (!readmeOpen) handleScore(team); }} 
-        handleUndo={() => { if (!readmeOpen) handleUndo(); }} 
-        setTestSignals={setTestSignals} 
-        setIsOnline={setIsOnline} 
-      />
+      <KeyboardListener handleScore={(team) => { if (!readmeOpen) handleScore(team); }} handleUndo={() => { if (!readmeOpen) handleUndo(); }} setTestSignals={setTestSignals} />
+      <WebhookListener roomCode={roomCode} handleScore={(team) => { if (!readmeOpen) handleScore(team); }} handleUndo={() => { if (!readmeOpen) handleUndo(); }} setTestSignals={setTestSignals} setIsOnline={setIsOnline} />
 
-      <AppOverlays appStarted={appStarted} handleAppStart={handleAppStart} localDismissed={localDismissed} setLocalDismissed={setLocalDismissed} handleReset={handleReset} />
+      {/* NEW: Passed setMatchSetupOpen so the prompt can trigger the modal */}
+      <AppOverlays appStarted={appStarted} handleAppStart={handleAppStart} localDismissed={localDismissed} setLocalDismissed={setLocalDismissed} handleReset={handleReset} openMatchSetup={() => setMatchSetupOpen(true)} />
 
-      <MatchSetupModal isOpen={matchSetupOpen} onClose={() => setMatchSetupOpen(false)} setRosterOpen={setRosterOpen} setHistoryOpen={setHistoryOpen} setArchiveOpen={setArchiveOpen} />
+      <MatchSetupModal isOpen={matchSetupOpen} onClose={() => setMatchSetupOpen(false)} onPlayerClick={handlePlayerSlotClick} setRosterOpen={setRosterOpen} setHistoryOpen={setHistoryOpen} setArchiveOpen={setArchiveOpen} />
       <UserGuideModal isOpen={userGuideOpen} onClose={() => setUserGuideOpen(false)} isOutdoorMode={isOutdoorMode} />
       <HardwareWizard isOpen={readmeOpen} onClose={() => { setReadmeOpen(false); setTestSignals({ team1: false, team2: false, undo: false }); }} testSignals={testSignals} />
       <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} roomCode={roomCode} generateNewRoomCode={generateNewRoomCode} setReadmeOpen={setReadmeOpen} setUserGuideOpen={setUserGuideOpen} />

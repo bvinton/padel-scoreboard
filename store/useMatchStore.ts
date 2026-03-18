@@ -42,6 +42,8 @@ export interface PadelState {
   language: Language;
   hasSelectedLanguage: boolean;
 
+  // NEW: Tracks if the user has passed the initial setup prompt
+  isSetupComplete: boolean;
   initialServerDecided: boolean;
   
   server: Server;
@@ -63,6 +65,7 @@ export interface PadelState {
   toggleGoldenPoint: () => void;
   toggleServer: () => void;
   setInitialServer: (team: TeamKey) => void; 
+  completeSetup: () => void; // NEW
   setMatchFormat: (format: MatchFormat) => void; 
   toggleMatchType: () => void;
   toggleUmpire: () => void;
@@ -76,7 +79,7 @@ export interface PadelState {
 
 export type PadelStateSnapshot = Omit<
   PadelState,
-  'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setLanguage' | 'setTeamName' | 'toggleOutdoorMode' | 'setTeamPlayers' | 'toggleMatchType' | 'clearAllPlayers' | 'setInitialServer'
+  'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setLanguage' | 'setTeamName' | 'toggleOutdoorMode' | 'setTeamPlayers' | 'toggleMatchType' | 'clearAllPlayers' | 'setInitialServer' | 'completeSetup'
 >;
 
 const STANDARD_POINTS: StandardPoint[] = ['0', '15', '30', '40', 'Ad'];
@@ -86,7 +89,7 @@ const createInitialTeamState = (name: string): TeamState => ({
   name, points: '0', games: 0, sets: 0, players: null, serverIndex: 0 
 });
 
-const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setLanguage' | 'setTeamName' | 'toggleOutdoorMode' | 'setTeamPlayers' | 'toggleMatchType' | 'clearAllPlayers' | 'setInitialServer'> => ({
+const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setLanguage' | 'setTeamName' | 'toggleOutdoorMode' | 'setTeamPlayers' | 'toggleMatchType' | 'clearAllPlayers' | 'setInitialServer' | 'completeSetup'> => ({
   useGoldenPoint: true,
   matchFormat: 'bestOf3', 
   matchType: 'doubles',
@@ -94,6 +97,7 @@ const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint
   isOutdoorMode: false, 
   language: 'en', 
   hasSelectedLanguage: false, 
+  isSetupComplete: false, // Starts false for new matches
   initialServerDecided: false, 
   server: 'team1',
   isTiebreak: false,
@@ -110,7 +114,7 @@ const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint
 });
 
 const cloneSnapshot = (state: PadelState): PadelStateSnapshot => {
-  const { history, scorePoint, undo, toggleGoldenPoint, toggleServer, setMatchFormat, resetMatch, toggleUmpire, setLanguage, setTeamName, toggleOutdoorMode, setTeamPlayers, toggleMatchType, clearAllPlayers, setInitialServer, ...rest } = state;
+  const { history, scorePoint, undo, toggleGoldenPoint, toggleServer, setMatchFormat, resetMatch, toggleUmpire, setLanguage, setTeamName, toggleOutdoorMode, setTeamPlayers, toggleMatchType, clearAllPlayers, setInitialServer, completeSetup, ...rest } = state;
   return JSON.parse(JSON.stringify(rest)) as PadelStateSnapshot;
 };
 
@@ -246,6 +250,7 @@ export const useMatchStore = create<PadelState>()(
       return {
         ...initialState,
         history: [], 
+        completeSetup: () => set({ isSetupComplete: true }),
         setInitialServer: (team: TeamKey) => set({
           server: team,
           initialServerDecided: true
@@ -291,7 +296,6 @@ export const useMatchStore = create<PadelState>()(
         undo: () => {
           const { history, initialServerDecided, team1, team2 } = get();
           
-          // FIXED: If there are no points scored yet, but the server was decided, Undo reverts the coin toss!
           if (history.length === 0) {
             if (initialServerDecided && team1.points === '0' && team2.points === '0' && team1.games === 0 && team2.games === 0 && team1.sets === 0 && team2.sets === 0) {
               set({ initialServerDecided: false });
