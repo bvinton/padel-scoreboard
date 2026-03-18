@@ -14,6 +14,7 @@ import WebhookListener from "./components/WebhookListener";
 import ServeTimer from "./components/ServeTimer";
 import PlayerPanel from "./components/PlayerPanel";
 import PlayerRosterModal from "./components/PlayerRosterModal";
+import PlayerSelectModal from "./components/PlayerSelectModal"; // NEW: Import Modal
 import useUmpireAudio from "./Hooks/useUmpireAudio";
 import { MoreHorizontal } from "lucide-react";
 
@@ -45,6 +46,9 @@ export default function HomePage() {
   const [rosterOpen, setRosterOpen] = useState(false);
   const [localDismissed, setLocalDismissed] = useState(false);
   
+  // NEW: State for tracking which player slot is being assigned
+  const [playerSelectConfig, setPlayerSelectConfig] = useState<{ teamId: 'team1' | 'team2', playerIndex: 0 | 1 } | null>(null);
+
   const [roomCode, setRoomCode] = useState<string>("");
   const [testSignals, setTestSignals] = useState({ team1: false, team2: false, undo: false });
   
@@ -209,6 +213,15 @@ export default function HomePage() {
         isOutdoorMode={isOutdoorMode}
       />
 
+      {/* NEW: Player Selection Pop-up */}
+      <PlayerSelectModal 
+        isOpen={playerSelectConfig !== null}
+        onClose={() => setPlayerSelectConfig(null)}
+        teamId={playerSelectConfig?.teamId || null}
+        playerIndex={playerSelectConfig?.playerIndex ?? null}
+        isOutdoorMode={isOutdoorMode}
+      />
+
       <ServeTimer timerStarted={timerStarted} timeLeft={timeLeft} isOutdoorMode={isOutdoorMode} />
 
       <section className="flex-grow flex flex-col p-0 relative overflow-hidden">
@@ -218,7 +231,8 @@ export default function HomePage() {
           isServing={server === "team1"} 
           isOutdoorMode={isOutdoorMode} 
           t={t} 
-          handleScore={handleScore} 
+          handleScore={handleScore}
+          onPlayerClick={(team, idx) => setPlayerSelectConfig({ teamId: team, playerIndex: idx })} 
         />
         <PlayerPanel 
           teamId="team2" 
@@ -226,7 +240,8 @@ export default function HomePage() {
           isServing={server === "team2"} 
           isOutdoorMode={isOutdoorMode} 
           t={t} 
-          handleScore={handleScore} 
+          handleScore={handleScore}
+          onPlayerClick={(team, idx) => setPlayerSelectConfig({ teamId: team, playerIndex: idx })} 
         />
 
         <button 
