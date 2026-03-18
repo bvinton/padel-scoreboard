@@ -33,7 +33,8 @@ export default function Footer({
         <Trophy size={18} className={isOutdoorMode ? "text-emerald-600" : "text-emerald-100"} /> END MATCH
       </button>
 
-      <button onClick={() => { handleUndo(); onClose(); }} className={btnBase}>
+      {/* FIXED: Removed the onClose() trigger here so the menu stays open */}
+      <button onClick={() => { handleUndo(); }} className={btnBase}>
         <Undo2 size={18} className="text-amber-500" /> {t.undo}
       </button>
       

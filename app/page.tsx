@@ -43,6 +43,8 @@ export default function HomePage() {
   const [appStarted, setAppStarted] = useState(false); 
   const [isOnline, setIsOnline] = useState(false);     
   
+  const [showWelcomeHint, setShowWelcomeHint] = useState(true);
+
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [matchSetupOpen, setMatchSetupOpen] = useState(false);
@@ -64,9 +66,34 @@ export default function HomePage() {
 
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   
+  // NEW: Robust Wake Lock Engine
+  const wakeLockRef = useRef<any>(null);
+
+  const requestWakeLock = async () => {
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
+      }
+    } catch (err) {
+      // Silently catch rejections (e.g., if battery is critically low)
+    }
+  };
+
+  useEffect(() => {
+    // This constantly monitors if Android stole our wake lock and grabs it back
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && appStarted) {
+        requestWakeLock();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [appStarted]);
+
   const handleTouchStart = () => {
     longPressTimer.current = setTimeout(() => {
       setOptionsOpen(true);
+      setShowWelcomeHint(false); 
       if (navigator.vibrate) navigator.vibrate(50);
     }, 600); 
   };
@@ -97,12 +124,11 @@ export default function HomePage() {
       const silentUtterance = new SpeechSynthesisUtterance("");
       window.speechSynthesis.speak(silentUtterance);
     }
-    try {
-      if ('wakeLock' in navigator) await (navigator as any).wakeLock.request('screen');
-    } catch (err) {}
+    await requestWakeLock(); // Initial Wake Lock request
   };
 
   const handleScore = (team: 'team1' | 'team2') => {
+    setShowWelcomeHint(false); 
     if (matchWinner && !localDismissed) { setLocalDismissed(true); return; }
     lastActionRef.current = { type: 'score', team: team, beforePoints: `${team1.points}-${team2.points}`, beforeGames: team1.games + team2.games, beforeSets: team1.sets + team2.sets };
     endTimeRef.current = Date.now() + 20000; setTimerStarted(true); setTimeLeft(20);
@@ -110,6 +136,7 @@ export default function HomePage() {
   };
 
   const handleUndo = () => {
+    setShowWelcomeHint(false); 
     lastActionRef.current = { type: 'undo', beforePoints: `${team1.points}-${team2.points}`, beforeGames: team1.games + team2.games, beforeSets: team1.sets + team2.sets };
     undo(); endTimeRef.current = null; setTimerStarted(false); setTimeLeft(0); setLocalDismissed(false);
   };
@@ -195,7 +222,6 @@ export default function HomePage() {
     lastActionRef.current = null;
   }, [team1.points, team2.points, team1.games, team2.games, team1.sets, team2.sets, matchWinner, team1.name, team2.name, language]);
 
-  // FIXED: Timer explicitly freezes if matchWinner is true
   useEffect(() => {
     if (!timerStarted || !endTimeRef.current || matchWinner) return;
     const interval = setInterval(() => {
@@ -209,13 +235,14 @@ export default function HomePage() {
   useEffect(() => { const saved = localStorage.getItem('padelArchive'); if (saved) { try { setSavedMatches(JSON.parse(saved)); } catch (e) {} } }, []);
 
   const handlePlayerSlotClick = (teamId: 'team1' | 'team2', playerIndex: 0 | 1) => {
+    setShowWelcomeHint(false); 
     if (history.length > 0) setLockedWarningOpen(true);
     else setPlayerSelectConfig({ teamId, playerIndex });
   };
 
   if (!isMounted) return <div className="fixed inset-0 bg-slate-950" />;
 
-  const showHint = history.length === 0 && !matchWinner;
+  const displayHint = (history.length === 0 && !matchWinner) || showWelcomeHint;
 
   return (
     <main 
@@ -223,6 +250,8 @@ export default function HomePage() {
       onMouseUp={handleTouchEnd}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
+      onContextMenu={(e) => e.preventDefault()} 
+      style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none' }} 
       className={`fixed inset-0 flex flex-col select-none overflow-hidden font-sans ${isOutdoorMode ? 'bg-white text-black' : 'bg-black text-white'}`}
     >
       <KeyboardListener handleScore={handleScore} handleUndo={handleUndo} setTestSignals={setTestSignals} />
@@ -240,16 +269,15 @@ export default function HomePage() {
       <PlayerSelectModal isOpen={playerSelectConfig !== null} onClose={() => setPlayerSelectConfig(null)} teamId={playerSelectConfig?.teamId || null} playerIndex={playerSelectConfig?.playerIndex ?? null} isOutdoorMode={isOutdoorMode} />
       <LockedWarningModal isOpen={lockedWarningOpen} onClose={() => setLockedWarningOpen(false)} isOutdoorMode={isOutdoorMode} />
 
-      {/* FIXED: We pass the exact opposite of matchWinner so the timer stops rendering entirely */}
       <ServeTimer timerStarted={timerStarted && !matchWinner} timeLeft={timeLeft} isOutdoorMode={isOutdoorMode} />
 
       <section className="flex-grow flex flex-col p-0 relative overflow-hidden">
         <PlayerPanel teamId="team1" teamData={team1} isServing={server === "team1"} isOutdoorMode={isOutdoorMode} t={t} handleScore={handleScore} onPlayerClick={handlePlayerSlotClick} />
         <PlayerPanel teamId="team2" teamData={team2} isServing={server === "team2"} isOutdoorMode={isOutdoorMode} t={t} handleScore={handleScore} onPlayerClick={handlePlayerSlotClick} />
 
-        {showHint && (
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40 animate-pulse pointer-events-none">
-             <span className={`text-[10px] font-black uppercase tracking-[0.3em] opacity-30 ${isOutdoorMode ? 'text-black' : 'text-white'}`}>
+        {displayHint && (
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 animate-pulse pointer-events-none text-center w-full">
+             <span className={`text-xs md:text-sm font-black uppercase tracking-[0.3em] opacity-30 ${isOutdoorMode ? 'text-black' : 'text-white'}`}>
                Hold Screen for Menu
              </span>
           </div>
