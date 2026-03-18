@@ -1,26 +1,32 @@
 import { useState } from "react";
 import { useMatchStore, MatchFormat } from "../../store/useMatchStore";
 import { dict } from "../translations";
-import { Volume2, Maximize, Languages, ChevronDown, UserMinus, BookOpen, Cpu } from "lucide-react";
+import { Volume2, Maximize, Languages, ChevronDown, BookOpen, Cpu } from "lucide-react";
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   roomCode: string;
   generateNewRoomCode: () => void;
-  setReadmeOpen: (v: boolean) => void;   // NEW
-  setUserGuideOpen: (v: boolean) => void; // NEW
+  setReadmeOpen: (v: boolean) => void;   
+  setUserGuideOpen: (v: boolean) => void; 
 }
 
-export default function SettingsModal({ isOpen, onClose, roomCode, generateNewRoomCode, setReadmeOpen, setUserGuideOpen }: SettingsModalProps) {
+export default function SettingsModal({ 
+  isOpen, 
+  onClose, 
+  roomCode, 
+  generateNewRoomCode, 
+  setReadmeOpen, 
+  setUserGuideOpen 
+}: SettingsModalProps) {
   const {
     umpireEnabled, toggleUmpire,
     language, setLanguage,
     matchFormat, setMatchFormat,
     isOutdoorMode, toggleOutdoorMode,
     useGoldenPoint, toggleGoldenPoint,
-    toggleServer,
-    clearAllPlayers
+    toggleServer
   } = useMatchStore();
   
   const t = dict[language] || dict.en;
@@ -54,6 +60,7 @@ export default function SettingsModal({ isOpen, onClose, roomCode, generateNewRo
            </div>
          </div>
 
+         {/* Match Format Selection */}
          <div className="relative mt-2">
            <button 
              onClick={() => setIsFormatDropdownOpen(!isFormatDropdownOpen)}
@@ -88,30 +95,27 @@ export default function SettingsModal({ isOpen, onClose, roomCode, generateNewRo
            )}
          </div>
 
+         {/* Umpire Toggle */}
          <button onClick={toggleUmpire} className={`py-4 mt-1 rounded-xl border-2 font-black uppercase flex items-center justify-center gap-4 ${umpireEnabled ? 'bg-indigo-600 border-white text-white shadow-[0_0_15px_rgba(79,70,229,0.5)]' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
            <Volume2 size={24} /> {t.umpire}: {umpireEnabled ? t.on : t.off}
          </button>
 
+         {/* Fullscreen & Language */}
          <div className="grid grid-cols-2 gap-2 mt-1">
             <button onClick={toggleFullscreen} className="py-4 rounded-xl bg-slate-800 text-white font-black uppercase flex items-center justify-center gap-4 active:scale-95 transition-all"><Maximize size={24} /> {t.fullscreen}</button>
-            <button onClick={() => setLanguage(language === 'en' ? 'es' : 'en')} className="py-4 rounded-xl bg-slate-800 text-emerald-400 font-black uppercase flex items-center justify-center gap-4 border border-emerald-500/30 active:scale-95 transition-all"><Languages size={24} /> {t.language}: {language === 'en' ? 'EN' : 'ES'}</button>
+            <button onClick={() => setLanguage(language === 'en' ? 'es' : 'en')} className="py-4 rounded-xl bg-slate-800 text-emerald-400 font-black uppercase flex items-center justify-center gap-4 border border-emerald-500/30 active:scale-95 transition-all"><Languages size={24} /> {language === 'en' ? 'EN' : 'ES'}</button>
          </div>
 
+         {/* Court Mode & Golden Point */}
          <div className="grid grid-cols-2 gap-2">
             <button onClick={toggleOutdoorMode} className={`py-4 rounded-xl border-2 font-black uppercase transition-all flex items-center justify-center ${isOutdoorMode ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.6)]' : 'bg-black border-white text-white shadow-[0_0_15px_rgba(255,255,255,0.3)]'}`}>{t.court}: {isOutdoorMode ? t.outdoor : t.indoor}</button>
             <button onClick={toggleGoldenPoint} className={`py-4 rounded-xl border font-black uppercase transition-all flex items-center justify-center ${useGoldenPoint ? 'bg-amber-500 text-black shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 'bg-slate-800 text-slate-500'}`}>{t.goldenPoint}: {useGoldenPoint ? t.on : t.off}</button>
          </div>
 
+         {/* Server Swap */}
          <button onClick={toggleServer} className="py-4 bg-slate-800 rounded-xl text-white font-black uppercase active:scale-95 transition-all">{t.swapServer}</button>
-         
-         <button 
-           onClick={() => { clearAllPlayers(); onClose(); }} 
-           className="py-4 mt-2 bg-red-500/10 text-red-500 border border-red-500/30 font-black rounded-xl uppercase active:scale-95 transition-all flex justify-center items-center gap-3"
-         >
-           <UserMinus size={20} /> Clear Active Players
-         </button>
 
-         {/* NEW: Help & Support Section */}
+         {/* Help & Support Section */}
          <div className="mt-4 border-t border-slate-700 pt-4 flex flex-col gap-2">
            <h3 className="text-[10px] font-black uppercase text-slate-500 tracking-widest text-center mb-1">Help & Support</h3>
            <div className="grid grid-cols-2 gap-2">

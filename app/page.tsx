@@ -6,8 +6,8 @@ import { useProfileStore } from "../store/useProfileStore";
 import { dict } from "./translations";
 import HardwareWizard from "./components/HardwareWizard";
 import SettingsModal from "./components/SettingsModal";
-import MatchSetupModal from "./components/MatchSetupModal"; // NEW
-import UserGuideModal from "./components/UserGuideModal";   // NEW
+import MatchSetupModal from "./components/MatchSetupModal";
+import UserGuideModal from "./components/UserGuideModal";
 import AppOverlays from "./components/AppOverlays";
 import Footer from "./components/Footer";
 import ArchiveModal from "./components/ArchiveModal";
@@ -20,7 +20,6 @@ import PlayerRosterModal from "./components/PlayerRosterModal";
 import PlayerSelectModal from "./components/PlayerSelectModal";
 import LockedWarningModal from "./components/LockedWarningModal";
 import useUmpireAudio from "./Hooks/useUmpireAudio";
-import { MoreHorizontal } from "lucide-react";
 
 interface SavedMatch {
   id: number;
@@ -46,8 +45,8 @@ export default function HomePage() {
   
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [matchSetupOpen, setMatchSetupOpen] = useState(false); // NEW
-  const [userGuideOpen, setUserGuideOpen] = useState(false);   // NEW
+  const [matchSetupOpen, setMatchSetupOpen] = useState(false);
+  const [userGuideOpen, setUserGuideOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [readmeOpen, setReadmeOpen] = useState(false);
@@ -62,6 +61,20 @@ export default function HomePage() {
   const [timeLeft, setTimeLeft] = useState(0);
   const [timerStarted, setTimerStarted] = useState(false);
   const endTimeRef = useRef<number | null>(null);
+
+  // NEW: Long Press Logic
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  
+  const handleTouchStart = () => {
+    longPressTimer.current = setTimeout(() => {
+      setOptionsOpen(true);
+      if (navigator.vibrate) navigator.vibrate(50); // Haptic feedback
+    }, 600); // 0.6 seconds to trigger
+  };
+
+  const handleTouchEnd = () => {
+    if (longPressTimer.current) clearTimeout(longPressTimer.current);
+  };
 
   const lastActionRef = useRef<{type: 'score'|'undo', team?: 'team1'|'team2', beforePoints: string, beforeGames: number, beforeSets: number} | null>(null);
 
@@ -138,15 +151,7 @@ export default function HomePage() {
 
       const durationMinutes = matchStats.startTime ? Math.round((Date.now() - matchStats.startTime) / 60000) : 0;
 
-      recordMatchResult(
-        matchWinner, 
-        team1Ids, 
-        team1Stats, 
-        team2Ids, 
-        team2Stats, 
-        durationMinutes
-      );
-      
+      recordMatchResult(matchWinner, team1Ids, team1Stats, team2Ids, team2Stats, durationMinutes);
       addLog(language === 'es' ? "Partido Finalizado y Estadísticas Guardadas" : "Match Ended & Deep Stats Recorded");
     } else {
       addLog(language === 'es' ? "Partido Guardado (Sin Ganador)" : "Match Saved (No Winner)");
@@ -204,142 +209,62 @@ export default function HomePage() {
   useEffect(() => { const saved = localStorage.getItem('padelArchive'); if (saved) { try { setSavedMatches(JSON.parse(saved)); } catch (e) {} } }, []);
 
   const handlePlayerSlotClick = (teamId: 'team1' | 'team2', playerIndex: 0 | 1) => {
-    if (history.length > 0) {
-      setLockedWarningOpen(true);
-    } else {
-      setPlayerSelectConfig({ teamId, playerIndex });
-    }
+    if (history.length > 0) setLockedWarningOpen(true);
+    else setPlayerSelectConfig({ teamId, playerIndex });
   };
 
-  if (!isMounted) {
-    return <div className="fixed inset-0 bg-slate-950" />;
-  }
+  if (!isMounted) return <div className="fixed inset-0 bg-slate-950" />;
+
+  // Smart Hint Check
+  const showHint = history.length === 0 && !matchWinner;
 
   return (
     <main 
+      onMouseDown={handleTouchStart}
+      onMouseUp={handleTouchEnd}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
       className={`fixed inset-0 flex flex-col select-none overflow-hidden font-sans ${isOutdoorMode ? 'bg-white text-black' : 'bg-black text-white'}`}
     >
       <KeyboardListener handleScore={handleScore} handleUndo={handleUndo} setTestSignals={setTestSignals} />
-      
-      <WebhookListener 
-        roomCode={roomCode} 
-        handleScore={handleScore} 
-        handleUndo={handleUndo} 
-        setTestSignals={setTestSignals} 
-        setIsOnline={setIsOnline} 
-      />
+      <WebhookListener roomCode={roomCode} handleScore={handleScore} handleUndo={handleUndo} setTestSignals={setTestSignals} setIsOnline={setIsOnline} />
 
-      <AppOverlays 
-        appStarted={appStarted} 
-        handleAppStart={handleAppStart} 
-        localDismissed={localDismissed} 
-        setLocalDismissed={setLocalDismissed} 
-        handleReset={handleReset} 
-      />
+      <AppOverlays appStarted={appStarted} handleAppStart={handleAppStart} localDismissed={localDismissed} setLocalDismissed={setLocalDismissed} handleReset={handleReset} />
 
-      {/* NEW: Extracted Menu Modals */}
-      <MatchSetupModal 
-        isOpen={matchSetupOpen}
-        onClose={() => setMatchSetupOpen(false)}
-        setRosterOpen={setRosterOpen}
-        setHistoryOpen={setHistoryOpen}
-        setArchiveOpen={setArchiveOpen}
-      />
-
-      <UserGuideModal
-        isOpen={userGuideOpen}
-        onClose={() => setUserGuideOpen(false)}
-        isOutdoorMode={isOutdoorMode}
-      />
-
-      {/* Existing Modals */}
-      <HardwareWizard 
-        isOpen={readmeOpen} 
-        onClose={() => { setReadmeOpen(false); setTestSignals({ team1: false, team2: false, undo: false }); }} 
-        testSignals={testSignals} 
-      />
-
-      <SettingsModal 
-        isOpen={settingsOpen} 
-        onClose={() => setSettingsOpen(false)} 
-        roomCode={roomCode} 
-        generateNewRoomCode={generateNewRoomCode}
-        setReadmeOpen={setReadmeOpen}       // NEW
-        setUserGuideOpen={setUserGuideOpen} // NEW
-      />
-
-      <ArchiveModal 
-        isOpen={archiveOpen}
-        onClose={() => setArchiveOpen(false)}
-        savedMatches={savedMatches}
-        deleteSavedMatch={deleteSavedMatch}
-        clearArchive={clearArchive}
-      />
-
-      <PointLogModal 
-        isOpen={historyOpen}
-        onClose={() => setHistoryOpen(false)}
-        historyLog={historyLog}
-      />
-
-      <PlayerRosterModal 
-        isOpen={rosterOpen}
-        onClose={() => setRosterOpen(false)}
-        isOutdoorMode={isOutdoorMode}
-      />
-
-      <PlayerSelectModal 
-        isOpen={playerSelectConfig !== null}
-        onClose={() => setPlayerSelectConfig(null)}
-        teamId={playerSelectConfig?.teamId || null}
-        playerIndex={playerSelectConfig?.playerIndex ?? null}
-        isOutdoorMode={isOutdoorMode}
-      />
-
-      <LockedWarningModal
-        isOpen={lockedWarningOpen}
-        onClose={() => setLockedWarningOpen(false)}
-        isOutdoorMode={isOutdoorMode}
-      />
+      <MatchSetupModal isOpen={matchSetupOpen} onClose={() => setMatchSetupOpen(false)} setRosterOpen={setRosterOpen} setHistoryOpen={setHistoryOpen} setArchiveOpen={setArchiveOpen} />
+      <UserGuideModal isOpen={userGuideOpen} onClose={() => setUserGuideOpen(false)} isOutdoorMode={isOutdoorMode} />
+      <HardwareWizard isOpen={readmeOpen} onClose={() => { setReadmeOpen(false); setTestSignals({ team1: false, team2: false, undo: false }); }} testSignals={testSignals} />
+      <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} roomCode={roomCode} generateNewRoomCode={generateNewRoomCode} setReadmeOpen={setReadmeOpen} setUserGuideOpen={setUserGuideOpen} />
+      <ArchiveModal isOpen={archiveOpen} onClose={() => setArchiveOpen(false)} savedMatches={savedMatches} deleteSavedMatch={deleteSavedMatch} clearArchive={clearArchive} />
+      <PointLogModal isOpen={historyOpen} onClose={() => setHistoryOpen(false)} historyLog={historyLog} />
+      <PlayerRosterModal isOpen={rosterOpen} onClose={() => setRosterOpen(false)} isOutdoorMode={isOutdoorMode} />
+      <PlayerSelectModal isOpen={playerSelectConfig !== null} onClose={() => setPlayerSelectConfig(null)} teamId={playerSelectConfig?.teamId || null} playerIndex={playerSelectConfig?.playerIndex ?? null} isOutdoorMode={isOutdoorMode} />
+      <LockedWarningModal isOpen={lockedWarningOpen} onClose={() => setLockedWarningOpen(false)} isOutdoorMode={isOutdoorMode} />
 
       <ServeTimer timerStarted={timerStarted} timeLeft={timeLeft} isOutdoorMode={isOutdoorMode} />
 
       <section className="flex-grow flex flex-col p-0 relative overflow-hidden">
-        <PlayerPanel 
-          teamId="team1" 
-          teamData={team1} 
-          isServing={server === "team1"} 
-          isOutdoorMode={isOutdoorMode} 
-          t={t} 
-          handleScore={handleScore}
-          onPlayerClick={handlePlayerSlotClick} 
-        />
-        <PlayerPanel 
-          teamId="team2" 
-          teamData={team2} 
-          isServing={server === "team2"} 
-          isOutdoorMode={isOutdoorMode} 
-          t={t} 
-          handleScore={handleScore}
-          onPlayerClick={handlePlayerSlotClick} 
-        />
+        <PlayerPanel teamId="team1" teamData={team1} isServing={server === "team1"} isOutdoorMode={isOutdoorMode} t={t} handleScore={handleScore} onPlayerClick={handlePlayerSlotClick} />
+        <PlayerPanel teamId="team2" teamData={team2} isServing={server === "team2"} isOutdoorMode={isOutdoorMode} t={t} handleScore={handleScore} onPlayerClick={handlePlayerSlotClick} />
 
-        <button 
-          onClick={(e) => { e.stopPropagation(); setOptionsOpen(true); }}
-          className={`absolute bottom-2 left-1/2 -translate-x-1/2 z-40 px-8 py-1.5 rounded-xl transition-all backdrop-blur-sm shadow-lg ${isOutdoorMode ? 'bg-white/80 text-black/50 hover:bg-white hover:text-black border border-gray-300' : 'bg-slate-800/60 text-white/30 hover:bg-slate-800 hover:text-white border border-slate-700/50'}`}
-        >
-          <MoreHorizontal size={28} />
-        </button>
+        {/* SMART HINT: Only appears when score is 0-0 */}
+        {showHint && (
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40 animate-pulse pointer-events-none">
+             <span className={`text-[10px] font-black uppercase tracking-[0.3em] opacity-30 ${isOutdoorMode ? 'text-black' : 'text-white'}`}>
+               Hold Screen for Menu
+             </span>
+          </div>
+        )}
       </section>
 
       {optionsOpen && (
         <Footer 
-          handleUndo={handleUndo}
+          handleUndo={handleUndo} 
           handleEndMatch={handleEndMatch} 
-          handleReset={handleReset}
-          setMatchSetupOpen={setMatchSetupOpen} // NEW
-          setSettingsOpen={setSettingsOpen}
-          onClose={() => setOptionsOpen(false)}
+          handleReset={handleReset} 
+          setMatchSetupOpen={setMatchSetupOpen} 
+          setSettingsOpen={setSettingsOpen} 
+          onClose={() => setOptionsOpen(false)} 
         />
       )}
     </main>
