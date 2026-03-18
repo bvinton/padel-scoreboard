@@ -104,7 +104,6 @@ export default function HomePage() {
     resetMatch();
   };
 
-  // NEW: Deep Stat Extraction and Submission
   const handleEndMatch = () => {
     let scoreString = setScores.map(set => `${set.team1}-${set.team2}`).join(', ');
     if (team1.games > 0 || team2.games > 0) { const currentScore = `${team1.games}-${team2.games}`; scoreString = scoreString ? `${scoreString}, ${currentScore}` : currentScore; }
@@ -112,39 +111,39 @@ export default function HomePage() {
     const updated = [newMatch, ...savedMatches]; setSavedMatches(updated); localStorage.setItem('padelArchive', JSON.stringify(updated)); 
 
     if (matchWinner) {
-      // 1. Calculate Total Games Won (Past Sets + Current Set)
       const t1TotalGames = setScores.reduce((sum, set) => sum + set.team1, 0) + team1.games;
       const t2TotalGames = setScores.reduce((sum, set) => sum + set.team2, 0) + team2.games;
 
-      // 2. Format the specific stats for Team 1
-      const team1Data = {
-        ids: team1.players ? team1.players.map(p => p.id) : [],
-        stats: {
-          points: matchStats.team1.totalPoints,
-          games: t1TotalGames,
-          sets: team1.sets,
-          serviceGames: matchStats.team1.serviceGamesWon,
-          breaks: matchStats.team1.breaksWon
-        }
+      const team1Ids = team1.players ? team1.players.map(p => p.id) : [];
+      const team1Stats = {
+        points: matchStats.team1.totalPoints,
+        games: t1TotalGames,
+        sets: team1.sets,
+        serviceGames: matchStats.team1.serviceGamesWon,
+        breaks: matchStats.team1.breaksWon
       };
 
-      // 3. Format the specific stats for Team 2
-      const team2Data = {
-        ids: team2.players ? team2.players.map(p => p.id) : [],
-        stats: {
-          points: matchStats.team2.totalPoints,
-          games: t2TotalGames,
-          sets: team2.sets,
-          serviceGames: matchStats.team2.serviceGamesWon,
-          breaks: matchStats.team2.breaksWon
-        }
+      const team2Ids = team2.players ? team2.players.map(p => p.id) : [];
+      const team2Stats = {
+        points: matchStats.team2.totalPoints,
+        games: t2TotalGames,
+        sets: team2.sets,
+        serviceGames: matchStats.team2.serviceGamesWon,
+        breaks: matchStats.team2.breaksWon
       };
 
-      // 4. Calculate total match time in minutes
       const durationMinutes = matchStats.startTime ? Math.round((Date.now() - matchStats.startTime) / 60000) : 0;
 
-      // 5. Blast it to the profile database
-      recordMatchResult(matchWinner, team1Data, team2Data, durationMinutes);
+      // FIXED: Passing exactly 6 arguments directly
+      recordMatchResult(
+        matchWinner, 
+        team1Ids, 
+        team1Stats, 
+        team2Ids, 
+        team2Stats, 
+        durationMinutes
+      );
+      
       addLog(language === 'es' ? "Partido Finalizado y Estadísticas Guardadas" : "Match Ended & Deep Stats Recorded");
     } else {
       addLog(language === 'es' ? "Partido Guardado (Sin Ganador)" : "Match Saved (No Winner)");
