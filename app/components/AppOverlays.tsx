@@ -20,7 +20,8 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
     team1, team2, matchWinner, matchWinnerDismissed,
     language, setLanguage, hasSelectedLanguage, setScores,
     initialServerDecided, setInitialServer,
-    isSetupComplete, completeSetup, history 
+    isSetupComplete, completeSetup, history,
+    matchAnnouncement, clearAnnouncement // NEW
   } = useMatchStore();
 
   const t = dict[language] || dict.en;
@@ -29,6 +30,16 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
   const [isExporting, setIsExporting] = useState(false);
 
   const isBrandNewMatch = history.length === 0 && team1.points === '0' && team2.points === '0' && team1.games === 0 && team2.games === 0 && team1.sets === 0 && team2.sets === 0;
+
+  // NEW: Auto-Dismiss Timer for Announcements
+  useEffect(() => {
+    if (matchAnnouncement) {
+      const timer = setTimeout(() => {
+        clearAnnouncement();
+      }, 7000); // Prompts stay exactly 7 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [matchAnnouncement, clearAnnouncement]);
 
   useEffect(() => {
     if (matchWinner && !matchWinnerDismissed && !localDismissed) {
@@ -43,7 +54,7 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
     }
   }, [matchWinner, matchWinnerDismissed, localDismissed]);
 
-  const handleShare = async () => { /* ... share logic ... */ };
+  const handleShare = async () => { /* share logic */ };
 
   const team1FallbackName = team1?.name?.trim() ? team1.name : (language === 'es' ? 'Equipo 1' : 'Team 1');
   const team2FallbackName = team2?.name?.trim() ? team2.name : (language === 'es' ? 'Equipo 2' : 'Team 2');
@@ -77,7 +88,6 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
         </div>
       )}
 
-      {/* FIXED: We only call openMatchSetup() here so it doesn't instantly crash into Stage 2 */}
       {hasSelectedLanguage && appStarted && !isSetupComplete && isBrandNewMatch && !matchSetupOpen && (
         <div className="absolute inset-0 z-[450] bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center gap-8 p-6 animate-in fade-in duration-300">
           <h2 className="text-5xl md:text-6xl font-black uppercase text-white italic drop-shadow-lg tracking-widest text-center">
@@ -87,23 +97,16 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
             {language === 'es' ? 'Configura tus jugadores o inicia un partido rápido con valores predeterminados.' : 'Setup your players, or quick start with defaults.'}
           </p>
           <div className="flex flex-col md:flex-row gap-6 w-full max-w-2xl justify-center">
-            <button 
-              onClick={() => openMatchSetup()} 
-              className="flex-1 py-8 bg-blue-900/40 border-4 border-blue-700/50 hover:border-blue-400 rounded-[2rem] text-2xl font-black text-blue-300 uppercase active:scale-95 transition-all shadow-xl flex flex-col items-center gap-2"
-            >
+            <button onClick={() => openMatchSetup()} className="flex-1 py-8 bg-blue-900/40 border-4 border-blue-700/50 hover:border-blue-400 rounded-[2rem] text-2xl font-black text-blue-300 uppercase active:scale-95 transition-all shadow-xl flex flex-col items-center gap-2">
               <ClipboardList size={32} /> {language === 'es' ? 'Configurar Partido' : 'Match Setup'}
             </button>
-            <button 
-              onClick={() => completeSetup()} 
-              className="flex-1 py-8 bg-emerald-900/40 border-4 border-emerald-700/50 hover:border-emerald-400 rounded-[2rem] text-2xl font-black text-emerald-300 uppercase active:scale-95 transition-all shadow-xl flex flex-col items-center gap-2"
-            >
+            <button onClick={() => completeSetup()} className="flex-1 py-8 bg-emerald-900/40 border-4 border-emerald-700/50 hover:border-emerald-400 rounded-[2rem] text-2xl font-black text-emerald-300 uppercase active:scale-95 transition-all shadow-xl flex flex-col items-center gap-2">
               <Zap size={32} /> {language === 'es' ? 'Inicio Rápido' : 'Quick Start'}
             </button>
           </div>
         </div>
       )}
 
-      {/* FIXED: Stage 2 waits for isSetupComplete AND ensures matchSetupOpen is completely closed */}
       {hasSelectedLanguage && appStarted && isSetupComplete && !initialServerDecided && isBrandNewMatch && !matchSetupOpen && (
         <div className="absolute inset-0 z-[400] bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center gap-8 p-6 animate-in fade-in duration-300">
           <h2 className="text-5xl md:text-7xl font-black uppercase text-white italic drop-shadow-lg tracking-widest text-center">
@@ -122,6 +125,21 @@ export default function AppOverlays({ appStarted, handleAppStart, localDismissed
               {team2FallbackName}
             </button>
           </div>
+        </div>
+      )}
+
+      {/* NEW STAGE 3: Auto-Dismissing Announcements (Tiebreaks & Set Wins) */}
+      {matchAnnouncement && !matchWinner && (
+        <div 
+          className="absolute inset-0 z-[350] bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center gap-6 p-6 animate-in zoom-in duration-300 cursor-pointer" 
+          onClick={() => clearAnnouncement()}
+        >
+          <h2 className="text-5xl md:text-7xl font-black uppercase text-emerald-400 italic drop-shadow-[0_0_30px_rgba(52,211,153,0.4)] tracking-widest text-center whitespace-pre-line leading-tight">
+            {matchAnnouncement.title}
+          </h2>
+          <p className="text-slate-300 font-black uppercase tracking-widest text-center text-xl md:text-3xl mt-4 bg-slate-800/50 px-8 py-3 rounded-full border border-slate-700 animate-pulse">
+            {matchAnnouncement.subtitle}
+          </p>
         </div>
       )}
 

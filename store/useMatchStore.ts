@@ -48,6 +48,9 @@ export interface PadelState {
   server: Server;
   isTiebreak: boolean;
   
+  // NEW: Flexible Announcement State
+  matchAnnouncement: { title: string; subtitle: string } | null;
+  
   matchWinner: { key: TeamKey; name: string } | null; 
   matchWinnerDismissed: boolean;
   
@@ -65,7 +68,8 @@ export interface PadelState {
   toggleServer: () => void;
   setInitialServer: (team: TeamKey) => void; 
   completeSetup: () => void; 
-  forceNewMatchState: () => void; // NEW: Resets the onboarding funnel
+  forceNewMatchState: () => void; 
+  clearAnnouncement: () => void; // NEW
   setMatchFormat: (format: MatchFormat) => void; 
   toggleMatchType: () => void;
   toggleUmpire: () => void;
@@ -79,7 +83,7 @@ export interface PadelState {
 
 export type PadelStateSnapshot = Omit<
   PadelState,
-  'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setLanguage' | 'setTeamName' | 'toggleOutdoorMode' | 'setTeamPlayers' | 'toggleMatchType' | 'clearAllPlayers' | 'setInitialServer' | 'completeSetup' | 'forceNewMatchState'
+  'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setLanguage' | 'setTeamName' | 'toggleOutdoorMode' | 'setTeamPlayers' | 'toggleMatchType' | 'clearAllPlayers' | 'setInitialServer' | 'completeSetup' | 'forceNewMatchState' | 'clearAnnouncement'
 >;
 
 const STANDARD_POINTS: StandardPoint[] = ['0', '15', '30', '40', 'Ad'];
@@ -89,7 +93,7 @@ const createInitialTeamState = (name: string): TeamState => ({
   name, points: '0', games: 0, sets: 0, players: null, serverIndex: 0 
 });
 
-const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setLanguage' | 'setTeamName' | 'toggleOutdoorMode' | 'setTeamPlayers' | 'toggleMatchType' | 'clearAllPlayers' | 'setInitialServer' | 'completeSetup' | 'forceNewMatchState'> => ({
+const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setLanguage' | 'setTeamName' | 'toggleOutdoorMode' | 'setTeamPlayers' | 'toggleMatchType' | 'clearAllPlayers' | 'setInitialServer' | 'completeSetup' | 'forceNewMatchState' | 'clearAnnouncement'> => ({
   useGoldenPoint: true,
   matchFormat: 'bestOf3', 
   matchType: 'doubles',
@@ -101,6 +105,7 @@ const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint
   initialServerDecided: false, 
   server: 'team1',
   isTiebreak: false,
+  matchAnnouncement: null, // Initialize Empty
   matchWinner: null,
   matchWinnerDismissed: false,
   team1: createInitialTeamState('Team 1'),
@@ -114,12 +119,11 @@ const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint
 });
 
 const cloneSnapshot = (state: PadelState): PadelStateSnapshot => {
-  const { history, scorePoint, undo, toggleGoldenPoint, toggleServer, setMatchFormat, resetMatch, toggleUmpire, setLanguage, setTeamName, toggleOutdoorMode, setTeamPlayers, toggleMatchType, clearAllPlayers, setInitialServer, completeSetup, forceNewMatchState, ...rest } = state;
+  const { history, scorePoint, undo, toggleGoldenPoint, toggleServer, setMatchFormat, resetMatch, toggleUmpire, setLanguage, setTeamName, toggleOutdoorMode, setTeamPlayers, toggleMatchType, clearAllPlayers, setInitialServer, completeSetup, forceNewMatchState, clearAnnouncement, ...rest } = state;
   return JSON.parse(JSON.stringify(rest)) as PadelStateSnapshot;
 };
 
 const applyGameWin = (state: PadelState, winner: TeamKey): void => {
-  // ... (Logic remains identical)
   const loser = getOppositeTeam(winner);
   const winnerTeam = state[winner];
   const loserTeam = state[loser];
@@ -150,6 +154,14 @@ const applyGameWin = (state: PadelState, winner: TeamKey): void => {
 
   if (!state.isTiebreak && state.team1.games === targetGames && state.team2.games === targetGames) {
     state.isTiebreak = true;
+    const isEs = state.language === 'es';
+    
+    // NEW: TIEBREAK ANNOUNCEMENT
+    state.matchAnnouncement = {
+      title: "Tiebreak",
+      subtitle: isEs ? "Cambio de lado" : "Swap Sides"
+    };
+
     state.team1.points = 0;
     state.team2.points = 0;
     return;
@@ -173,23 +185,38 @@ const applyGameWin = (state: PadelState, winner: TeamKey): void => {
       if (state.matchFormat === 'bestOf5') setsNeeded = 3;
       if (state.matchFormat === 'proSet') setsNeeded = 1;
 
+      const isEs = state.language === 'es';
+      let winName = winnerTeam.name;
+      if (winnerTeam.players) {
+         winName = state.matchType === 'singles' 
+           ? winnerTeam.players[0].name 
+           : `${winnerTeam.players[0].name} ${isEs ? 'y' : 'and'} ${winnerTeam.players[1].name}`;
+      }
+
       if (winnerTeam.sets >= setsNeeded) {
-        const isEs = state.language === 'es';
-        let winName = winnerTeam.name;
-        if (winnerTeam.players) {
-           winName = state.matchType === 'singles' ? winnerTeam.players[0].name : `${winnerTeam.players[0].name} ${isEs ? 'y' : 'and'} ${winnerTeam.players[1].name}`;
-        }
         state.matchWinner = { key: winner, name: winName };
         state.matchWinnerDismissed = false;
-      } else if (state.matchFormat === 'superTiebreak' && state.team1.sets === 1 && state.team2.sets === 1) {
-        state.isTiebreak = true;
+      } else {
+        // NEW: SET WIN ANNOUNCEMENT (Not a match win)
+        const setNum = state.team1.sets + state.team2.sets;
+        state.matchAnnouncement = {
+          title: isEs ? `Set ${setNum} para\n${winName}` : `Set ${setNum} Winner\n${winName}`,
+          subtitle: isEs ? "Cambio de lado" : "Swap Sides"
+        };
+
+        if (state.matchFormat === 'superTiebreak' && state.team1.sets === 1 && state.team2.sets === 1) {
+          state.isTiebreak = true;
+          state.matchAnnouncement = {
+            title: "Super Tiebreak",
+            subtitle: isEs ? "¡A 10 puntos!" : "First to 10"
+          };
+        }
       }
     }
   }
 };
 
 const handleStandardPoint = (state: PadelState, scoringTeamKey: TeamKey): void => {
-  // ... (Logic remains identical)
   const otherTeamKey = getOppositeTeam(scoringTeamKey);
   const scoringTeam = state[scoringTeamKey];
   const otherTeam = state[otherTeamKey];
@@ -218,7 +245,6 @@ const handleStandardPoint = (state: PadelState, scoringTeamKey: TeamKey): void =
 };
 
 const handleTiebreakPoint = (state: PadelState, scoringTeamKey: TeamKey): void => {
-  // ... (Logic remains identical)
   const otherTeamKey = getOppositeTeam(scoringTeamKey);
   const scoringTeam = state[scoringTeamKey];
   const otherTeam = state[otherTeamKey];
@@ -251,17 +277,25 @@ export const useMatchStore = create<PadelState>()(
         ...initialState,
         history: [], 
         completeSetup: () => set({ isSetupComplete: true }),
-        forceNewMatchState: () => set({ isSetupComplete: false, initialServerDecided: false }), // NEW
+        forceNewMatchState: () => set({ isSetupComplete: false, initialServerDecided: false }), 
+        clearAnnouncement: () => set({ matchAnnouncement: null }), // NEW
         setInitialServer: (team: TeamKey) => set({
           server: team,
           initialServerDecided: true
         }),
         scorePoint: (team: TeamKey) => {
           const currentState = get();
+          
+          // FIXED: If they score a point while the announcement is up, clear it instantly!
+          if (currentState.matchAnnouncement) {
+            set({ matchAnnouncement: null });
+          }
+
           if (currentState.matchWinner && !currentState.matchWinnerDismissed) {
             set({ matchWinnerDismissed: true });
             return; 
           }
+          
           const snapshot = cloneSnapshot(currentState);
           set((state) => {
             const nextState = JSON.parse(JSON.stringify(state)) as PadelState;
@@ -283,7 +317,13 @@ export const useMatchStore = create<PadelState>()(
         setTeamPlayers: (team: TeamKey, players) => set((state) => ({ [team]: { ...state[team], players } })),
         clearAllPlayers: () => set((state) => ({ team1: { ...state.team1, players: null }, team2: { ...state.team2, players: null } })),
         undo: () => {
-          const { history, initialServerDecided, team1, team2 } = get();
+          const { history, initialServerDecided, team1, team2, matchAnnouncement } = get();
+          
+          // FIXED: Undo also instantly clears the announcement
+          if (matchAnnouncement) {
+            set({ matchAnnouncement: null });
+          }
+
           if (history.length === 0) {
             if (initialServerDecided && team1.points === '0' && team2.points === '0' && team1.games === 0 && team2.games === 0 && team1.sets === 0 && team2.sets === 0) {
               set({ initialServerDecided: false });
