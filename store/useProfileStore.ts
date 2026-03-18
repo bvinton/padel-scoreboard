@@ -8,7 +8,8 @@ export interface PlayerStats {
   totalPointsWon: number;
   gamesWon: number;
   setsWon: number;
-  breakPointsWon: number;
+  serviceGamesWon: number; // NEW
+  breaksWon: number;       // UPDATED
   totalMatchTimeMinutes: number;
   currentWinningStreak: number;
   longestWinningStreak: number;
@@ -21,13 +22,26 @@ export interface PlayerProfile {
   stats: PlayerStats;
 }
 
+interface MatchRecordData {
+  points: number;
+  games: number;
+  sets: number;
+  serviceGames: number;
+  breaks: number;
+}
+
 interface ProfileState {
   profiles: PlayerProfile[];
   addProfile: (name: string, themeColor?: string) => void;
   updateProfile: (id: string, updates: Partial<PlayerProfile>) => void;
   deleteProfile: (id: string) => void;
-  // NEW: The function that does all the heavy math when a match ends
-  recordMatchResult: (winningPlayerIds: string[], losingPlayerIds: string[]) => void;
+  // UPDATED: Now accepts full granular stats
+  recordMatchResult: (
+    winningTeamKey: 'team1' | 'team2',
+    team1Ids: string[], team1Stats: MatchRecordData,
+    team2Ids: string[], team2Stats: MatchRecordData,
+    matchDurationMinutes: number
+  ) => void;
 }
 
 export const useProfileStore = create<ProfileState>()(
@@ -47,7 +61,8 @@ export const useProfileStore = create<ProfileState>()(
             totalPointsWon: 0,
             gamesWon: 0,
             setsWon: 0,
-            breakPointsWon: 0,
+            serviceGamesWon: 0,
+            breaksWon: 0,
             totalMatchTimeMinutes: 0,
             currentWinningStreak: 0,
             longestWinningStreak: 0,
@@ -66,20 +81,18 @@ export const useProfileStore = create<ProfileState>()(
         profiles: state.profiles.filter(profile => profile.id !== id)
       })),
 
-      // NEW: Automatically calculates wins, losses, and streaks!
-      recordMatchResult: (winningPlayerIds, losingPlayerIds) => set((state) => ({
+      recordMatchResult: (winningTeamKey, team1Ids, team1Stats, team2Ids, team2Stats, matchDurationMinutes) => set((state) => ({
         profiles: state.profiles.map(profile => {
-          const isWinner = winningPlayerIds.includes(profile.id);
-          const isLoser = losingPlayerIds.includes(profile.id);
+          const inTeam1 = team1Ids.includes(profile.id);
+          const inTeam2 = team2Ids.includes(profile.id);
 
-          // If they didn't play in this match, don't change their stats
-          if (!isWinner && !isLoser) return profile;
+          // If they didn't play, skip them
+          if (!inTeam1 && !inTeam2) return profile;
 
-          const newMatchesPlayed = profile.stats.matchesPlayed + 1;
-          const newWins = isWinner ? profile.stats.wins + 1 : profile.stats.wins;
-          const newLosses = isLoser ? profile.stats.losses + 1 : profile.stats.losses;
-          
-          // Streak logic
+          const isWinner = (inTeam1 && winningTeamKey === 'team1') || (inTeam2 && winningTeamKey === 'team2');
+          const isLoser = !isWinner;
+          const matchData = inTeam1 ? team1Stats : team2Stats;
+
           const newStreak = isWinner ? profile.stats.currentWinningStreak + 1 : 0;
           const newLongestStreak = Math.max(profile.stats.longestWinningStreak, newStreak);
 
@@ -87,9 +100,15 @@ export const useProfileStore = create<ProfileState>()(
             ...profile,
             stats: {
               ...profile.stats,
-              matchesPlayed: newMatchesPlayed,
-              wins: newWins,
-              losses: newLosses,
+              matchesPlayed: profile.stats.matchesPlayed + 1,
+              wins: isWinner ? profile.stats.wins + 1 : profile.stats.wins,
+              losses: isLoser ? profile.stats.losses + 1 : profile.stats.losses,
+              totalPointsWon: profile.stats.totalPointsWon + matchData.points,
+              gamesWon: profile.stats.gamesWon + matchData.games,
+              setsWon: profile.stats.setsWon + matchData.sets,
+              serviceGamesWon: profile.stats.serviceGamesWon + matchData.serviceGames,
+              breaksWon: profile.stats.breaksWon + matchData.breaks,
+              totalMatchTimeMinutes: profile.stats.totalMatchTimeMinutes + matchDurationMinutes,
               currentWinningStreak: newStreak,
               longestWinningStreak: newLongestStreak
             }
@@ -97,8 +116,6 @@ export const useProfileStore = create<ProfileState>()(
         })
       }))
     }),
-    {
-      name: 'padel-player-profiles', 
-    }
+    { name: 'padel-player-profiles' }
   )
 );

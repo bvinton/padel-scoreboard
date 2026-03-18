@@ -26,6 +26,13 @@ export interface SetScore {
   team2: number;
 }
 
+// NEW: The Shadow Tracker for deep stats
+export interface MatchStatsTracker {
+  startTime: number | null;
+  team1: { totalPoints: number; serviceGamesWon: number; breaksWon: number };
+  team2: { totalPoints: number; serviceGamesWon: number; breaksWon: number };
+}
+
 export interface PadelState {
   useGoldenPoint: boolean;
   matchFormat: MatchFormat; 
@@ -43,6 +50,8 @@ export interface PadelState {
   
   team1: TeamState;
   team2: TeamState;
+  
+  matchStats: MatchStatsTracker; // NEW
 
   setScores: SetScore[];
   history: PadelStateSnapshot[];
@@ -58,7 +67,7 @@ export interface PadelState {
   setLanguage: (lang: Language) => void;
   setTeamName: (team: TeamKey, name: string) => void;
   setTeamPlayers: (team: TeamKey, players: [TeamPlayerRef, TeamPlayerRef] | null) => void;
-  clearAllPlayers: () => void; // NEW: The action to wipe the board
+  clearAllPlayers: () => void; 
   resetMatch: () => void;
 }
 
@@ -71,12 +80,7 @@ const STANDARD_POINTS: StandardPoint[] = ['0', '15', '30', '40', 'Ad'];
 const getOppositeTeam = (team: TeamKey): TeamKey => team === 'team1' ? 'team2' : 'team1';
 
 const createInitialTeamState = (name: string): TeamState => ({ 
-  name, 
-  points: '0', 
-  games: 0, 
-  sets: 0,
-  players: null,
-  serverIndex: 0 
+  name, points: '0', games: 0, sets: 0, players: null, serverIndex: 0 
 });
 
 const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint' | 'toggleGoldenPoint' | 'toggleServer' | 'setMatchFormat' | 'resetMatch' | 'toggleUmpire' | 'setLanguage' | 'setTeamName' | 'toggleOutdoorMode' | 'setTeamPlayers' | 'toggleMatchType' | 'clearAllPlayers'> => ({
@@ -94,6 +98,11 @@ const createInitialState = (): Omit<PadelState, 'history' | 'undo' | 'scorePoint
   team1: createInitialTeamState('Team 1'),
   team2: createInitialTeamState('Team 2'),
   setScores: [], 
+  matchStats: {
+    startTime: null,
+    team1: { totalPoints: 0, serviceGamesWon: 0, breaksWon: 0 },
+    team2: { totalPoints: 0, serviceGamesWon: 0, breaksWon: 0 }
+  }
 });
 
 const cloneSnapshot = (state: PadelState): PadelStateSnapshot => {
@@ -105,6 +114,13 @@ const applyGameWin = (state: PadelState, winner: TeamKey): void => {
   const loser = getOppositeTeam(winner);
   const winnerTeam = state[winner];
   const loserTeam = state[loser];
+
+  // NEW: Track Service Holds vs Breaks BEFORE swapping the server
+  if (state.server === winner) {
+    state.matchStats[winner].serviceGamesWon += 1;
+  } else {
+    state.matchStats[winner].breaksWon += 1;
+  }
 
   winnerTeam.games += 1;
   winnerTeam.points = '0';
@@ -229,6 +245,13 @@ export const useMatchStore = create<PadelState>()(
           set((state) => {
             const nextState = JSON.parse(JSON.stringify(state)) as PadelState;
             nextState.history = [...state.history, snapshot];
+            
+            // NEW: Tally the point and start the timer if this is the first point
+            nextState.matchStats[team].totalPoints += 1;
+            if (nextState.matchStats.startTime === null) {
+              nextState.matchStats.startTime = Date.now();
+            }
+
             if (nextState.isTiebreak) handleTiebreakPoint(nextState, team);
             else handleStandardPoint(nextState, team);
             return nextState;
@@ -246,7 +269,6 @@ export const useMatchStore = create<PadelState>()(
           [team]: { ...state[team], players }
         })),
 
-        // NEW: Wipes the board clean
         clearAllPlayers: () => set((state) => ({
           team1: { ...state.team1, players: null },
           team2: { ...state.team2, players: null }

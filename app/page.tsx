@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useMatchStore } from "../store/useMatchStore";
-import { useProfileStore } from "../store/useProfileStore"; // NEW: Import profile store
+import { useProfileStore } from "../store/useProfileStore";
 import { dict } from "./translations";
 import HardwareWizard from "./components/HardwareWizard";
 import SettingsModal from "./components/SettingsModal";
@@ -31,10 +31,10 @@ interface SavedMatch {
 export default function HomePage() {
   const {
     team1, team2, server, matchWinner, setScores, scorePoint, undo, 
-    resetMatch, isOutdoorMode, language, history
+    resetMatch, isOutdoorMode, language, history, matchStats
   } = useMatchStore();
 
-  const { recordMatchResult } = useProfileStore(); // NEW: Destructure stat recorder
+  const { recordMatchResult } = useProfileStore();
 
   const t = dict[language] || dict.en; 
 
@@ -104,29 +104,52 @@ export default function HomePage() {
     resetMatch();
   };
 
-  // NEW: The massive End Match sequence
+  // NEW: Deep Stat Extraction and Submission
   const handleEndMatch = () => {
-    // 1. Save to visual archive log
     let scoreString = setScores.map(set => `${set.team1}-${set.team2}`).join(', ');
     if (team1.games > 0 || team2.games > 0) { const currentScore = `${team1.games}-${team2.games}`; scoreString = scoreString ? `${scoreString}, ${currentScore}` : currentScore; }
     const newMatch: SavedMatch = { id: Date.now(), date: new Date().toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), team1Name: team1.name, team2Name: team2.name, scores: scoreString || "0-0" };
     const updated = [newMatch, ...savedMatches]; setSavedMatches(updated); localStorage.setItem('padelArchive', JSON.stringify(updated)); 
 
-    // 2. Process Stats if someone actually won
     if (matchWinner) {
-      const winningTeam = matchWinner === 'team1' ? team1 : team2;
-      const losingTeam = matchWinner === 'team1' ? team2 : team1;
+      // 1. Calculate Total Games Won (Past Sets + Current Set)
+      const t1TotalGames = setScores.reduce((sum, set) => sum + set.team1, 0) + team1.games;
+      const t2TotalGames = setScores.reduce((sum, set) => sum + set.team2, 0) + team2.games;
 
-      const winningIds = winningTeam.players ? winningTeam.players.map(p => p.id) : [];
-      const losingIds = losingTeam.players ? losingTeam.players.map(p => p.id) : [];
+      // 2. Format the specific stats for Team 1
+      const team1Data = {
+        ids: team1.players ? team1.players.map(p => p.id) : [],
+        stats: {
+          points: matchStats.team1.totalPoints,
+          games: t1TotalGames,
+          sets: team1.sets,
+          serviceGames: matchStats.team1.serviceGamesWon,
+          breaks: matchStats.team1.breaksWon
+        }
+      };
 
-      recordMatchResult(winningIds, losingIds);
-      addLog(language === 'es' ? "Partido Finalizado y Estadísticas Guardadas" : "Match Ended & Stats Recorded");
+      // 3. Format the specific stats for Team 2
+      const team2Data = {
+        ids: team2.players ? team2.players.map(p => p.id) : [],
+        stats: {
+          points: matchStats.team2.totalPoints,
+          games: t2TotalGames,
+          sets: team2.sets,
+          serviceGames: matchStats.team2.serviceGamesWon,
+          breaks: matchStats.team2.breaksWon
+        }
+      };
+
+      // 4. Calculate total match time in minutes
+      const durationMinutes = matchStats.startTime ? Math.round((Date.now() - matchStats.startTime) / 60000) : 0;
+
+      // 5. Blast it to the profile database
+      recordMatchResult(matchWinner, team1Data, team2Data, durationMinutes);
+      addLog(language === 'es' ? "Partido Finalizado y Estadísticas Guardadas" : "Match Ended & Deep Stats Recorded");
     } else {
       addLog(language === 'es' ? "Partido Guardado (Sin Ganador)" : "Match Saved (No Winner)");
     }
 
-    // 3. Reset board for the rematch
     setLocalDismissed(false); endTimeRef.current = null; setTimerStarted(false); setTimeLeft(0);
     resetMatch();
   };
@@ -292,7 +315,7 @@ export default function HomePage() {
       {optionsOpen && (
         <Footer 
           handleUndo={handleUndo}
-          handleEndMatch={handleEndMatch} // NEW: Pass the new handler
+          handleEndMatch={handleEndMatch} 
           handleReset={handleReset}
           setReadmeOpen={setReadmeOpen}
           setArchiveOpen={setArchiveOpen}
