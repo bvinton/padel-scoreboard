@@ -26,8 +26,7 @@ import PlayerSelectModal from "./components/PlayerSelectModal";
 import LockedWarningModal from "./components/LockedWarningModal";
 
 export default function HomePage() {
-  // FIXED: Brought in isTiebreak
-  const { team1, team2, server, matchWinner, isOutdoorMode, language, history, initialServerDecided, isSetupComplete, forceNewMatchState, isTiebreak } = useMatchStore();
+  const { team1, team2, server, matchWinner, isOutdoorMode, language, history, initialServerDecided, isSetupComplete, forceNewMatchState, isTiebreak, serveTimerEnabled } = useMatchStore();
   const t = dict[language] || dict.en; 
 
   const [isMounted, setIsMounted] = useState(false);
@@ -55,8 +54,6 @@ export default function HomePage() {
   useUmpireAudio(appStarted, localDismissed);
 
   const isAnyModalOpen = matchSetupOpen || settingsOpen || userGuideOpen || historyOpen || archiveOpen || readmeOpen || rosterOpen || lockedWarningOpen || (playerSelectConfig !== null);
-
-  // FIXED: Logic to detect if we are at the very start of a game or tiebreak (0-0)
   const isStartOfGame = (!isTiebreak && team1.points === '0' && team2.points === '0') || (isTiebreak && team1.points === 0 && team2.points === 0);
 
   useEffect(() => { setIsMounted(true); }, []);
@@ -75,7 +72,6 @@ export default function HomePage() {
       window.speechSynthesis.speak(silentUtterance);
     }
     await requestWakeLock(); 
-
     const isBrandNewMatch = history.length === 0 && team1.points === '0' && team2.points === '0' && team1.games === 0 && team2.games === 0 && team1.sets === 0 && team2.sets === 0;
     if (isBrandNewMatch) forceNewMatchState();
   };
@@ -113,58 +109,25 @@ export default function HomePage() {
       <UserGuideModal isOpen={userGuideOpen} onClose={() => setUserGuideOpen(false)} isOutdoorMode={isOutdoorMode} />
       <HardwareWizard isOpen={readmeOpen} onClose={() => { setReadmeOpen(false); setTestSignals({ team1: false, team2: false, undo: false }); }} testSignals={testSignals} />
       <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} roomCode={roomCode} generateNewRoomCode={generateNewRoomCode} setReadmeOpen={setReadmeOpen} setUserGuideOpen={setUserGuideOpen} />
-      
-      <PointLogModal 
-        isOpen={historyOpen} 
-        onClose={() => { 
-          setHistoryOpen(false); 
-          if (returnToRoster) { setRosterOpen(true); setReturnToRoster(false); }
-        }} 
-        historyLog={historyLog} 
-      />
-      
-      <ArchiveModal 
-        isOpen={archiveOpen} 
-        onClose={() => { 
-          setArchiveOpen(false); 
-          if (returnToRoster) { setRosterOpen(true); setReturnToRoster(false); }
-        }} 
-        savedMatches={savedMatches} 
-        deleteSavedMatch={deleteSavedMatch} 
-        clearArchive={clearArchive} 
-      />
+      <PointLogModal isOpen={historyOpen} onClose={() => { setHistoryOpen(false); if (returnToRoster) { setRosterOpen(true); setReturnToRoster(false); } }} historyLog={historyLog} />
+      <ArchiveModal isOpen={archiveOpen} onClose={() => { setArchiveOpen(false); if (returnToRoster) { setRosterOpen(true); setReturnToRoster(false); } }} savedMatches={savedMatches} deleteSavedMatch={deleteSavedMatch} clearArchive={clearArchive} />
       
       <PlayerRosterModal 
         isOpen={rosterOpen} 
         onClose={() => setRosterOpen(false)} 
         isOutdoorMode={isOutdoorMode} 
-        setHistoryOpen={(v) => { 
-          if (v) { setReturnToRoster(true); setHistoryOpen(true); } 
-          else setHistoryOpen(false); 
-        }} 
-        setArchiveOpen={(v) => { 
-          if (v) { setReturnToRoster(true); setArchiveOpen(true); } 
-          else setArchiveOpen(false); 
-        }} 
+        setHistoryOpen={(v) => { if (v) { setReturnToRoster(true); setHistoryOpen(true); } else setHistoryOpen(false); }} 
+        setArchiveOpen={(v) => { if (v) { setReturnToRoster(true); setArchiveOpen(true); } else setArchiveOpen(false); }} 
       />
       
       <PlayerSelectModal isOpen={playerSelectConfig !== null} onClose={() => setPlayerSelectConfig(null)} teamId={playerSelectConfig?.teamId || null} playerIndex={playerSelectConfig?.playerIndex ?? null} isOutdoorMode={isOutdoorMode} />
       <LockedWarningModal isOpen={lockedWarningOpen} onClose={() => setLockedWarningOpen(false)} isOutdoorMode={isOutdoorMode} />
 
-      {/* FIXED: The Serve Timer now completely hides if isStartOfGame is true! */}
-      <ServeTimer timerStarted={timerStarted && !matchWinner && !isStartOfGame} timeLeft={timeLeft} isOutdoorMode={isOutdoorMode} />
+      <ServeTimer timerStarted={timerStarted && !matchWinner && !isStartOfGame && serveTimerEnabled} timeLeft={timeLeft} isOutdoorMode={isOutdoorMode} />
 
       <section className="flex-grow flex flex-col p-0 relative overflow-hidden">
         <PlayerPanel teamId="team1" teamData={team1} isServing={server === "team1"} isOutdoorMode={isOutdoorMode} t={t} handleScore={handleScore} onPlayerClick={handlePlayerSlotClick} />
         <PlayerPanel teamId="team2" teamData={team2} isServing={server === "team2"} isOutdoorMode={isOutdoorMode} t={t} handleScore={handleScore} onPlayerClick={handlePlayerSlotClick} />
-
-        {displayHint && (
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 animate-pulse pointer-events-none text-center w-full">
-             <span className={`text-xs md:text-sm font-black uppercase tracking-[0.3em] opacity-30 ${isOutdoorMode ? 'text-black' : 'text-white'}`}>
-               Hold Screen for Menu
-             </span>
-          </div>
-        )}
       </section>
 
       {optionsOpen && (
