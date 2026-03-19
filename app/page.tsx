@@ -26,7 +26,8 @@ import PlayerSelectModal from "./components/PlayerSelectModal";
 import LockedWarningModal from "./components/LockedWarningModal";
 
 export default function HomePage() {
-  const { team1, team2, server, matchWinner, isOutdoorMode, language, history, initialServerDecided, isSetupComplete, forceNewMatchState } = useMatchStore();
+  // FIXED: Brought in isTiebreak
+  const { team1, team2, server, matchWinner, isOutdoorMode, language, history, initialServerDecided, isSetupComplete, forceNewMatchState, isTiebreak } = useMatchStore();
   const t = dict[language] || dict.en; 
 
   const [isMounted, setIsMounted] = useState(false);
@@ -53,8 +54,10 @@ export default function HomePage() {
   const { timeLeft, timerStarted, historyLog, savedMatches, handleScore, handleUndo, handleReset, handleEndMatch, deleteSavedMatch, clearArchive } = useMatchController(localDismissed, setLocalDismissed, setShowWelcomeHint);
   useUmpireAudio(appStarted, localDismissed);
 
-  // NEW: The Master Radar. It checks if any of these specific modals are open on the screen.
   const isAnyModalOpen = matchSetupOpen || settingsOpen || userGuideOpen || historyOpen || archiveOpen || readmeOpen || rosterOpen || lockedWarningOpen || (playerSelectConfig !== null);
+
+  // FIXED: Logic to detect if we are at the very start of a game or tiebreak (0-0)
+  const isStartOfGame = (!isTiebreak && team1.points === '0' && team2.points === '0') || (isTiebreak && team1.points === 0 && team2.points === 0);
 
   useEffect(() => { setIsMounted(true); }, []);
 
@@ -104,7 +107,6 @@ export default function HomePage() {
       <KeyboardListener handleScore={(team) => { if (!readmeOpen) handleScore(team); }} handleUndo={() => { if (!readmeOpen) handleUndo(); }} setTestSignals={setTestSignals} />
       <WebhookListener roomCode={roomCode} handleScore={(team) => { if (!readmeOpen) handleScore(team); }} handleUndo={() => { if (!readmeOpen) handleUndo(); }} setTestSignals={setTestSignals} setIsOnline={setIsOnline} />
 
-      {/* FIXED: We pass our master radar directly into the Overlays */}
       <AppOverlays appStarted={appStarted} handleAppStart={handleAppStart} localDismissed={localDismissed} setLocalDismissed={setLocalDismissed} handleReset={handleReset} openMatchSetup={() => setMatchSetupOpen(true)} isAnyModalOpen={isAnyModalOpen} />
 
       <MatchSetupModal isOpen={matchSetupOpen} onClose={() => setMatchSetupOpen(false)} onPlayerClick={handlePlayerSlotClick} setRosterOpen={setRosterOpen} />
@@ -149,7 +151,8 @@ export default function HomePage() {
       <PlayerSelectModal isOpen={playerSelectConfig !== null} onClose={() => setPlayerSelectConfig(null)} teamId={playerSelectConfig?.teamId || null} playerIndex={playerSelectConfig?.playerIndex ?? null} isOutdoorMode={isOutdoorMode} />
       <LockedWarningModal isOpen={lockedWarningOpen} onClose={() => setLockedWarningOpen(false)} isOutdoorMode={isOutdoorMode} />
 
-      <ServeTimer timerStarted={timerStarted && !matchWinner} timeLeft={timeLeft} isOutdoorMode={isOutdoorMode} />
+      {/* FIXED: The Serve Timer now completely hides if isStartOfGame is true! */}
+      <ServeTimer timerStarted={timerStarted && !matchWinner && !isStartOfGame} timeLeft={timeLeft} isOutdoorMode={isOutdoorMode} />
 
       <section className="flex-grow flex flex-col p-0 relative overflow-hidden">
         <PlayerPanel teamId="team1" teamData={team1} isServing={server === "team1"} isOutdoorMode={isOutdoorMode} t={t} handleScore={handleScore} onPlayerClick={handlePlayerSlotClick} />
