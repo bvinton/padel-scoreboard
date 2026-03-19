@@ -36,11 +36,14 @@ export default function PlayerPanel({ teamId, teamData, isServing, isOutdoorMode
   const isPlayer1Serving = isServing && teamData.serverIndex === 0;
   const isPlayer2Serving = isServing && teamData.serverIndex === 1;
 
-  const dimmedStyle = isOutdoorMode ? "text-black/50" : "text-white/50";
-  const activeTextColor = isOutdoorMode ? "text-emerald-700" : "text-emerald-400";
+  // FIXED: Drastically brightened inactive text so it's readable from a distance
+  const dimmedStyle = isOutdoorMode ? "text-slate-600" : "text-slate-300";
+  
+  // FIXED: Changed Active Glow to a fierce, broadcast-standard Red
+  const activeTextColor = isOutdoorMode ? "text-red-700" : "text-red-500";
   const activeGlowFilter = isOutdoorMode
-    ? "drop-shadow(0 0 10px rgba(5,150,105,0.8))"
-    : "drop-shadow(0 0 20px rgba(52,211,153,1)) drop-shadow(0 0 40px rgba(52,211,153,1)) drop-shadow(0 0 80px rgba(52,211,153,1))";
+    ? "drop-shadow(0 0 10px rgba(220,38,38,0.8))"
+    : "drop-shadow(0 0 20px rgba(239,68,68,1)) drop-shadow(0 0 40px rgba(239,68,68,0.8)) drop-shadow(0 0 80px rgba(239,68,68,0.6))";
 
   // --- SINGLES LAYOUT (Diagonal Layout) ---
   if (isSingles) {
@@ -54,8 +57,7 @@ export default function PlayerPanel({ teamId, teamData, isServing, isOutdoorMode
           {isTeam1 ? (
             <div 
               onClick={(e) => { e.stopPropagation(); onPlayerClick(teamId, 0); }}
-              // Scaled up Player Name
-              className={`text-[4vh] md:text-[5vh] font-black uppercase tracking-wider transition-all duration-300 hover:scale-105 active:scale-95 ${isServing ? activeTextColor : dimmedStyle}`}
+              className={`text-[4.5vh] md:text-[6vh] font-black uppercase tracking-wider transition-all duration-300 hover:scale-105 active:scale-95 ${isServing ? activeTextColor : dimmedStyle}`}
               style={{ filter: isServing ? activeGlowFilter : 'none' }}
             >
               {player1Name}
@@ -64,14 +66,11 @@ export default function PlayerPanel({ teamId, teamData, isServing, isOutdoorMode
 
           <div className="flex flex-col items-start gap-1 pointer-events-none">
             <div className="flex flex-col items-center">
-              {/* Scaled up SETS label */}
               <div className="text-[2vh] md:text-[2.5vh] font-bold opacity-70 italic tracking-widest">{t.sets || 'SETS'}</div>
-              {/* Massive 24vh Sets Score */}
               <div className="text-[20vh] md:text-[24vh] font-black leading-none">{teamData.sets}</div>
             </div>
             
-            {/* Scaled up SERVING Badge */}
-            <div className={`px-5 py-2 rounded-xl font-black text-[1.5vh] md:text-[2vh] tracking-widest mt-2 transition-all duration-300 ${(isServing && isTeam1) ? 'animate-pulse bg-emerald-500 text-black shadow-[0_0_20px_rgba(52,211,153,0.8)]' : 'opacity-0'}`}>
+            <div className={`px-5 py-2 rounded-xl font-black text-[1.5vh] md:text-[2vh] tracking-widest mt-2 transition-all duration-300 ${(isServing && isTeam1) ? 'animate-pulse bg-red-500 text-white shadow-[0_0_20px_rgba(239,68,68,0.8)]' : 'opacity-0'}`}>
               SERVING
             </div>
           </div>
@@ -82,8 +81,7 @@ export default function PlayerPanel({ teamId, teamData, isServing, isOutdoorMode
           {!isTeam1 ? (
             <div 
               onClick={(e) => { e.stopPropagation(); onPlayerClick(teamId, 0); }}
-              // Scaled up Player Name
-              className={`text-[4vh] md:text-[5vh] font-black uppercase tracking-wider transition-all duration-300 hover:scale-105 active:scale-95 ${isServing ? activeTextColor : dimmedStyle}`}
+              className={`text-[4.5vh] md:text-[6vh] font-black uppercase tracking-wider transition-all duration-300 hover:scale-105 active:scale-95 ${isServing ? activeTextColor : dimmedStyle}`}
               style={{ filter: isServing ? activeGlowFilter : 'none' }}
             >
               {player1Name}
@@ -92,14 +90,11 @@ export default function PlayerPanel({ teamId, teamData, isServing, isOutdoorMode
 
           <div className="flex flex-col items-end gap-1 pointer-events-none">
             <div className="flex flex-col items-center">
-              {/* Scaled up GAMES label */}
               <div className="text-[2vh] md:text-[2.5vh] font-bold opacity-70 italic tracking-widest">{t.games || 'GAMES'}</div>
-              {/* Massive 24vh Games Score */}
               <div className="text-[20vh] md:text-[24vh] font-black leading-none">{teamData.games}</div>
             </div>
             
-            {/* Scaled up SERVING Badge */}
-            <div className={`px-5 py-2 rounded-xl font-black text-[1.5vh] md:text-[2vh] tracking-widest mt-2 transition-all duration-300 ${(isServing && !isTeam1) ? 'animate-pulse bg-emerald-500 text-black shadow-[0_0_20px_rgba(52,211,153,0.8)]' : 'opacity-0'}`}>
+            <div className={`px-5 py-2 rounded-xl font-black text-[1.5vh] md:text-[2vh] tracking-widest mt-2 transition-all duration-300 ${(isServing && !isTeam1) ? 'animate-pulse bg-red-500 text-white shadow-[0_0_20px_rgba(239,68,68,0.8)]' : 'opacity-0'}`}>
               SERVING
             </div>
           </div>
@@ -111,7 +106,7 @@ export default function PlayerPanel({ teamId, teamData, isServing, isOutdoorMode
             className={`font-extrabold text-[50vh] leading-none tracking-tighter transition-all duration-300 ${isOutdoorMode ? 'text-black' : 'text-white'}`}
             style={{ 
               transform: 'skewX(-10deg)', 
-              filter: isServing && !isOutdoorMode ? 'drop-shadow(0 0 40px rgba(52,211,153,0.5)) drop-shadow(0 0 80px rgba(52,211,153,0.3))' : 'none' 
+              filter: isServing && !isOutdoorMode ? 'drop-shadow(0 0 40px rgba(239,68,68,0.5)) drop-shadow(0 0 80px rgba(239,68,68,0.3))' : 'none' 
             }}
           >
             {teamData.points}
@@ -131,7 +126,7 @@ export default function PlayerPanel({ teamId, teamData, isServing, isOutdoorMode
       <div className="absolute top-6 left-8 bottom-6 flex flex-col justify-between items-start z-10">
         <div 
           onClick={(e) => { e.stopPropagation(); onPlayerClick(teamId, 0); }}
-          className={`text-[4vh] md:text-[5vh] font-black uppercase tracking-wider transition-all duration-300 hover:scale-105 active:scale-95 ${isPlayer1Serving ? activeTextColor : ''}`}
+          className={`text-[4.5vh] md:text-[6vh] font-black uppercase tracking-wider transition-all duration-300 hover:scale-105 active:scale-95 ${isPlayer1Serving ? activeTextColor : ''}`}
           style={{ filter: isPlayer1Serving ? activeGlowFilter : 'none' }}
         >
           <span className={!isPlayer1Serving ? dimmedStyle : ''}>{player1Name}</span>
@@ -141,7 +136,7 @@ export default function PlayerPanel({ teamId, teamData, isServing, isOutdoorMode
             <div className="text-[2vh] md:text-[2.5vh] font-bold opacity-70 italic tracking-widest">{t.sets || 'SETS'}</div>
             <div className="text-[20vh] md:text-[24vh] font-black leading-none">{teamData.sets}</div>
           </div>
-          <div className={`px-5 py-2 rounded-xl font-black text-[1.5vh] md:text-[2vh] tracking-widest mt-2 transition-all duration-300 ${isPlayer1Serving ? 'animate-pulse bg-emerald-500 text-black shadow-[0_0_20px_rgba(52,211,153,0.8)]' : 'opacity-0'}`}>
+          <div className={`px-5 py-2 rounded-xl font-black text-[1.5vh] md:text-[2vh] tracking-widest mt-2 transition-all duration-300 ${isPlayer1Serving ? 'animate-pulse bg-red-500 text-white shadow-[0_0_20px_rgba(239,68,68,0.8)]' : 'opacity-0'}`}>
             SERVING
           </div>
         </div>
@@ -151,7 +146,7 @@ export default function PlayerPanel({ teamId, teamData, isServing, isOutdoorMode
       <div className="absolute top-6 right-8 bottom-6 flex flex-col justify-between items-end z-10">
         <div 
           onClick={(e) => { e.stopPropagation(); onPlayerClick(teamId, 1); }}
-          className={`text-[4vh] md:text-[5vh] font-black uppercase tracking-wider transition-all duration-300 hover:scale-105 active:scale-95 ${isPlayer2Serving ? activeTextColor : ''}`}
+          className={`text-[4.5vh] md:text-[6vh] font-black uppercase tracking-wider transition-all duration-300 hover:scale-105 active:scale-95 ${isPlayer2Serving ? activeTextColor : ''}`}
           style={{ filter: isPlayer2Serving ? activeGlowFilter : 'none' }}
         >
           <span className={!isPlayer2Serving ? dimmedStyle : ''}>{player2Name}</span>
@@ -161,7 +156,7 @@ export default function PlayerPanel({ teamId, teamData, isServing, isOutdoorMode
             <div className="text-[2vh] md:text-[2.5vh] font-bold opacity-70 italic tracking-widest">{t.games || 'GAMES'}</div>
             <div className="text-[20vh] md:text-[24vh] font-black leading-none">{teamData.games}</div>
           </div>
-          <div className={`px-5 py-2 rounded-xl font-black text-[1.5vh] md:text-[2vh] tracking-widest mt-2 transition-all duration-300 ${isPlayer2Serving ? 'animate-pulse bg-emerald-500 text-black shadow-[0_0_20px_rgba(52,211,153,0.8)]' : 'opacity-0'}`}>
+          <div className={`px-5 py-2 rounded-xl font-black text-[1.5vh] md:text-[2vh] tracking-widest mt-2 transition-all duration-300 ${isPlayer2Serving ? 'animate-pulse bg-red-500 text-white shadow-[0_0_20px_rgba(239,68,68,0.8)]' : 'opacity-0'}`}>
             SERVING
           </div>
         </div>
@@ -173,7 +168,7 @@ export default function PlayerPanel({ teamId, teamData, isServing, isOutdoorMode
           className={`font-extrabold text-[50vh] leading-none tracking-tighter transition-all duration-300 ${isOutdoorMode ? 'text-black' : 'text-white'}`}
           style={{ 
             transform: 'skewX(-10deg)', 
-            filter: isServing && !isOutdoorMode ? 'drop-shadow(0 0 40px rgba(52,211,153,0.5)) drop-shadow(0 0 80px rgba(52,211,153,0.3))' : 'none' 
+            filter: isServing && !isOutdoorMode ? 'drop-shadow(0 0 40px rgba(239,68,68,0.5)) drop-shadow(0 0 80px rgba(239,68,68,0.3))' : 'none' 
           }}
         >
           {teamData.points}
